@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | User Dashboard</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.dashboard-shell {
+			display: grid;
+			gap: 1rem;
+			margin: 0.8rem 0 1.4rem;
+		}
+
+		.dashboard-shell > * {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+
+		.dashboard-shell.is-ready > * {
+			animation: fadeRise 0.55s ease forwards;
+		}
+
+		.dashboard-shell.is-ready > *:nth-child(2) {
+			animation-delay: 0.08s;
+		}
+
+		.dashboard-shell.is-ready > *:nth-child(3) {
+			animation-delay: 0.16s;
+		}
+
+		.dashboard-hidden {
+			display: none;
+		}
+
+		.hero {
+			background: linear-gradient(130deg, #fff2cc 0%, #eaf4ff 60%, #e9f8f3 100%);
+			border: 1px solid #dfd4c3;
+			border-radius: 18px;
+			box-shadow: var(--shadow-soft);
+			padding: 1.1rem;
+			display: grid;
+			gap: 0.9rem;
+			grid-template-columns: 1.2fr 0.8fr;
+		}
+
+		.hero h1 {
+			margin: 0;
+			font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+			line-height: 1.2;
+		}
+
+		.hero p {
+			margin: 0;
+			color: #4f473d;
+		}
+
+		.quick-actions {
+			display: flex;
+			gap: 0.55rem;
+			flex-wrap: wrap;
+			margin-top: 0.75rem;
+		}
+
+		.profile-block {
+			background: rgba(255, 255, 255, 0.6);
+			border: 1px solid #d9cfbf;
+			border-radius: 14px;
+			padding: 0.85rem;
+			display: grid;
+			gap: 0.45rem;
+		}
+
+		.avatar {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			background: linear-gradient(130deg, #0f766e, #f59e0b);
+			color: #fff;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: 1.25rem;
+		}
+
+		.profile-meta {
+			display: grid;
+			gap: 0.28rem;
+			color: #54493e;
+			font-size: 0.93rem;
+		}
+
+		.kpi-grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 0.75rem;
+		}
+
+		.kpi {
+			background: #fffaf2;
+			border: 1px solid #eadfce;
+			border-radius: 14px;
+			box-shadow: var(--shadow-soft);
+			padding: 0.9rem;
+			display: grid;
+			gap: 0.35rem;
+		}
+
+		.kpi span {
+			font-size: 0.78rem;
+			text-transform: uppercase;
+			letter-spacing: 0.4px;
+			color: #655b4f;
+			font-weight: 700;
+		}
+
+		.kpi strong {
+			font-size: 1.2rem;
+			line-height: 1.1;
+			color: #211d18;
+		}
+
+		.layout {
+			display: grid;
+			grid-template-columns: 1fr 2fr;
+			gap: 1rem;
+		}
+
+		.card {
+			background: #fffaf2;
+			border: 1px solid #eadfce;
+			border-radius: 14px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+		}
+
+		.card h2,
+		.card h3 {
+			margin: 0 0 0.55rem;
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.contribution-track {
+			margin-top: 0.7rem;
+			background: #eee3d5;
+			height: 10px;
+			border-radius: 999px;
+			overflow: hidden;
+		}
+
+		.contribution-fill {
+			height: 100%;
+			border-radius: inherit;
+			width: 0;
+			background: linear-gradient(90deg, #0f766e 0%, #f59e0b 100%);
+			transition: width 0.7s ease;
+		}
+
+		.supported-campaigns {
+			margin-top: 0.5rem;
+		}
+
+		.micro-chart {
+			margin-top: 0.9rem;
+			padding-top: 0.75rem;
+			border-top: 1px dashed #dbcdb9;
+		}
+
+		.chart-head {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.6rem;
+			align-items: baseline;
+			margin-bottom: 0.5rem;
+		}
+
+		.chart-head h4 {
+			margin: 0;
+			font-size: 0.96rem;
+		}
+
+		.month-bars {
+			display: grid;
+			grid-template-columns: repeat(6, 1fr);
+			gap: 0.4rem;
+			height: 110px;
+			align-items: end;
+		}
+
+		.month-col {
+			display: grid;
+			grid-template-rows: 1fr auto;
+			gap: 0.3rem;
+			height: 100%;
+		}
+
+		.month-bar-wrap {
+			display: flex;
+			align-items: end;
+			height: 100%;
+		}
+
+		.month-bar {
+			width: 100%;
+			height: 0;
+			border-radius: 8px 8px 4px 4px;
+			background: linear-gradient(180deg, #0f766e 0%, #f59e0b 100%);
+			transition: height 0.8s ease;
+		}
+
+		.month-label {
+			font-size: 0.72rem;
+			font-weight: 700;
+			text-align: center;
+			color: #6c6054;
+		}
+
+		.history-head {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.8rem;
+			align-items: center;
+			flex-wrap: wrap;
+			margin-bottom: 0.6rem;
+		}
+
+		.filter-group {
+			display: flex;
+			gap: 0.45rem;
+			flex-wrap: wrap;
+		}
+
+		.filter-btn {
+			border: 1px solid #c8baa7;
+			background: #fff;
+			border-radius: 999px;
+			padding: 0.34rem 0.68rem;
+			font-size: 0.82rem;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.filter-btn.active {
+			background: #0f766e;
+			color: #fff;
+			border-color: #0f766e;
+		}
+
+		.table-wrap {
+			overflow: auto;
+			border: 1px solid #eadfce;
+			border-radius: 10px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 680px;
+			background: #fffefb;
+		}
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.7rem;
+			border-bottom: 1px solid #f1e8da;
+			font-size: 0.91rem;
+		}
+
+		th {
+			background: #f8f1e6;
+			font-size: 0.82rem;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+			color: #5a4f43;
+		}
+
+		.status {
+			display: inline-flex;
+			padding: 0.15rem 0.5rem;
+			border-radius: 999px;
+			font-size: 0.76rem;
+			font-weight: 700;
+			text-transform: capitalize;
+		}
+
+		.status.paid {
+			background: #ecfdf3;
+			color: #067647;
+		}
+
+		.status.created {
+			background: #fef0c7;
+			color: #92400e;
+		}
+
+		.status.failed {
+			background: #fef3f2;
+			color: #b42318;
+		}
+
+		.row-link {
+			border: 1px solid #ccbfae;
+			background: #fff;
+			border-radius: 999px;
+			padding: 0.25rem 0.62rem;
+			font-size: 0.8rem;
+			cursor: pointer;
+		}
+
+		.panel {
+			background: #fffaf2;
+			border: 1px solid #eadfce;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin: 0.8rem 0;
+		}
+
+		.compact-list {
+			display: none;
+			gap: 0.6rem;
+		}
+
+		.compact-item {
+			border: 1px solid #eadfce;
+			border-radius: 10px;
+			padding: 0.65rem;
+			background: #fffefb;
+			display: grid;
+			gap: 0.3rem;
+		}
+
+		@media (max-width: 1080px) {
+			.kpi-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+
+			.layout {
+				grid-template-columns: 1fr;
+			}
+
+			.hero {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 760px) {
+			.kpi-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.table-wrap {
+				display: none;
+			}
+
+			.compact-list {
+				display: grid;
+			}
+
+			.month-bars {
+				height: 92px;
+			}
+		}
+
+		@keyframes fadeRise {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="User navigation">
+			<a class="brand" href="./home.html">OpenDonate Platform</a>
+			<nav class="side-nav-list" aria-label="Sidebar links">
+				<a class="side-nav-link" href="./home.html">Home</a>
+				<a class="side-nav-link active" href="./dashboard.html" aria-current="page">Dashboard</a>
+				<a class="side-nav-link" href="./campaigns.html">Campaigns</a>
+				<a class="side-nav-link" href="./profile.html">Profile</a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+		</aside>
+
+		<main class="content-panel">
+			<section id="feedbackPanel" class="panel">Loading dashboard...</section>
+
+			<section id="dashboardGrid" class="dashboard-shell dashboard-hidden">
+			<article class="hero">
+				<div>
+					<h1 id="welcomeTitle">Welcome back</h1>
+					<p id="welcomeSubtitle">Your impact summary is loading.</p>
+					<div class="quick-actions">
+						<a class="btn btn-primary" href="./campaigns.html">Discover New Campaigns</a>
+						<a class="btn btn-outline" href="./donate.html">Quick Donate</a>
+					</div>
+				</div>
+				<div class="profile-block">
+					<div class="avatar" id="avatarBadge">U</div>
+					<div class="profile-meta">
+						<strong id="profileName">Name: -</strong>
+						<span id="profileEmail">Email: -</span>
+						<span id="memberSince">Member since: -</span>
+					</div>
+				</div>
+			</article>
+
+			<section class="kpi-grid" aria-label="Donation KPIs">
+				<article class="kpi">
+					<span>Total Donations</span>
+					<strong id="totalDonations">0</strong>
+				</article>
+				<article class="kpi">
+					<span>Total Paid Amount</span>
+					<strong id="totalPaidAmount">INR 0</strong>
+				</article>
+				<article class="kpi">
+					<span>Latest Donation</span>
+					<strong id="latestDonation">INR 0</strong>
+				</article>
+				<article class="kpi">
+					<span>Payment Success Rate</span>
+					<strong id="successRate">0%</strong>
+				</article>
+			</section>
+
+			<section class="layout">
+				<article class="card">
+					<h2>Impact Snapshot</h2>
+					<p class="muted" id="impactText">Tracking your contribution momentum.</p>
+					<div class="contribution-track">
+						<div id="contributionFill" class="contribution-fill"></div>
+					</div>
+					<p class="muted supported-campaigns" id="supportedCampaigns">Supported campaigns: 0</p>
+					<section class="micro-chart" aria-label="Monthly donations chart">
+						<div class="chart-head">
+							<h4>Last 6 Months</h4>
+							<span class="muted" id="chartTotal">Paid: INR 0</span>
+						</div>
+						<div id="monthBars" class="month-bars"></div>
+					</section>
+				</article>
+
+				<article class="card">
+					<div class="history-head">
+						<h3>Donation History</h3>
+						<div class="filter-group" id="historyFilters">
+							<button class="filter-btn active" type="button" data-filter="all">All</button>
+							<button class="filter-btn" type="button" data-filter="paid">Paid</button>
+							<button class="filter-btn" type="button" data-filter="created">Created</button>
+							<button class="filter-btn" type="button" data-filter="failed">Failed</button>
+						</div>
+					</div>
+
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Campaign</th>
+									<th>Amount</th>
+									<th>Status</th>
+									<th>Date</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody id="historyTableBody"></tbody>
+						</table>
+					</div>
+
+					<div id="historyCompact" class="compact-list"></div>
+				</article>
+			</section>
+			</section>
+		</main>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const feedbackPanel = document.getElementById('feedbackPanel');
+		const dashboardGrid = document.getElementById('dashboardGrid');
+		const welcomeTitle = document.getElementById('welcomeTitle');
+		const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+		const avatarBadge = document.getElementById('avatarBadge');
+		const profileName = document.getElementById('profileName');
+		const profileEmail = document.getElementById('profileEmail');
+		const memberSince = document.getElementById('memberSince');
+		const totalDonations = document.getElementById('totalDonations');
+		const totalPaidAmount = document.getElementById('totalPaidAmount');
+		const latestDonation = document.getElementById('latestDonation');
+		const successRate = document.getElementById('successRate');
+		const impactText = document.getElementById('impactText');
+		const supportedCampaigns = document.getElementById('supportedCampaigns');
+		const contributionFill = document.getElementById('contributionFill');
+		const chartTotal = document.getElementById('chartTotal');
+		const monthBars = document.getElementById('monthBars');
+		const historyFilters = document.getElementById('historyFilters');
+		const historyTableBody = document.getElementById('historyTableBody');
+		const historyCompact = document.getElementById('historyCompact');
+		const logoutBtn = document.getElementById('logoutBtn');
+
+		const state = {
+			allDonations: [],
+			filter: 'all'
+		};
+
+		function formatCurrency(value) {
+			return new Intl.NumberFormat('en-IN', {
+				style: 'currency',
+				currency: 'INR',
+				maximumFractionDigits: 0
+			}).format(Number(value || 0));
+		}
+
+		function formatDate(value) {
+			const date = new Date(value);
+			return date.toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		}
+
+		function showFeedback(message) {
+			feedbackPanel.style.display = 'block';
+			feedbackPanel.textContent = message;
+			dashboardGrid.style.display = 'none';
+		}
+
+		function showDashboard() {
+			feedbackPanel.style.display = 'none';
+			dashboardGrid.style.display = 'grid';
+			dashboardGrid.classList.remove('is-ready');
+			requestAnimationFrame(() => {
+				dashboardGrid.classList.add('is-ready');
+			});
+		}
+
+		function getInitials(name) {
+			if (!name) {
+				return 'U';
+			}
+
+			const parts = name.trim().split(/\s+/).slice(0, 2);
+			return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'U';
+		}
+
+		function filterDonations(donations, filter) {
+			if (filter === 'all') {
+				return donations;
+			}
+
+			return donations.filter((donation) => donation.paymentStatus === filter);
+		}
+
+		function openCampaignDetails(campaignId) {
+			if (!campaignId) {
+				return;
+			}
+
+			window.location.href = `./campaign-details.html?id=${campaignId}`;
+		}
+
+		function renderProfile(user) {
+			const firstName = (user.name || 'Supporter').split(' ')[0];
+			welcomeTitle.textContent = `Welcome back, ${firstName}`;
+			welcomeSubtitle.textContent = 'Every contribution counts. Here is your latest impact snapshot.';
+			avatarBadge.textContent = getInitials(user.name);
+			profileName.textContent = user.name || '-';
+			profileEmail.textContent = `Email: ${user.email || '-'}`;
+			memberSince.textContent = `Member since: ${formatDate(user.createdAt)}`;
+		}
+
+		function renderDonationHistory(donations) {
+			if (!donations.length) {
+				historyTableBody.innerHTML = '<tr><td colspan="5">No donations found for this filter.</td></tr>';
+				historyCompact.innerHTML = '<article class="compact-item">No donations yet. Start by supporting a campaign.</article>';
+				return;
+			}
+
+			historyTableBody.innerHTML = donations.map((donation) => {
+				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
+				const amount = formatCurrency(donation.amount);
+				const statusClass = donation.paymentStatus || 'created';
+				const date = formatDate(donation.createdAt);
+				const campaignId = donation?.campaignId?._id || '';
+
+				return `
+					<tr>
+						<td>${campaignTitle}</td>
+						<td>${amount}</td>
+						<td><span class="status ${statusClass}">${statusClass}</span></td>
+						<td>${date}</td>
+						<td><button class="row-link" type="button" data-campaign-id="${campaignId}">View</button></td>
+					</tr>
+				`;
+			}).join('');
+
+			historyTableBody.querySelectorAll('[data-campaign-id]').forEach((button) => {
+				button.addEventListener('click', () => {
+					openCampaignDetails(button.getAttribute('data-campaign-id'));
+				});
+			});
+
+			historyCompact.innerHTML = donations.map((donation) => {
+				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
+				const amount = formatCurrency(donation.amount);
+				const statusClass = donation.paymentStatus || 'created';
+				const date = formatDate(donation.createdAt);
+				const campaignId = donation?.campaignId?._id || '';
+
+				return `
+					<article class="compact-item">
+						<strong>${campaignTitle}</strong>
+						<span class="muted">Amount: ${amount}</span>
+						<span class="status ${statusClass}">${statusClass}</span>
+						<span class="muted">${date}</span>
+						<button class="row-link" type="button" data-campaign-id="${campaignId}">Open Campaign</button>
+					</article>
+				`;
+			}).join('');
+
+			historyCompact.querySelectorAll('[data-campaign-id]').forEach((button) => {
+				button.addEventListener('click', () => {
+					openCampaignDetails(button.getAttribute('data-campaign-id'));
+				});
+			});
+		}
+
+		function renderStats(donations) {
+			const total = donations.length;
+			const paid = donations.filter((item) => item.paymentStatus === 'paid');
+			const created = donations.filter((item) => item.paymentStatus === 'created');
+			const paidAmount = paid.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+			const latest = donations[0] ? Number(donations[0].amount || 0) : 0;
+			const supportedSet = new Set(
+				donations.map((item) => item?.campaignId?._id).filter(Boolean)
+			);
+			const success = total ? Math.round((paid.length / total) * 100) : 0;
+			const momentum = Math.min(100, Math.round((paid.length + created.length * 0.3) * 10));
+
+			totalDonations.textContent = String(total);
+			totalPaidAmount.textContent = formatCurrency(paidAmount);
+			latestDonation.textContent = formatCurrency(latest);
+			successRate.textContent = `${success}%`;
+			supportedCampaigns.textContent = `Supported campaigns: ${supportedSet.size}`;
+			impactText.textContent =
+				success >= 70
+					? 'Excellent consistency. Most of your donations are successfully completed.'
+					: 'Keep going. You are actively supporting meaningful causes.';
+			contributionFill.style.width = `${momentum}%`;
+			renderMonthlyChart(donations);
+		}
+
+		function renderMonthlyChart(donations) {
+			const now = new Date();
+			const paidDonations = donations.filter((item) => item.paymentStatus === 'paid');
+			const months = [];
+
+			for (let i = 5; i >= 0; i -= 1) {
+				const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+				months.push({
+					key: `${d.getFullYear()}-${d.getMonth()}`,
+					label: d.toLocaleString('en-IN', { month: 'short' }),
+					total: 0
+				});
+			}
+
+			const map = new Map(months.map((m) => [m.key, m]));
+			paidDonations.forEach((donation) => {
+				const d = new Date(donation.createdAt);
+				const key = `${d.getFullYear()}-${d.getMonth()}`;
+				const slot = map.get(key);
+				if (slot) {
+					slot.total += Number(donation.amount || 0);
+				}
+			});
+
+			const max = Math.max(...months.map((m) => m.total), 1);
+			const totalPaid = months.reduce((sum, m) => sum + m.total, 0);
+			chartTotal.textContent = `Paid: ${formatCurrency(totalPaid)}`;
+
+			monthBars.innerHTML = '';
+			months.forEach((m) => {
+				const col = document.createElement('div');
+				col.className = 'month-col';
+
+				const wrap = document.createElement('div');
+				wrap.className = 'month-bar-wrap';
+
+				const bar = document.createElement('div');
+				bar.className = 'month-bar';
+				bar.title = `${m.label}: ${formatCurrency(m.total)}`;
+
+				const label = document.createElement('div');
+				label.className = 'month-label';
+				label.textContent = m.label;
+
+				wrap.appendChild(bar);
+				col.appendChild(wrap);
+				col.appendChild(label);
+				monthBars.appendChild(col);
+
+				const heightPercent = Math.max(6, Math.round((m.total / max) * 100));
+				requestAnimationFrame(() => {
+					bar.style.height = `${heightPercent}%`;
+				});
+			});
+		}
+
+		function renderHistoryByFilter() {
+			const filtered = filterDonations(state.allDonations, state.filter);
+			renderDonationHistory(filtered);
+		}
+
+		function bindHistoryFilters() {
+			historyFilters.querySelectorAll('.filter-btn').forEach((button) => {
+				button.addEventListener('click', () => {
+					historyFilters.querySelectorAll('.filter-btn').forEach((el) => el.classList.remove('active'));
+					button.classList.add('active');
+					state.filter = button.getAttribute('data-filter') || 'all';
+					renderHistoryByFilter();
+				});
+			});
+		}
+
+		async function loadDashboard() {
+			showFeedback('Loading dashboard...');
+
+			try {
+				const [profileResponse, donationResponse] = await Promise.all([
+					apiRequest('/auth/me'),
+					apiRequest('/donations/me?page=1&limit=50')
+				]);
+
+				const user = profileResponse?.data?.user;
+				const donations = donationResponse?.data?.donations || [];
+
+				if (!user) {
+					throw new Error('Unable to load user profile.');
+				}
+
+				state.allDonations = donations;
+				renderProfile(user);
+				renderStats(donations);
+				renderHistoryByFilter();
+				showDashboard();
+			} catch (error) {
+				showFeedback(error.message || 'Unable to load dashboard right now.');
+			}
+		}
+
+		function init() {
+			if (!Auth.requireAuth('./login.html')) {
+				return;
+			}
+
+			const user = Auth.getUser();
+			if (user?.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+				return;
+			}
+
+			logoutBtn.addEventListener('click', () => {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			});
+
+			bindHistoryFilters();
+			loadDashboard();
+		}
+
+		init();
+	</script>
+</body>
+</html>

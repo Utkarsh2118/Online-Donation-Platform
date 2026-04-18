@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Profile</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.profile-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1rem;
+		}
+
+		.card {
+			background: #fffaf2;
+			border: 1px solid #eadfce;
+			border-radius: 14px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+		}
+
+		.profile-head {
+			display: grid;
+			gap: 0.5rem;
+			margin-bottom: 0.8rem;
+		}
+
+		.profile-title {
+			margin: 0;
+		}
+
+		.quick-links-title {
+			margin: 0;
+		}
+
+		.avatar {
+			width: 64px;
+			height: 64px;
+			border-radius: 50%;
+			background: linear-gradient(130deg, #0f766e, #f59e0b);
+			color: #fff;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.3rem;
+			font-weight: 800;
+		}
+
+		.kv {
+			display: grid;
+			gap: 0.4rem;
+		}
+
+		.kv p {
+			margin: 0;
+			color: #544a3f;
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.list {
+			display: grid;
+			gap: 0.6rem;
+		}
+
+		.list-item {
+			border: 1px solid #eadfce;
+			border-radius: 10px;
+			padding: 0.7rem;
+			background: #fffefb;
+			display: flex;
+			justify-content: space-between;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+		}
+
+		@media (max-width: 980px) {
+			.profile-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="User navigation">
+			<a class="brand" href="./home.html">OpenDonate Platform</a>
+			<nav class="side-nav-list" aria-label="Sidebar links">
+				<a class="side-nav-link" href="./home.html">Home</a>
+				<a class="side-nav-link" href="./dashboard.html">Dashboard</a>
+				<a class="side-nav-link" href="./campaigns.html">Campaigns</a>
+				<a class="side-nav-link active" href="./profile.html" aria-current="page">Profile</a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+		</aside>
+
+		<main class="content-panel">
+			<section class="profile-grid">
+				<article class="card">
+					<div class="profile-head">
+						<div id="avatarBadge" class="avatar">U</div>
+						<h1 id="profileTitle" class="profile-title">Your Profile</h1>
+						<p class="muted">Account information synced from your login session.</p>
+					</div>
+					<div class="kv">
+						<p><strong>Name:</strong> <span id="nameValue">-</span></p>
+						<p><strong>Email:</strong> <span id="emailValue">-</span></p>
+						<p><strong>Role:</strong> <span id="roleValue">-</span></p>
+						<p><strong>Member Since:</strong> <span id="memberSince">-</span></p>
+					</div>
+				</article>
+
+				<article class="card">
+					<h2 class="quick-links-title">Quick Links</h2>
+					<p class="muted">Jump to your most used sections.</p>
+					<div class="list">
+						<div class="list-item">
+							<span>See donation insights and activity</span>
+							<a class="btn btn-outline" href="./dashboard.html">Open Dashboard</a>
+						</div>
+						<div class="list-item">
+							<span>Support an active fundraiser</span>
+							<a class="btn btn-primary" href="./campaigns.html">Browse Campaigns</a>
+						</div>
+						<div class="list-item">
+							<span>Back to home navigation hub</span>
+							<a class="btn btn-outline" href="./home.html">Go Home</a>
+						</div>
+					</div>
+				</article>
+			</section>
+		</main>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const avatarBadge = document.getElementById('avatarBadge');
+		const profileTitle = document.getElementById('profileTitle');
+		const nameValue = document.getElementById('nameValue');
+		const emailValue = document.getElementById('emailValue');
+		const roleValue = document.getElementById('roleValue');
+		const memberSince = document.getElementById('memberSince');
+		const logoutBtn = document.getElementById('logoutBtn');
+
+		function formatDate(value) {
+			if (!value) {
+				return '-';
+			}
+
+			const date = new Date(value);
+			if (Number.isNaN(date.getTime())) {
+				return '-';
+			}
+
+			return date.toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric'
+			});
+		}
+
+		function getInitials(name) {
+			if (!name) {
+				return 'U';
+			}
+
+			const parts = name.trim().split(/\s+/).slice(0, 2);
+			return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'U';
+		}
+
+		async function loadProfile() {
+			const sessionUser = Auth.getUser() || {};
+
+			nameValue.textContent = sessionUser.name || '-';
+			emailValue.textContent = sessionUser.email || '-';
+			roleValue.textContent = sessionUser.role || 'user';
+			memberSince.textContent = formatDate(sessionUser.createdAt);
+			avatarBadge.textContent = getInitials(sessionUser.name);
+			profileTitle.textContent = `${sessionUser.name || 'Supporter'} Profile`;
+
+			try {
+				if (window.apiRequest) {
+					const response = await apiRequest('/auth/me');
+					const user = response?.data?.user;
+
+					if (user) {
+						nameValue.textContent = user.name || '-';
+						emailValue.textContent = user.email || '-';
+						roleValue.textContent = user.role || 'user';
+						memberSince.textContent = formatDate(user.createdAt);
+						avatarBadge.textContent = getInitials(user.name);
+						profileTitle.textContent = `${user.name || 'Supporter'} Profile`;
+						if (Auth.getToken()) {
+							Auth.setSession(Auth.getToken(), user);
+						}
+					}
+				}
+			} catch (_) {
+				// Profile page can still render from cached session data.
+			}
+		}
+
+		function init() {
+			if (!Auth.requireAuth('./login.html')) {
+				return;
+			}
+
+			const user = Auth.getUser();
+			if (user?.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+				return;
+			}
+
+			logoutBtn.addEventListener('click', () => {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			});
+
+			loadProfile();
+		}
+
+		init();
+	</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+@baseUrl = http://localhost:5000
+@api = {{baseUrl}}/api
+@json = Content-Type: application/json
+
+### 0) Health
+GET {{baseUrl}}/health
+
+### 1) Register user
+POST {{api}}/auth/register
+{{json}}
+
+{
+  "name": "Smoke User",
+  "email": "smoke.user@example.com",
+  "password": "User@12345"
+}
+
+### 2) Login user
+# Copy token from response into userToken variable below.
+POST {{api}}/auth/login
+{{json}}
+
+{
+  "email": "smoke.user@example.com",
+  "password": "User@12345"
+}
+
+### 3) Seed admin (env-based)
+# Requires ADMIN_EMAIL + ADMIN_PASSWORD in backend/.env
+POST {{api}}/auth/seed-admin
+
+### 4) Login admin
+# Use ADMIN_EMAIL/ADMIN_PASSWORD here.
+POST {{api}}/auth/login
+{{json}}
+
+{
+  "email": "admin@example.com",
+  "password": "Admin@12345"
+}
+
+### 5) Create campaign (admin)
+# Set admin token in Authorization before running.
+POST {{api}}/admin/campaigns
+Authorization: Bearer REPLACE_ADMIN_TOKEN
+{{json}}
+
+{
+  "title": "Emergency Surgery Fund",
+  "description": "Raising support for urgent surgery and post-operative care for a low-income family.",
+  "goalAmount": 500000,
+  "status": "active",
+  "coverImage": ""
+}
+
+### 6) Public campaigns list
+GET {{api}}/campaigns?page=1&limit=10
+
+### 7) Campaign details by ID
+# Replace CAMPAIGN_ID with id from create/list response.
+GET {{api}}/campaigns/CAMPAIGN_ID
+
+### 8) User profile (protected)
+# Set user token in Authorization before running.
+GET {{api}}/auth/me
+Authorization: Bearer REPLACE_USER_TOKEN
+
+### 9) Create donation order (user)
+# Replace CAMPAIGN_ID and use user token.
+POST {{api}}/donations
+Authorization: Bearer REPLACE_USER_TOKEN
+{{json}}
+
+{
+  "campaignId": "CAMPAIGN_ID",
+  "amount": 500
+}
+
+### 10) Verify payment (user)
+# Requires real Razorpay checkout output.
+POST {{api}}/donations/verify-payment
+Authorization: Bearer REPLACE_USER_TOKEN
+{{json}}
+
+{
+  "donationId": "DONATION_ID",
+  "razorpay_order_id": "order_xxx",
+  "razorpay_payment_id": "pay_xxx",
+  "razorpay_signature": "signature_xxx"
+}
+
+### 11) Mark payment failed (user)
+POST {{api}}/donations/mark-failed
+Authorization: Bearer REPLACE_USER_TOKEN
+{{json}}
+
+{
+  "donationId": "DONATION_ID",
+  "razorpayOrderId": "order_xxx",
+  "razorpayPaymentId": "pay_xxx"
+}
+
+### 12) User donation history
+GET {{api}}/donations/me?page=1&limit=10
+Authorization: Bearer REPLACE_USER_TOKEN
+
+### 13) Campaign donation feed (public paid only)
+GET {{api}}/donations/campaign/CAMPAIGN_ID?page=1&limit=10
+
+### 14) Admin dashboard
+GET {{api}}/admin/dashboard
+Authorization: Bearer REPLACE_ADMIN_TOKEN
+
+### 15) Admin users list
+GET {{api}}/admin/users?page=1&limit=10
+Authorization: Bearer REPLACE_ADMIN_TOKEN
+
+### 16) Admin donations overview
+GET {{api}}/admin/donations?page=1&limit=10
+Authorization: Bearer REPLACE_ADMIN_TOKEN
+
+### 17) Admin campaign update
+PUT {{api}}/admin/campaigns/CAMPAIGN_ID
+Authorization: Bearer REPLACE_ADMIN_TOKEN
+{{json}}
+
+{
+  "title": "Emergency Surgery Fund - Updated",
+  "description": "Raising support for urgent surgery and post-operative care for a low-income family. Updated campaign details.",
+  "goalAmount": 550000,
+  "status": "active",
+  "coverImage": ""
+}
+
+### 18) Admin campaign delete
+DELETE {{api}}/admin/campaigns/CAMPAIGN_ID
+Authorization: Bearer REPLACE_ADMIN_TOKEN

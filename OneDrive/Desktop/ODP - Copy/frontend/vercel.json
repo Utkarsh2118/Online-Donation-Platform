@@ -1,0 +1,26 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/src/pages/user/landing.html" },
+    { "source": "/register", "destination": "/src/pages/user/register.html" },
+    { "source": "/login", "destination": "/src/pages/user/login.html" },
+    { "source": "/campaigns", "destination": "/src/pages/user/campaigns.html" },
+    { "source": "/campaign-details", "destination": "/src/pages/user/campaign-details.html" },
+    { "source": "/donate", "destination": "/src/pages/user/donate.html" },
+    { "source": "/dashboard", "destination": "/src/pages/user/dashboard.html" },
+    { "source": "/admin/login", "destination": "/src/pages/admin/login.html" },
+    { "source": "/admin/dashboard", "destination": "/src/pages/admin/dashboard.html" },
+    { "source": "/admin/manage-campaigns", "destination": "/src/pages/admin/manage-campaigns.html" },
+    { "source": "/admin/manage-users", "destination": "/src/pages/admin/manage-users.html" },
+    { "source": "/admin/donations-overview", "destination": "/src/pages/admin/donations-overview.html" }
+  ],
+  "headers": [
+    {
+      "source": "/src/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
