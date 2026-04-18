@@ -1,0 +1,811 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Profile - Your Account</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.profile-header {
+			display: grid;
+			gap: var(--space-2);
+			margin-bottom: var(--space-4);
+		}
+
+		.profile-header h1 {
+			margin: 0;
+		}
+
+		.profile-container {
+			display: grid;
+			grid-template-columns: 380px 1fr;
+			gap: var(--space-4);
+		}
+
+		.profile-sidebar {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-3);
+		}
+
+		.profile-card {
+			background: var(--surface-primary);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-xl);
+			box-shadow: var(--shadow-md);
+			padding: var(--space-4);
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-3);
+			align-items: center;
+		}
+
+		.avatar-container {
+			position: relative;
+			width: 120px;
+			height: 120px;
+			margin: 0 auto;
+		}
+
+		.avatar-ring {
+			position: absolute;
+			inset: -8px;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+			border-radius: 50%;
+			z-index: 1;
+		}
+
+		.avatar {
+			position: relative;
+			z-index: 2;
+			width: 120px;
+			height: 120px;
+			border-radius: 50%;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: white;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 48px;
+			font-weight: 800;
+			border: 4px solid var(--surface-primary);
+		}
+
+		.profile-name {
+			display: grid;
+			gap: var(--space-05);
+		}
+
+		.profile-name h2 {
+			margin: 0;
+			font-size: var(--text-2xl);
+		}
+
+		.profile-email {
+			color: var(--neutral-500);
+			font-size: var(--text-sm);
+		}
+
+		.profile-stats {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: var(--space-2);
+			padding-top: var(--space-3);
+			border-top: 1px solid var(--neutral-200);
+		}
+
+		.stat-mini {
+			text-align: center;
+			display: grid;
+			gap: var(--space-05);
+		}
+
+		.stat-mini-value {
+			font-size: var(--text-xl);
+			font-weight: 800;
+			color: var(--primary);
+		}
+
+		.stat-mini-label {
+			font-size: var(--text-xs);
+			color: var(--neutral-500);
+			text-transform: uppercase;
+			letter-spacing: 0.3px;
+		}
+
+		.profile-actions {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-2);
+			width: 100%;
+		}
+
+		.verified-member-wrap {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-1);
+		}
+
+		.section-delay-1 {
+			animation-delay: 0.1s;
+		}
+
+		.section-delay-15 {
+			animation-delay: 0.15s;
+		}
+
+		.section-delay-2 {
+			animation-delay: 0.2s;
+		}
+
+		.section-delay-3 {
+			animation-delay: 0.3s;
+		}
+
+		.form-group-spaced {
+			margin-top: var(--space-3);
+		}
+
+		.edit-picture-fields {
+			display: grid;
+			gap: var(--space-2);
+			width: 100%;
+		}
+
+		.edit-actions-spaced {
+			margin-top: var(--space-3);
+		}
+
+		.muted-arrow {
+			color: var(--neutral-400);
+		}
+
+		.profile-edit-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: var(--space-3);
+		}
+
+		.form-field {
+			display: grid;
+			gap: var(--space-1);
+		}
+
+		.form-label {
+			font-size: var(--text-xs);
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: var(--neutral-500);
+		}
+
+		.form-input {
+			width: 100%;
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			padding: var(--space-2) var(--space-3);
+			background: var(--surface-primary);
+			color: var(--neutral-900);
+			font: inherit;
+			transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+		}
+
+		.form-input:focus {
+			outline: none;
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+		}
+
+		.form-help {
+			font-size: var(--text-xs);
+			color: var(--neutral-500);
+		}
+
+		.profile-picture-row {
+			display: flex;
+			gap: var(--space-3);
+			align-items: center;
+		}
+
+		.profile-picture-preview {
+			width: 88px;
+			height: 88px;
+			border-radius: 50%;
+			border: 2px solid var(--neutral-200);
+			object-fit: cover;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+		}
+
+		.edit-actions {
+			display: flex;
+			gap: var(--space-2);
+			flex-wrap: wrap;
+		}
+
+		.form-message {
+			display: none;
+			padding: var(--space-2) var(--space-3);
+			border-radius: var(--radius-lg);
+			font-size: var(--text-sm);
+			font-weight: 600;
+		}
+
+		.form-message.show {
+			display: block;
+		}
+
+		.form-message.success {
+			background: rgba(16, 185, 129, 0.12);
+			color: #047857;
+			border: 1px solid rgba(16, 185, 129, 0.25);
+		}
+
+		.form-message.error {
+			background: rgba(239, 68, 68, 0.12);
+			color: #b91c1c;
+			border: 1px solid rgba(239, 68, 68, 0.25);
+		}
+
+		.profile-content {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-3);
+		}
+
+		.info-section {
+			background: var(--surface-primary);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-xl);
+			padding: var(--space-4);
+			box-shadow: var(--shadow-md);
+		}
+
+		.section-title {
+			font-size: var(--text-lg);
+			font-weight: 700;
+			margin-bottom: var(--space-3);
+		}
+
+		.info-grid {
+			display: grid;
+			gap: var(--space-3);
+		}
+
+		.info-item {
+			display: grid;
+			gap: var(--space-05);
+		}
+
+		.info-label {
+			font-size: var(--text-xs);
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: var(--neutral-500);
+		}
+
+		.info-value {
+			font-size: var(--text-base);
+			font-weight: 600;
+			color: var(--neutral-900);
+		}
+
+		.quick-links {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-2);
+		}
+
+		.quick-link-item {
+			background: var(--surface-tertiary);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			padding: var(--space-2) var(--space-3);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			transition: all var(--transition-fast);
+		}
+
+		.quick-link-item:hover {
+			background: var(--neutral-100);
+			transform: translateX(4px);
+		}
+
+		.quick-link-item span {
+			font-weight: 600;
+		}
+
+		.badge-member {
+			display: inline-block;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+			color: white;
+			padding: var(--space-05) var(--space-2);
+			border-radius: var(--radius-full);
+			font-size: var(--text-xs);
+			font-weight: 700;
+			margin-top: var(--space-2);
+		}
+
+		@media (max-width: 1200px) {
+			.profile-container {
+				grid-template-columns: 1fr;
+			}
+
+			.profile-sidebar {
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: var(--space-4);
+				align-items: start;
+			}
+
+			.profile-card {
+				grid-column: 1 / -1;
+				padding: var(--space-3);
+				flex-direction: row;
+				text-align: left;
+				align-items: center;
+			}
+
+			.avatar-container {
+				width: 80px;
+				height: 80px;
+			}
+
+			.avatar {
+				width: 80px;
+				height: 80px;
+				font-size: 32px;
+			}
+
+			.avatar-ring {
+				inset: -6px;
+			}
+
+			.profile-name h2 {
+				font-size: var(--text-xl);
+			}
+		}
+
+		@media (max-width: 768px) {
+			.profile-sidebar {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.profile-card {
+				flex-direction: column;
+				text-align: center;
+				align-items: center;
+			}
+
+			.profile-stats {
+				grid-template-columns: 1fr;
+			}
+
+			.info-section {
+				padding: var(--space-3);
+			}
+
+			.profile-edit-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.profile-picture-row {
+				flex-direction: column;
+				align-items: flex-start;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="User navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate</span>
+			</div>
+			<nav class="side-nav-list" aria-label="Sidebar links">
+				<a class="side-nav-link" href="./home.html">
+					<span class="side-nav-icon">HOME</span>
+					<span>Home</span>
+				</a>
+				<a class="side-nav-link" href="./dashboard.html">
+					<span class="side-nav-icon">DATA</span>
+					<span>Dashboard</span>
+				</a>
+				<a class="side-nav-link" href="./campaigns.html">
+					<span class="side-nav-icon">GO</span>
+					<span>Campaigns</span>
+				</a>
+				<a class="side-nav-link active" href="./profile.html" aria-current="page">
+					<span class="side-nav-icon">ME</span>
+					<span>Profile</span>
+				</a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline">Logout</button>
+		</aside>
+
+		<main class="content-panel">
+			<div class="profile-header animate-fade-in">
+				<h1>Your Profile</h1>
+				<p class="text-muted">Manage your account and view contribution history</p>
+			</div>
+
+			<div class="profile-container">
+				<aside class="profile-sidebar animate-slide-in">
+					<article class="profile-card">
+						<div class="avatar-container">
+							<div class="avatar-ring"></div>
+							<div class="avatar" id="avatarBadge">U</div>
+						</div>
+						<div class="profile-name">
+							<h2 id="profileName">Your Name</h2>
+							<div class="profile-email" id="profileEmail">name@email.com</div>
+							<div class="verified-member-wrap">
+								<div class="badge-member">Verified Member</div>
+							</div>
+						</div>
+
+						<div class="profile-stats">
+							<div class="stat-mini">
+								<div class="stat-mini-value" id="totalDonationsProfile">0</div>
+								<div class="stat-mini-label">Donations</div>
+							</div>
+							<div class="stat-mini">
+								<div class="stat-mini-value" id="campaignsSupportedProfile">0</div>
+								<div class="stat-mini-label">Campaigns</div>
+							</div>
+						</div>
+
+						<div class="profile-actions">
+							<a class="btn btn-primary btn-sm" href="./dashboard.html">
+								<span>DATA</span> View Dashboard
+							</a>
+							<a class="btn btn-secondary btn-sm" href="./campaigns.html">
+								<span>GO</span> Browse Campaigns
+							</a>
+						</div>
+					</article>
+				</aside>
+
+				<div class="profile-content">
+					<article class="info-section animate-slide-in section-delay-1">
+						<h3 class="section-title">Account Information</h3>
+						<div class="info-grid">
+							<div class="info-item">
+								<label class="info-label">Full Name</label>
+								<div class="info-value" id="infoName">-</div>
+							</div>
+							<div class="info-item">
+								<label class="info-label">Email Address</label>
+								<div class="info-value" id="infoEmail">-</div>
+							</div>
+							<div class="info-item">
+								<label class="info-label">Mobile Number</label>
+								<div class="info-value" id="infoMobile">-</div>
+							</div>
+							<div class="info-item">
+								<label class="info-label">Account Role</label>
+								<div class="info-value">
+									<span class="badge badge-info">Donor</span>
+								</div>
+							</div>
+							<div class="info-item">
+								<label class="info-label">Member Since</label>
+								<div class="info-value" id="infoMemberSince">-</div>
+							</div>
+						</div>
+					</article>
+
+					<article class="info-section animate-slide-in section-delay-15">
+						<h3 class="section-title">Edit Profile</h3>
+						<div id="profileMessage" class="form-message"></div>
+						<div class="profile-edit-grid">
+							<div class="form-field">
+								<label class="form-label" for="editName">Full Name</label>
+								<input id="editName" class="form-input" type="text" placeholder="Enter your full name" />
+							</div>
+							<div class="form-field">
+								<label class="form-label" for="editMobile">Mobile Number</label>
+								<input id="editMobile" class="form-input" type="tel" placeholder="Enter mobile number" />
+							</div>
+						</div>
+						<div class="form-field form-group-spaced">
+							<label class="form-label">Profile Picture</label>
+							<div class="profile-picture-row">
+								<img id="profilePicturePreview" class="profile-picture-preview" alt="Profile preview" />
+								<div class="edit-picture-fields">
+									<label class="form-label" for="editProfilePictureFile">Upload Image</label>
+									<input id="editProfilePictureFile" class="form-input" type="file" accept="image/*" aria-label="Upload profile picture" />
+									<label class="form-label" for="editProfilePicture">Image URL</label>
+									<input id="editProfilePicture" class="form-input" type="text" placeholder="Or paste an image URL" />
+									<div class="form-help">Upload an image or use a direct image URL. The image is saved with your profile.</div>
+								</div>
+							</div>
+						</div>
+						<div class="edit-actions edit-actions-spaced">
+							<button id="saveProfileBtn" class="btn btn-primary btn-sm" type="button">Save Changes</button>
+							<button id="resetProfileBtn" class="btn btn-secondary btn-sm" type="button">Reset</button>
+						</div>
+					</article>
+
+					<article class="info-section animate-slide-in section-delay-2">
+						<h3 class="section-title">Quick Actions</h3>
+						<div class="quick-links">
+							<div class="quick-link-item" onclick="window.location.href='./dashboard.html'">
+								<span>View Your Impact Dashboard</span>
+								<span>-></span>
+							</div>
+							<div class="quick-link-item" onclick="window.location.href='./campaigns.html'">
+								<span>Explore & Support Campaigns</span>
+								<span>-></span>
+							</div>
+							<div class="quick-link-item" onclick="window.location.href='./home.html'">
+								<span>Back to Home</span>
+								<span>-></span>
+							</div>
+						</div>
+					</article>
+
+					<article class="info-section animate-slide-in section-delay-3">
+						<h3 class="section-title">Support & Settings</h3>
+						<div class="quick-links">
+							<div class="quick-link-item">
+								<span>Security & Privacy</span>
+								<span class="muted-arrow">-></span>
+							</div>
+							<div class="quick-link-item">
+								<span>Help & Support</span>
+								<span class="muted-arrow">-></span>
+							</div>
+							<div class="quick-link-item" id="logoutLink">
+								<span>Logout</span>
+								<span>-></span>
+							</div>
+						</div>
+					</article>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const avatarBadge = document.getElementById('avatarBadge');
+		const profileName = document.getElementById('profileName');
+		const profileEmail = document.getElementById('profileEmail');
+		const infoMobile = document.getElementById('infoMobile');
+		const infoName = document.getElementById('infoName');
+		const infoEmail = document.getElementById('infoEmail');
+		const infoMemberSince = document.getElementById('infoMemberSince');
+		const totalDonationsProfile = document.getElementById('totalDonationsProfile');
+		const campaignsSupportedProfile = document.getElementById('campaignsSupportedProfile');
+		const editName = document.getElementById('editName');
+		const editMobile = document.getElementById('editMobile');
+		const editProfilePicture = document.getElementById('editProfilePicture');
+		const editProfilePictureFile = document.getElementById('editProfilePictureFile');
+		const profilePicturePreview = document.getElementById('profilePicturePreview');
+		const profileMessage = document.getElementById('profileMessage');
+		const saveProfileBtn = document.getElementById('saveProfileBtn');
+		const resetProfileBtn = document.getElementById('resetProfileBtn');
+		const logoutBtn = document.getElementById('logoutBtn');
+		const logoutLink = document.getElementById('logoutLink');
+		const currentToken = Auth.getToken();
+		let currentUser = null;
+
+		function getInitials(name) {
+			if (!name) return 'U';
+			const parts = name.trim().split(/\s+/).slice(0, 2);
+			return parts.map((p) => p[0]?.toUpperCase() || '').join('') || 'U';
+		}
+
+		function isDataImage(value) {
+			return typeof value === 'string' && value.startsWith('data:image/');
+		}
+
+		function renderAvatar(user) {
+			const picture = user?.profilePicture;
+			if (picture) {
+				avatarBadge.textContent = '';
+				avatarBadge.style.backgroundImage = `url('${picture}')`;
+				avatarBadge.style.backgroundSize = 'cover';
+				avatarBadge.style.backgroundPosition = 'center';
+				avatarBadge.style.color = 'transparent';
+				profilePicturePreview.src = picture;
+				profilePicturePreview.style.display = 'block';
+				profilePicturePreview.alt = `${user?.name || 'User'} profile picture`;
+				return;
+			}
+
+			avatarBadge.style.backgroundImage = 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)';
+			avatarBadge.style.backgroundSize = '';
+			avatarBadge.style.backgroundPosition = '';
+			avatarBadge.style.color = 'white';
+			avatarBadge.textContent = getInitials(user?.name);
+			profilePicturePreview.removeAttribute('src');
+			profilePicturePreview.style.display = 'none';
+		}
+
+		function showMessage(message, type) {
+			profileMessage.textContent = message;
+			profileMessage.className = `form-message show ${type}`;
+		}
+
+		function clearMessage() {
+			profileMessage.textContent = '';
+			profileMessage.className = 'form-message';
+		}
+
+		function getProfilePictureValue() {
+			const urlValue = editProfilePicture.value.trim();
+			if (urlValue) {
+				return urlValue;
+			}
+
+			if (isDataImage(profilePicturePreview.src)) {
+				return profilePicturePreview.src;
+			}
+
+			return currentUser?.profilePicture || '';
+		}
+
+		function syncFormFromUser(user) {
+			editName.value = user?.name || '';
+			editMobile.value = user?.mobileNumber || '';
+			editProfilePicture.value = user?.profilePicture || '';
+			renderAvatar(user);
+		}
+
+		function updateProfileView(user) {
+			currentUser = user;
+			profileName.textContent = user?.name || 'Supporter';
+			profileEmail.textContent = user?.email || '-';
+			infoName.textContent = user?.name || '-';
+			infoEmail.textContent = user?.email || '-';
+			infoMobile.textContent = user?.mobileNumber || '-';
+			infoMemberSince.textContent = formatDate(user?.createdAt);
+			renderAvatar(user);
+			syncFormFromUser(user);
+		}
+
+		function formatDate(value) {
+			if (!value) return '-';
+			const date = new Date(value);
+			return date.toLocaleString('en-IN', {
+				day: 'numeric',
+				month: 'long',
+				year: 'numeric'
+			});
+		}
+
+		async function loadProfile() {
+			const sessionUser = Auth.getUser() || {};
+			updateProfileView(sessionUser);
+
+			try {
+				const [userRes, donRes] = await Promise.all([
+					apiRequest('/auth/me'),
+					apiRequest('/donations/me?page=1&limit=100')
+				]);
+
+				const user = userRes?.data?.user;
+				const donations = donRes?.data?.donations || [];
+
+				if (user) {
+					updateProfileView(user);
+				}
+
+				totalDonationsProfile.textContent = String(donations.length);
+				const supportedSet = new Set(donations.map((d) => d?.campaignId?._id).filter(Boolean));
+				campaignsSupportedProfile.textContent = String(supportedSet.size);
+			} catch (error) {
+				console.error('Profile load error:', error);
+				showMessage(error.message || 'Could not load profile data.', 'error');
+			}
+		}
+
+		function handleProfilePictureFile(file) {
+			if (!file) {
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.onload = () => {
+				const result = String(reader.result || '');
+				editProfilePicture.value = result;
+				profilePicturePreview.src = result;
+				profilePicturePreview.style.display = 'block';
+				avatarBadge.textContent = '';
+				avatarBadge.style.backgroundImage = `url('${result}')`;
+				avatarBadge.style.backgroundSize = 'cover';
+				avatarBadge.style.backgroundPosition = 'center';
+				avatarBadge.style.color = 'transparent';
+			};
+			reader.readAsDataURL(file);
+		}
+
+		async function saveProfile() {
+			clearMessage();
+			saveProfileBtn.disabled = true;
+			saveProfileBtn.textContent = 'Saving...';
+
+			try {
+				const payload = {
+					name: editName.value.trim(),
+					mobileNumber: editMobile.value.trim(),
+					profilePicture: getProfilePictureValue()
+				};
+
+				const response = await apiRequest('/auth/me', {
+					method: 'PUT',
+					body: JSON.stringify(payload)
+				});
+
+				const updatedUser = response?.data?.user;
+				if (updatedUser) {
+					Auth.setSession(currentToken, updatedUser);
+					updateProfileView(updatedUser);
+				}
+
+				showMessage('Profile updated successfully.', 'success');
+			} catch (error) {
+				showMessage(error.message || 'Failed to update profile.', 'error');
+			} finally {
+				saveProfileBtn.disabled = false;
+				saveProfileBtn.textContent = 'Save Changes';
+			}
+		}
+
+		function init() {
+			if (!Auth.requireAuth('./login.html')) return;
+			if (Auth.getUser()?.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+				return;
+			}
+
+			logoutBtn.addEventListener('click', logout);
+			logoutLink.addEventListener('click', logout);
+			saveProfileBtn.addEventListener('click', saveProfile);
+			resetProfileBtn.addEventListener('click', () => {
+				clearMessage();
+				syncFormFromUser(currentUser || Auth.getUser() || {});
+			});
+			editProfilePictureFile.addEventListener('change', (event) => {
+				handleProfilePictureFile(event.target.files?.[0]);
+			});
+			editProfilePicture.addEventListener('input', () => {
+				const value = editProfilePicture.value.trim();
+				if (value) {
+					profilePicturePreview.src = value;
+					profilePicturePreview.style.display = 'block';
+					avatarBadge.textContent = '';
+					avatarBadge.style.backgroundImage = `url('${value}')`;
+					avatarBadge.style.backgroundSize = 'cover';
+					avatarBadge.style.backgroundPosition = 'center';
+					avatarBadge.style.color = 'transparent';
+				} else {
+					renderAvatar(currentUser || Auth.getUser() || {});
+				}
+			});
+
+			function logout() {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			}
+
+			loadProfile();
+		}
+
+		init();
+	</script>
+</body>
+</html>
+
+

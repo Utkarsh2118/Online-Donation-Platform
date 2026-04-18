@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Campaign Details</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.layout {
+			display: grid;
+			grid-template-columns: 1.25fr 0.75fr;
+			gap: 1rem;
+			margin: 0.8rem 0 1.4rem;
+		}
+
+		.card {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 14px;
+			padding: 1rem;
+			box-shadow: var(--shadow-soft);
+		}
+
+		.campaign-title {
+			margin: 0;
+			font-size: clamp(1.4rem, 2.6vw, 2rem);
+			line-height: 1.2;
+		}
+
+		.muted {
+			color: var(--muted);
+		}
+
+		.status {
+			display: inline-flex;
+			padding: 0.2rem 0.56rem;
+			border-radius: 999px;
+			font-size: 0.79rem;
+			font-weight: 700;
+			background: #ecfdf3;
+			color: #067647;
+			margin-bottom: 0.7rem;
+		}
+
+		.progress-track {
+			height: 10px;
+			border-radius: 999px;
+			background: #efe5d7;
+			overflow: hidden;
+			margin: 0.7rem 0;
+		}
+
+		.progress-fill {
+			width: 0;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, #0f766e 0%, #f59e0b 100%);
+		}
+
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 0.7rem;
+			margin: 0.9rem 0;
+		}
+
+		.stat {
+			border-radius: 10px;
+			background: #f8fafc;
+			padding: 0.68rem;
+		}
+
+		.stat strong {
+			display: block;
+			font-size: 1.02rem;
+		}
+
+		.feed {
+			display: grid;
+			gap: 0.65rem;
+			margin-top: 0.8rem;
+			max-height: 430px;
+			overflow: auto;
+			padding-right: 0.2rem;
+		}
+
+		.feed-item {
+			border: 1px solid #e2e8f0;
+			border-radius: 10px;
+			padding: 0.64rem 0.68rem;
+			background: #ffffff;
+		}
+
+		.feed-item .row {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.5rem;
+			align-items: center;
+			font-size: 0.9rem;
+		}
+
+		.panel {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin-bottom: 0.9rem;
+		}
+
+		.details-hidden {
+			display: none;
+		}
+
+		.feed-title {
+			margin-top: 0;
+		}
+
+		@media (max-width: 920px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+
+			.stats {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<nav class="nav" aria-label="Primary">
+			<a class="brand" href="./landing.html">OpenDonate Platform</a>
+			<div class="nav-actions">
+				<a class="btn btn-secondary" href="./campaigns.html">Back to Campaigns</a>
+				<a class="btn btn-outline" href="./dashboard.html">My Dashboard</a>
+			</div>
+		</nav>
+
+		<section id="feedback" class="panel">Loading campaign details...</section>
+
+		<section class="layout details-hidden" id="detailsLayout">
+			<article class="card">
+				<span id="statusBadge" class="status">active</span>
+				<h1 id="campaignTitle" class="campaign-title">-</h1>
+				<p id="campaignDescription" class="muted"></p>
+
+				<div class="progress-track">
+					<div id="progressFill" class="progress-fill"></div>
+				</div>
+				<p id="progressText" class="muted"></p>
+
+				<div class="stats">
+					<div class="stat">
+						<strong id="raisedAmount">-</strong>
+						<span class="muted">Raised</span>
+					</div>
+					<div class="stat">
+						<strong id="goalAmount">-</strong>
+						<span class="muted">Goal</span>
+					</div>
+					<div class="stat">
+						<strong id="donorCount">-</strong>
+						<span class="muted">Donations</span>
+					</div>
+				</div>
+
+				<div class="nav-actions">
+					<button id="donateBtn" class="btn btn-primary" type="button">Donate to this Campaign</button>
+				</div>
+			</article>
+
+			<aside class="card">
+				<h3 class="feed-title">Recent Donors</h3>
+				<p class="muted">Paid donations are shown below.</p>
+				<div id="donorFeed" class="feed"></div>
+			</aside>
+		</section>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const feedback = document.getElementById('feedback');
+		const detailsLayout = document.getElementById('detailsLayout');
+		const statusBadge = document.getElementById('statusBadge');
+		const campaignTitle = document.getElementById('campaignTitle');
+		const campaignDescription = document.getElementById('campaignDescription');
+		const progressFill = document.getElementById('progressFill');
+		const progressText = document.getElementById('progressText');
+		const raisedAmount = document.getElementById('raisedAmount');
+		const goalAmount = document.getElementById('goalAmount');
+		const donorCount = document.getElementById('donorCount');
+		const donorFeed = document.getElementById('donorFeed');
+		const donateBtn = document.getElementById('donateBtn');
+
+		function getCampaignIdFromUrl() {
+			const params = new URLSearchParams(window.location.search);
+			return params.get('id');
+		}
+
+		function formatCurrency(value) {
+			return new Intl.NumberFormat('en-IN', {
+				style: 'currency',
+				currency: 'INR',
+				maximumFractionDigits: 0
+			}).format(Number(value || 0));
+		}
+
+		function formatDate(value) {
+			const date = new Date(value);
+			return date.toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		}
+
+		function showFeedback(message) {
+			feedback.style.display = 'block';
+			feedback.textContent = message;
+			detailsLayout.style.display = 'none';
+		}
+
+		function showDetails() {
+			feedback.style.display = 'none';
+			detailsLayout.style.display = 'grid';
+		}
+
+		function calculateProgress(raised, goal) {
+			if (!goal || goal <= 0) {
+				return 0;
+			}
+
+			return Math.min(100, Math.round((raised / goal) * 100));
+		}
+
+		function renderDonorFeed(donations) {
+			if (!donations.length) {
+				donorFeed.innerHTML = '<p class="muted">No paid donations yet. Be the first supporter.</p>';
+				return;
+			}
+
+			donorFeed.innerHTML = donations.map((item) => {
+				const donorName = item?.userId?.name || 'Anonymous Donor';
+
+				return `
+					<article class="feed-item">
+						<div class="row">
+							<strong>${donorName}</strong>
+							<strong>${formatCurrency(item.amount)}</strong>
+						</div>
+						<div class="row muted">
+							<span>${item.paymentStatus}</span>
+							<span>${formatDate(item.createdAt)}</span>
+						</div>
+					</article>
+				`;
+			}).join('');
+		}
+
+		function renderCampaign(campaign, donations) {
+			const progress = calculateProgress(campaign.raisedAmount, campaign.goalAmount);
+
+			statusBadge.textContent = campaign.status;
+			campaignTitle.textContent = campaign.title;
+			campaignDescription.textContent = campaign.description;
+			progressFill.style.width = `${progress}%`;
+			progressText.textContent = `${progress}% funded`;
+			raisedAmount.textContent = formatCurrency(campaign.raisedAmount);
+			goalAmount.textContent = formatCurrency(campaign.goalAmount);
+			donorCount.textContent = String(donations.length);
+
+			renderDonorFeed(donations);
+			showDetails();
+		}
+
+		async function loadCampaignDetails() {
+			const campaignId = getCampaignIdFromUrl();
+
+			if (!campaignId) {
+				showFeedback('Campaign ID is missing from URL.');
+				return;
+			}
+
+			showFeedback('Loading campaign details...');
+
+			try {
+				const [campaignResponse, donationsResponse] = await Promise.all([
+					apiRequest(`/campaigns/${campaignId}`),
+					apiRequest(`/donations/campaign/${campaignId}?page=1&limit=20`)
+				]);
+
+				const campaign = campaignResponse?.data?.campaign;
+				const donations = donationsResponse?.data?.donations || [];
+
+				if (!campaign) {
+					throw new Error('Campaign not found.');
+				}
+
+				donateBtn.addEventListener('click', () => {
+					window.location.href = `./donate.html?campaignId=${campaign._id}`;
+				});
+
+				renderCampaign(campaign, donations);
+			} catch (error) {
+				showFeedback(error.message || 'Unable to load campaign details at the moment.');
+			}
+		}
+
+		function init() {
+			if (!Auth.requireAuth('./login.html')) {
+				return;
+			}
+
+			const user = Auth.getUser();
+			if (user?.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+				return;
+			}
+
+			loadCampaignDetails();
+		}
+
+		init();
+	</script>
+</body>
+</html>
+

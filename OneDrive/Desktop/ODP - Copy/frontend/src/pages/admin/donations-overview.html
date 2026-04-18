@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Donations Overview</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.page-title {
+			margin: 0.5rem 0 0.35rem;
+			font-size: clamp(1.45rem, 2.9vw, 2.1rem);
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.card {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 8px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+			margin: 0.9rem 0 1.35rem;
+		}
+
+		.toolbar {
+			display: flex;
+			gap: 0.55rem;
+			flex-wrap: wrap;
+			margin-bottom: 0.72rem;
+			align-items: center;
+		}
+
+		.toolbar select {
+			border: 1px solid #cbd5e1;
+			border-radius: 8px;
+			padding: 0.55rem 0.85rem;
+			font: inherit;
+			background: #fffefb;
+		}
+
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 0.66rem;
+			margin: 0.7rem 0;
+		}
+
+		.stat {
+			border-radius: 11px;
+			padding: 0.72rem;
+			background: #f8fafc;
+			border: 1px solid #e2e8f0;
+		}
+
+		.stat strong {
+			display: block;
+			font-size: 1.1rem;
+		}
+
+		.panel {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin: 0.8rem 0;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.alert {
+			display: none;
+			border-radius: 9px;
+			padding: 0.62rem 0.75rem;
+			font-size: 0.92rem;
+			margin-bottom: 0.65rem;
+		}
+
+		.alert.error {
+			display: block;
+			background: #fef3f2;
+			color: var(--danger);
+			border: 1px solid #fecdca;
+		}
+
+		.alert.ok {
+			display: block;
+			background: #ecfdf3;
+			color: var(--ok);
+			border: 1px solid #abefc6;
+		}
+
+		.table-wrap {
+			border: 1px solid #e2e8f0;
+			border-radius: 8px;
+			overflow: auto;
+			background: #ffffff;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 950px;
+		}
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.7rem;
+			border-bottom: 1px solid #e2e8f0;
+			font-size: 0.9rem;
+		}
+
+		th {
+			background: #f1f5f9;
+			font-size: 0.82rem;
+			letter-spacing: 0.35px;
+			text-transform: uppercase;
+			color: #5a4f43;
+		}
+
+		.status {
+			display: inline-flex;
+			padding: 0.15rem 0.5rem;
+			border-radius: 999px;
+			font-size: 0.76rem;
+			font-weight: 700;
+			text-transform: capitalize;
+		}
+
+		.status.paid {
+			background: #ecfdf3;
+			color: #067647;
+		}
+
+		.status.created {
+			background: #fef0c7;
+			color: #92400e;
+		}
+
+		.status.failed {
+			background: #fef3f2;
+			color: #b42318;
+		}
+
+		.pagination {
+			margin-top: 0.75rem;
+			display: flex;
+			justify-content: space-between;
+			gap: 0.7rem;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		@media (max-width: 980px) {
+			.stats {
+				grid-template-columns: 1fr 1fr;
+			}
+		}
+
+		@media (max-width: 640px) {
+			.stats {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<nav class="nav" aria-label="Primary">
+			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
+			<div class="nav-actions">
+				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
+				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
+				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
+				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+			</div>
+		</nav>
+
+		<h1 class="page-title">Donations Overview</h1>
+		<p class="muted">Monitor payment outcomes and donation performance.</p>
+
+		<section id="feedbackPanel" class="panel">Loading donations overview...</section>
+
+		<section id="overviewCard" class="card hidden">
+			<section class="toolbar" aria-label="Donations filters">
+				<select id="statusFilter">
+					<option value="">All Payment Status</option>
+					<option value="paid">Paid</option>
+					<option value="created">Created</option>
+					<option value="failed">Failed</option>
+				</select>
+				<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
+			</section>
+
+			<section class="stats" aria-label="Donations summary">
+				<article class="stat">
+					<strong id="totalRecords">0</strong>
+					<span class="muted">Records (Current Page)</span>
+				</article>
+				<article class="stat">
+					<strong id="paidCount">0</strong>
+					<span class="muted">Paid Count</span>
+				</article>
+				<article class="stat">
+					<strong id="createdCount">0</strong>
+					<span class="muted">Created Count</span>
+				</article>
+				<article class="stat">
+					<strong id="paidAmount">INR 0</strong>
+					<span class="muted">Paid Amount (Current Page)</span>
+				</article>
+			</section>
+
+			<div id="listAlert" class="alert"></div>
+
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Donor</th>
+							<th>Email</th>
+							<th>Campaign</th>
+							<th>Amount</th>
+							<th>Status</th>
+							<th>Date</th>
+							<th>Order ID</th>
+						</tr>
+					</thead>
+					<tbody id="donationsTableBody"></tbody>
+				</table>
+			</div>
+
+			<section class="pagination">
+				<button id="prevBtn" class="btn btn-outline" type="button">Previous</button>
+				<span id="pageMeta" class="muted">Page 1 of 1</span>
+				<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
+			</section>
+		</section>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const feedbackPanel = document.getElementById('feedbackPanel');
+		const overviewCard = document.getElementById('overviewCard');
+		const statusFilter = document.getElementById('statusFilter');
+		const applyFilterBtn = document.getElementById('applyFilterBtn');
+		const listAlert = document.getElementById('listAlert');
+		const donationsTableBody = document.getElementById('donationsTableBody');
+		const totalRecords = document.getElementById('totalRecords');
+		const paidCount = document.getElementById('paidCount');
+		const createdCount = document.getElementById('createdCount');
+		const paidAmount = document.getElementById('paidAmount');
+		const prevBtn = document.getElementById('prevBtn');
+		const nextBtn = document.getElementById('nextBtn');
+		const pageMeta = document.getElementById('pageMeta');
+		const logoutBtn = document.getElementById('logoutBtn');
+
+		const state = {
+			page: 1,
+			limit: 12,
+			totalPages: 1,
+			paymentStatus: ''
+		};
+
+		function formatCurrency(value) {
+			return new Intl.NumberFormat('en-IN', {
+				style: 'currency',
+				currency: 'INR',
+				maximumFractionDigits: 0
+			}).format(Number(value || 0));
+		}
+
+		function formatDate(value) {
+			const date = new Date(value);
+			return date.toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		}
+
+		function setAlert(el, message, type) {
+			el.className = `alert ${type}`;
+			el.textContent = message;
+		}
+
+		function clearAlert(el) {
+			el.className = 'alert';
+			el.textContent = '';
+		}
+
+		function showPanel(message) {
+			feedbackPanel.style.display = 'block';
+			feedbackPanel.textContent = message;
+			overviewCard.classList.add('hidden');
+		}
+
+		function showOverview() {
+			feedbackPanel.style.display = 'none';
+			overviewCard.classList.remove('hidden');
+		}
+
+		function renderSummary(donations) {
+			const paid = donations.filter((d) => d.paymentStatus === 'paid');
+			const created = donations.filter((d) => d.paymentStatus === 'created');
+			const paidTotal = paid.reduce((sum, d) => sum + Number(d.amount || 0), 0);
+
+			totalRecords.textContent = String(donations.length);
+			paidCount.textContent = String(paid.length);
+			createdCount.textContent = String(created.length);
+			paidAmount.textContent = formatCurrency(paidTotal);
+		}
+
+		function renderTable(donations) {
+			if (!donations.length) {
+				donationsTableBody.innerHTML = '<tr><td colspan="7">No donation records found for the selected filter.</td></tr>';
+				renderSummary([]);
+				return;
+			}
+
+			donationsTableBody.innerHTML = donations.map((donation) => {
+				const donorName = donation?.userId?.name || 'Unknown Donor';
+				const donorEmail = donation?.userId?.email || '-';
+				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
+				const status = donation.paymentStatus || 'created';
+
+				return `
+					<tr>
+						<td>${donorName}</td>
+						<td>${donorEmail}</td>
+						<td>${campaignTitle}</td>
+						<td>${formatCurrency(donation.amount)}</td>
+						<td><span class="status ${status}">${status}</span></td>
+						<td>${formatDate(donation.createdAt)}</td>
+						<td>${donation.razorpayOrderId || '-'}</td>
+					</tr>
+				`;
+			}).join('');
+
+			renderSummary(donations);
+		}
+
+		async function fetchDonations() {
+			clearAlert(listAlert);
+
+			const params = new URLSearchParams({
+				page: String(state.page),
+				limit: String(state.limit)
+			});
+
+			if (state.paymentStatus) {
+				params.set('paymentStatus', state.paymentStatus);
+			}
+
+			try {
+				const response = await apiRequest(`/admin/donations?${params.toString()}`);
+				const donations = response?.data?.donations || [];
+				const pagination = response?.data?.pagination || {};
+
+				state.totalPages = Number(pagination.totalPages || 1);
+				pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
+				prevBtn.disabled = state.page <= 1;
+				nextBtn.disabled = state.page >= state.totalPages;
+
+				renderTable(donations);
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to load donations.', 'error');
+				donationsTableBody.innerHTML = '';
+				renderSummary([]);
+			}
+		}
+
+		function initControls() {
+			applyFilterBtn.addEventListener('click', () => {
+				state.paymentStatus = statusFilter.value;
+				state.page = 1;
+				fetchDonations();
+			});
+
+			prevBtn.addEventListener('click', () => {
+				if (state.page > 1) {
+					state.page -= 1;
+					fetchDonations();
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				if (state.page < state.totalPages) {
+					state.page += 1;
+					fetchDonations();
+				}
+			});
+		}
+
+		function init() {
+			if (!Auth.requireAdmin('./login.html')) {
+				return;
+			}
+
+			logoutBtn.addEventListener('click', () => {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			});
+
+			initControls();
+			showOverview();
+			fetchDonations();
+		}
+
+		init();
+	</script>
+</body>
+</html>
