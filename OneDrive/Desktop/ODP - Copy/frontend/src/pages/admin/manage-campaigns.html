@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Manage Campaigns</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.page-title {
+			margin: 0.5rem 0 0.35rem;
+			font-size: clamp(1.45rem, 2.9vw, 2.1rem);
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.layout {
+			display: grid;
+			grid-template-columns: 1fr 1.5fr;
+			gap: 1rem;
+			margin: 0.9rem 0 1.35rem;
+		}
+
+		.card {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 8px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+		}
+
+		.card h2,
+		.card h3 {
+			margin: 0 0 0.65rem;
+		}
+
+		.field {
+			display: grid;
+			gap: 0.34rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.field label {
+			font-size: 0.9rem;
+			font-weight: 700;
+		}
+
+		.field input,
+		.field textarea,
+		.field select {
+			border: 1px solid #cbd5e1;
+			border-radius: 8px;
+			padding: 0.68rem 0.8rem;
+			font: inherit;
+			background: #fff;
+			width: 100%;
+		}
+
+		.field textarea {
+			min-height: 110px;
+			resize: vertical;
+		}
+
+		.toolbar {
+			display: flex;
+			gap: 0.6rem;
+			flex-wrap: wrap;
+			margin-bottom: 0.75rem;
+			align-items: center;
+		}
+
+		.toolbar input,
+		.toolbar select {
+			border: 1px solid #cbd5e1;
+			border-radius: 8px;
+			padding: 0.55rem 0.85rem;
+			font: inherit;
+			background: #fffefb;
+		}
+
+		.panel {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin: 0.8rem 0;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.campaign-list {
+			display: grid;
+			gap: 0.7rem;
+			max-height: 670px;
+			overflow: auto;
+			padding-right: 0.15rem;
+		}
+
+		.campaign-item {
+			border: 1px solid #e2e8f0;
+			background: #ffffff;
+			border-radius: 11px;
+			padding: 0.72rem;
+			display: grid;
+			gap: 0.36rem;
+		}
+
+		.campaign-item .top {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.5rem;
+			align-items: center;
+		}
+
+		.status {
+			display: inline-flex;
+			padding: 0.14rem 0.48rem;
+			border-radius: 999px;
+			font-size: 0.76rem;
+			font-weight: 700;
+			text-transform: capitalize;
+		}
+
+		.status.active {
+			background: #ecfdf3;
+			color: #067647;
+		}
+
+		.status.paused {
+			background: #fef0c7;
+			color: #92400e;
+		}
+
+		.status.completed {
+			background: #e0f2fe;
+			color: #075985;
+		}
+
+		.actions {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+			margin-top: 0.3rem;
+		}
+
+		.edit-box {
+			margin-top: 0.65rem;
+			border: 1px dashed #d9c9b3;
+			border-radius: 10px;
+			padding: 0.65rem;
+			background: #f8fafc;
+		}
+
+		.pagination {
+			margin-top: 0.75rem;
+			display: flex;
+			justify-content: space-between;
+			gap: 0.7rem;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		.alert {
+			display: none;
+			border-radius: 9px;
+			padding: 0.62rem 0.75rem;
+			font-size: 0.92rem;
+			margin-bottom: 0.65rem;
+		}
+
+		.alert.error {
+			display: block;
+			background: #fef3f2;
+			color: var(--danger);
+			border: 1px solid #fecdca;
+		}
+
+		.alert.ok {
+			display: block;
+			background: #ecfdf3;
+			color: var(--ok);
+			border: 1px solid #abefc6;
+		}
+
+		@media (max-width: 980px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<nav class="nav" aria-label="Primary">
+			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
+			<div class="nav-actions">
+				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
+				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
+				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
+				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+			</div>
+		</nav>
+
+		<h1 class="page-title">Manage Campaigns</h1>
+		<p class="muted">Create, update, and manage campaign lifecycle.</p>
+
+		<section id="feedbackPanel" class="panel">Loading campaign manager...</section>
+
+		<section id="managerLayout" class="layout hidden">
+			<article class="card">
+				<h2>Create Campaign</h2>
+				<div id="createAlert" class="alert"></div>
+
+				<form id="createForm" novalidate>
+					<div class="field">
+						<label for="title">Title</label>
+						<input id="title" name="title" type="text" minlength="5" maxlength="120" required />
+					</div>
+
+					<div class="field">
+						<label for="description">Description</label>
+						<textarea id="description" name="description" minlength="20" required></textarea>
+					</div>
+
+					<div class="field">
+						<label for="goalAmount">Goal Amount (INR)</label>
+						<input id="goalAmount" name="goalAmount" type="number" min="1" step="1" required />
+					</div>
+
+					<div class="field">
+						<label for="status">Status</label>
+						<select id="status" name="status">
+							<option value="active">Active</option>
+							<option value="paused">Paused</option>
+							<option value="completed">Completed</option>
+						</select>
+					</div>
+
+					<div class="field">
+						<label for="coverImage">Cover Image URL (optional)</label>
+						<input id="coverImage" name="coverImage" type="url" />
+					</div>
+
+					<button id="createBtn" class="btn btn-primary" type="submit">Create Campaign</button>
+				</form>
+			</article>
+
+			<article class="card">
+				<h3>Campaign List</h3>
+
+				<section class="toolbar" aria-label="Filters">
+					<input id="searchInput" type="search" placeholder="Search campaigns" />
+					<select id="statusFilter">
+						<option value="">All Status</option>
+						<option value="active">Active</option>
+						<option value="paused">Paused</option>
+						<option value="completed">Completed</option>
+					</select>
+					<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
+				</section>
+
+				<div id="listAlert" class="alert"></div>
+				<section id="campaignList" class="campaign-list"></section>
+
+				<section class="pagination">
+					<button id="prevBtn" class="btn btn-outline" type="button">Previous</button>
+					<span id="pageMeta" class="muted">Page 1 of 1</span>
+					<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
+				</section>
+			</article>
+		</section>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script>
+		const feedbackPanel = document.getElementById('feedbackPanel');
+		const managerLayout = document.getElementById('managerLayout');
+		const createForm = document.getElementById('createForm');
+		const createAlert = document.getElementById('createAlert');
+		const createBtn = document.getElementById('createBtn');
+		const listAlert = document.getElementById('listAlert');
+		const campaignList = document.getElementById('campaignList');
+		const searchInput = document.getElementById('searchInput');
+		const statusFilter = document.getElementById('statusFilter');
+		const applyFilterBtn = document.getElementById('applyFilterBtn');
+		const prevBtn = document.getElementById('prevBtn');
+		const nextBtn = document.getElementById('nextBtn');
+		const pageMeta = document.getElementById('pageMeta');
+		const logoutBtn = document.getElementById('logoutBtn');
+
+		const state = {
+			page: 1,
+			limit: 8,
+			totalPages: 1,
+			search: '',
+			status: ''
+		};
+
+		function formatCurrency(value) {
+			return new Intl.NumberFormat('en-IN', {
+				style: 'currency',
+				currency: 'INR',
+				maximumFractionDigits: 0
+			}).format(Number(value || 0));
+		}
+
+		function setAlert(el, message, type) {
+			el.className = `alert ${type}`;
+			el.textContent = message;
+		}
+
+		function clearAlert(el) {
+			el.className = 'alert';
+			el.textContent = '';
+		}
+
+		function showPanel(message) {
+			feedbackPanel.style.display = 'block';
+			feedbackPanel.textContent = message;
+			managerLayout.classList.add('hidden');
+		}
+
+		function showManager() {
+			feedbackPanel.style.display = 'none';
+			managerLayout.classList.remove('hidden');
+		}
+
+		function createEditTemplate(campaign) {
+			return `
+				<div class="edit-box" data-edit-box="${campaign._id}">
+					<div class="field">
+						<label>Title</label>
+						<input type="text" data-edit-field="title" value="${campaign.title}" />
+					</div>
+					<div class="field">
+						<label>Description</label>
+						<textarea data-edit-field="description">${campaign.description}</textarea>
+					</div>
+					<div class="field">
+						<label>Goal Amount</label>
+						<input type="number" min="1" step="1" data-edit-field="goalAmount" value="${campaign.goalAmount}" />
+					</div>
+					<div class="field">
+						<label>Status</label>
+						<select data-edit-field="status">
+							<option value="active" ${campaign.status === 'active' ? 'selected' : ''}>Active</option>
+							<option value="paused" ${campaign.status === 'paused' ? 'selected' : ''}>Paused</option>
+							<option value="completed" ${campaign.status === 'completed' ? 'selected' : ''}>Completed</option>
+						</select>
+					</div>
+					<div class="field">
+						<label>Cover Image URL</label>
+						<input type="url" data-edit-field="coverImage" value="${campaign.coverImage || ''}" />
+					</div>
+					<div class="actions">
+						<button class="btn btn-primary" type="button" data-save-id="${campaign._id}">Save</button>
+						<button class="btn btn-outline" type="button" data-cancel-id="${campaign._id}">Cancel</button>
+					</div>
+				</div>
+			`;
+		}
+
+		function renderList(campaigns) {
+			if (!campaigns.length) {
+				campaignList.innerHTML = '<article class="campaign-item">No campaigns found with current filters.</article>';
+				return;
+			}
+
+			campaignList.innerHTML = campaigns.map((campaign) => `
+				<article class="campaign-item" data-item-id="${campaign._id}">
+					<div class="top">
+						<strong>${campaign.title}</strong>
+						<span class="status ${campaign.status}">${campaign.status}</span>
+					</div>
+					<span class="muted">Goal: ${formatCurrency(campaign.goalAmount)} | Raised: ${formatCurrency(campaign.raisedAmount)}</span>
+					<span class="muted">${campaign.description.length > 140 ? `${campaign.description.slice(0, 140)}...` : campaign.description}</span>
+					<div class="actions">
+						<button class="btn btn-outline" type="button" data-edit-id="${campaign._id}">Edit</button>
+						<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Delete</button>
+					</div>
+				</article>
+			`).join('');
+
+			campaignList.querySelectorAll('[data-edit-id]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const id = btn.getAttribute('data-edit-id');
+					const item = campaignList.querySelector(`[data-item-id="${id}"]`);
+					const campaign = campaigns.find((c) => c._id === id);
+
+					if (!item || !campaign || item.querySelector('[data-edit-box]')) {
+						return;
+					}
+
+					item.insertAdjacentHTML('beforeend', createEditTemplate(campaign));
+
+					item.querySelector(`[data-cancel-id="${id}"]`).addEventListener('click', () => {
+						const box = item.querySelector(`[data-edit-box="${id}"]`);
+						if (box) {
+							box.remove();
+						}
+					});
+
+					item.querySelector(`[data-save-id="${id}"]`).addEventListener('click', () => {
+						handleUpdateCampaign(item, id);
+					});
+				});
+			});
+
+			campaignList.querySelectorAll('[data-delete-id]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const id = btn.getAttribute('data-delete-id');
+					handleDeleteCampaign(id);
+				});
+			});
+		}
+
+		async function fetchCampaigns() {
+			clearAlert(listAlert);
+
+			const params = new URLSearchParams({
+				page: String(state.page),
+				limit: String(state.limit)
+			});
+
+			if (state.search) {
+				params.set('search', state.search);
+			}
+
+			if (state.status) {
+				params.set('status', state.status);
+			}
+
+			try {
+				const response = await apiRequest(`/admin/campaigns?${params.toString()}`);
+				const campaigns = response?.data?.campaigns || [];
+				const pagination = response?.data?.pagination || {};
+
+				state.totalPages = Number(pagination.totalPages || 1);
+				pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
+				prevBtn.disabled = state.page <= 1;
+				nextBtn.disabled = state.page >= state.totalPages;
+
+				renderList(campaigns);
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to load campaigns.', 'error');
+				campaignList.innerHTML = '';
+			}
+		}
+
+		async function handleCreateCampaign(event) {
+			event.preventDefault();
+			clearAlert(createAlert);
+
+			const formData = new FormData(createForm);
+			const payload = {
+				title: String(formData.get('title') || '').trim(),
+				description: String(formData.get('description') || '').trim(),
+				goalAmount: Number(formData.get('goalAmount')),
+				status: String(formData.get('status') || 'active'),
+				coverImage: String(formData.get('coverImage') || '').trim()
+			};
+
+			if (payload.title.length < 5 || payload.description.length < 20 || payload.goalAmount < 1) {
+				setAlert(createAlert, 'Please provide valid title, description, and goal amount.', 'error');
+				return;
+			}
+
+			createBtn.disabled = true;
+			createBtn.textContent = 'Creating...';
+
+			try {
+				await apiRequest('/admin/campaigns', {
+					method: 'POST',
+					body: JSON.stringify(payload)
+				});
+
+				setAlert(createAlert, 'Campaign created successfully.', 'ok');
+				createForm.reset();
+				state.page = 1;
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(createAlert, error.message || 'Failed to create campaign.', 'error');
+			} finally {
+				createBtn.disabled = false;
+				createBtn.textContent = 'Create Campaign';
+			}
+		}
+
+		async function handleUpdateCampaign(item, id) {
+			const box = item.querySelector(`[data-edit-box="${id}"]`);
+			if (!box) {
+				return;
+			}
+
+			const payload = {
+				title: box.querySelector('[data-edit-field="title"]').value.trim(),
+				description: box.querySelector('[data-edit-field="description"]').value.trim(),
+				goalAmount: Number(box.querySelector('[data-edit-field="goalAmount"]').value),
+				status: box.querySelector('[data-edit-field="status"]').value,
+				coverImage: box.querySelector('[data-edit-field="coverImage"]').value.trim()
+			};
+
+			if (payload.title.length < 5 || payload.description.length < 20 || payload.goalAmount < 1) {
+				setAlert(listAlert, 'Invalid update data. Please review campaign fields.', 'error');
+				return;
+			}
+
+			try {
+				await apiRequest(`/admin/campaigns/${id}`, {
+					method: 'PUT',
+					body: JSON.stringify(payload)
+				});
+
+				setAlert(listAlert, 'Campaign updated successfully.', 'ok');
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to update campaign.', 'error');
+			}
+		}
+
+		async function handleDeleteCampaign(id) {
+			const confirmed = window.confirm('Delete this campaign permanently?');
+			if (!confirmed) {
+				return;
+			}
+
+			try {
+				await apiRequest(`/admin/campaigns/${id}`, {
+					method: 'DELETE'
+				});
+
+				setAlert(listAlert, 'Campaign deleted successfully.', 'ok');
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to delete campaign.', 'error');
+			}
+		}
+
+		function initControls() {
+			applyFilterBtn.addEventListener('click', () => {
+				state.search = searchInput.value.trim();
+				state.status = statusFilter.value;
+				state.page = 1;
+				fetchCampaigns();
+			});
+
+			searchInput.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter') {
+					state.search = searchInput.value.trim();
+					state.status = statusFilter.value;
+					state.page = 1;
+					fetchCampaigns();
+				}
+			});
+
+			prevBtn.addEventListener('click', () => {
+				if (state.page > 1) {
+					state.page -= 1;
+					fetchCampaigns();
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				if (state.page < state.totalPages) {
+					state.page += 1;
+					fetchCampaigns();
+				}
+			});
+
+			createForm.addEventListener('submit', handleCreateCampaign);
+		}
+
+		function init() {
+			if (!Auth.requireAdmin('./login.html')) {
+				return;
+			}
+
+			logoutBtn.addEventListener('click', () => {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			});
+
+			initControls();
+			showManager();
+			fetchCampaigns();
+		}
+
+		init();
+	</script>
+</body>
+</html>

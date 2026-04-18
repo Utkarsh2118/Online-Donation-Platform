@@ -1,0 +1,411 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Donate</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.layout {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1rem;
+			margin: 0.9rem 0 1.4rem;
+		}
+
+		.layout-hidden {
+			display: none;
+		}
+
+		.card {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 14px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+		}
+
+		.card h1,
+		.card h2 {
+			margin: 0 0 0.45rem;
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.panel {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin: 0.8rem 0;
+		}
+
+		.row {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.6rem;
+			align-items: center;
+			margin-top: 0.74rem;
+			padding-top: 0.74rem;
+			border-top: 1px dashed #dacbb6;
+		}
+
+		.field {
+			display: grid;
+			gap: 0.32rem;
+			margin: 0.8rem 0;
+		}
+
+		.field label {
+			font-size: 0.9rem;
+			font-weight: 700;
+		}
+
+		.field input {
+			width: 100%;
+			border: 1px solid #cbd5e1;
+			border-radius: 10px;
+			padding: 0.72rem 0.8rem;
+			font: inherit;
+			background: #fff;
+		}
+
+		.quick-actions {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+			margin-bottom: 0.7rem;
+		}
+
+		.alert {
+			display: none;
+			border-radius: 9px;
+			padding: 0.62rem 0.75rem;
+			font-size: 0.92rem;
+			margin-bottom: 0.7rem;
+		}
+
+		.alert.error {
+			display: block;
+			background: #fef3f2;
+			color: var(--danger);
+			border: 1px solid #fecdca;
+		}
+
+		.alert.ok {
+			display: block;
+			background: #ecfdf3;
+			color: var(--ok);
+			border: 1px solid #abefc6;
+		}
+
+		.note {
+			margin-top: 0.7rem;
+			font-size: 0.86rem;
+			color: var(--muted);
+		}
+
+		@media (max-width: 920px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<nav class="nav" aria-label="Primary">
+			<a class="brand" href="./landing.html">OpenDonate Platform</a>
+			<div class="nav-actions">
+				<a class="btn btn-secondary" id="backToDetails" href="#">Back to Details</a>
+				<a class="btn btn-outline" href="./dashboard.html">My Dashboard</a>
+			</div>
+		</nav>
+
+		<section id="feedbackPanel" class="panel">Loading campaign information...</section>
+
+		<section id="donateLayout" class="layout layout-hidden">
+			<article class="card">
+				<h1 id="campaignTitle">Campaign</h1>
+				<p id="campaignDescription" class="muted"></p>
+
+				<div class="row">
+					<span class="muted">Raised</span>
+					<strong id="raisedAmount">-</strong>
+				</div>
+				<div class="row">
+					<span class="muted">Goal</span>
+					<strong id="goalAmount">-</strong>
+				</div>
+				<div class="row">
+					<span class="muted">Current Progress</span>
+					<strong id="progressText">-</strong>
+				</div>
+			</article>
+
+			<article class="card">
+				<h2>Make a Donation</h2>
+				<p class="muted">Your contribution will be processed securely in checkout.</p>
+
+				<div id="alertBox" class="alert"></div>
+
+				<div class="quick-actions" aria-label="Quick donation amounts">
+					<button class="btn btn-outline preset" data-amount="100" type="button">INR 100</button>
+					<button class="btn btn-outline preset" data-amount="500" type="button">INR 500</button>
+					<button class="btn btn-outline preset" data-amount="1000" type="button">INR 1000</button>
+					<button class="btn btn-outline preset" data-amount="2500" type="button">INR 2500</button>
+				</div>
+
+				<form id="donateForm" novalidate>
+					<div class="field">
+						<label for="amount">Donation Amount (INR)</label>
+						<input id="amount" name="amount" type="number" min="1" step="1" required />
+					</div>
+
+					<button id="donateBtn" class="btn btn-primary" type="submit">Proceed to Secure Checkout</button>
+				</form>
+
+				<p class="note">
+					Step 10 will open Razorpay checkout and verify payments server-side.
+				</p>
+			</article>
+		</section>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+	<script>
+		const feedbackPanel = document.getElementById('feedbackPanel');
+		const donateLayout = document.getElementById('donateLayout');
+		const campaignTitle = document.getElementById('campaignTitle');
+		const campaignDescription = document.getElementById('campaignDescription');
+		const raisedAmount = document.getElementById('raisedAmount');
+		const goalAmount = document.getElementById('goalAmount');
+		const progressText = document.getElementById('progressText');
+		const backToDetails = document.getElementById('backToDetails');
+		const donateForm = document.getElementById('donateForm');
+		const amountInput = document.getElementById('amount');
+		const donateBtn = document.getElementById('donateBtn');
+		const alertBox = document.getElementById('alertBox');
+
+		function getCampaignId() {
+			const params = new URLSearchParams(window.location.search);
+			return params.get('campaignId');
+		}
+
+		function formatCurrency(value) {
+			return new Intl.NumberFormat('en-IN', {
+				style: 'currency',
+				currency: 'INR',
+				maximumFractionDigits: 0
+			}).format(Number(value || 0));
+		}
+
+		function showAlert(message, type) {
+			alertBox.className = `alert ${type}`;
+			alertBox.textContent = message;
+		}
+
+		function clearAlert() {
+			alertBox.className = 'alert';
+			alertBox.textContent = '';
+		}
+
+		function showFeedback(message) {
+			feedbackPanel.style.display = 'block';
+			feedbackPanel.textContent = message;
+			donateLayout.style.display = 'none';
+		}
+
+		function showDonateLayout() {
+			feedbackPanel.style.display = 'none';
+			donateLayout.style.display = 'grid';
+		}
+
+		function renderCampaign(campaign) {
+			const progress = campaign.goalAmount > 0
+				? Math.min(100, Math.round((campaign.raisedAmount / campaign.goalAmount) * 100))
+				: 0;
+
+			campaignTitle.textContent = campaign.title;
+			campaignDescription.textContent = campaign.description;
+			raisedAmount.textContent = formatCurrency(campaign.raisedAmount);
+			goalAmount.textContent = formatCurrency(campaign.goalAmount);
+			progressText.textContent = `${progress}% funded`;
+			showDonateLayout();
+		}
+
+		async function loadCampaign() {
+			const campaignId = getCampaignId();
+
+			if (!campaignId) {
+				showFeedback('Campaign ID is missing in the URL.');
+				return null;
+			}
+
+			showFeedback('Loading campaign information...');
+
+			try {
+				const response = await apiRequest(`/campaigns/${campaignId}`);
+				const campaign = response?.data?.campaign;
+
+				if (!campaign) {
+					throw new Error('Campaign not found.');
+				}
+
+				renderCampaign(campaign);
+				backToDetails.href = `./campaign-details.html?id=${campaignId}`;
+				return campaignId;
+			} catch (error) {
+				showFeedback(error.message || 'Unable to load campaign.');
+				return null;
+			}
+		}
+
+		async function handleDonate(event, campaignId) {
+			event.preventDefault();
+			clearAlert();
+
+			const amount = Number(amountInput.value);
+			if (!Number.isFinite(amount) || amount < 1) {
+				showAlert('Please enter a valid donation amount (minimum INR 1).', 'error');
+				return;
+			}
+
+			donateBtn.disabled = true;
+			donateBtn.textContent = 'Preparing Checkout...';
+
+			try {
+				const response = await apiRequest('/donations', {
+					method: 'POST',
+					body: JSON.stringify({ campaignId, amount })
+				});
+
+				const donation = response?.data?.donation;
+				const order = response?.data?.order;
+				const razorpayKeyId = response?.data?.razorpayKeyId;
+
+				if (!donation?.id || !order?.id || !razorpayKeyId) {
+					throw new Error('Checkout data is incomplete. Please try again.');
+				}
+
+				localStorage.setItem('odp_pending_donation', JSON.stringify(donation));
+
+				const user = Auth.getUser() || {};
+				const options = {
+					key: razorpayKeyId,
+					amount: order.amount,
+					currency: order.currency,
+					name: 'OpenDonate Platform',
+					description: `Donation for ${campaignTitle.textContent}`,
+					order_id: order.id,
+					prefill: {
+						name: user.name || '',
+						email: user.email || ''
+					},
+					theme: {
+						color: '#0f766e'
+					},
+					handler: async function (paymentResponse) {
+						try {
+							await apiRequest('/donations/verify-payment', {
+								method: 'POST',
+								body: JSON.stringify({
+									donationId: donation.id,
+									razorpay_order_id: paymentResponse.razorpay_order_id,
+									razorpay_payment_id: paymentResponse.razorpay_payment_id,
+									razorpay_signature: paymentResponse.razorpay_signature
+								})
+							});
+
+							showAlert('Payment successful. Thank you for your donation!', 'ok');
+							localStorage.removeItem('odp_pending_donation');
+
+							setTimeout(() => {
+								window.location.href = `./campaign-details.html?id=${campaignId}`;
+							}, 800);
+						} catch (verifyError) {
+							showAlert(verifyError.message || 'Payment verification failed.', 'error');
+						}
+					},
+					modal: {
+						ondismiss: async function () {
+							await apiRequest('/donations/mark-failed', {
+								method: 'POST',
+								body: JSON.stringify({
+									donationId: donation.id,
+									razorpayOrderId: order.id
+								})
+							}).catch(() => {
+								// Ignore modal dismiss update failures, primary payment flow still recovers.
+							});
+
+							showAlert('Checkout was closed before payment completion.', 'error');
+						}
+					}
+				};
+
+				const razorpay = new window.Razorpay(options);
+				razorpay.on('payment.failed', async function (response) {
+					await apiRequest('/donations/mark-failed', {
+						method: 'POST',
+						body: JSON.stringify({
+							donationId: donation.id,
+							razorpayOrderId: order.id,
+							razorpayPaymentId: response?.error?.metadata?.payment_id || ''
+						})
+					}).catch(() => {
+						// Ignore secondary failure state update errors.
+					});
+
+					showAlert('Payment failed. Please try again.', 'error');
+				});
+
+				razorpay.open();
+			} catch (error) {
+				showAlert(error.message || 'Failed to create donation request.', 'error');
+			} finally {
+				donateBtn.disabled = false;
+				donateBtn.textContent = 'Proceed to Secure Checkout';
+			}
+		}
+
+		async function init() {
+			if (!Auth.requireAuth('./login.html')) {
+				return;
+			}
+
+			const user = Auth.getUser();
+			if (user?.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+				return;
+			}
+
+			document.querySelectorAll('.preset').forEach((button) => {
+				button.addEventListener('click', () => {
+					amountInput.value = button.getAttribute('data-amount');
+				});
+			});
+
+			const campaignId = await loadCampaign();
+			if (!campaignId) {
+				return;
+			}
+
+			donateForm.addEventListener('submit', (event) => handleDonate(event, campaignId));
+		}
+
+		init();
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,667 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>OpenDonate | Transparent Giving Platform</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		/* Landing Page Specific Styles */
+		body {
+			background: #fafaf9;
+		}
+
+		.landing-nav {
+			background: #ffffff;
+			border-bottom: 1px solid #e7e5e4;
+			position: sticky;
+			top: 0;
+			z-index: 100;
+			padding: var(--space-3) 0;
+		}
+
+		.landing-nav-content {
+			max-width: 1280px;
+			margin: 0 auto;
+			padding: 0 var(--space-4);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.landing-brand {
+			display: flex;
+			align-items: center;
+			gap: var(--space-2);
+			font-weight: 800;
+			font-size: var(--text-lg);
+			text-decoration: none;
+			color: var(--neutral-900);
+		}
+
+		.landing-brand::before {
+			content: '';
+			width: 32px;
+			height: 32px;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+			border-radius: var(--radius-lg);
+		}
+
+		/* Hero Section */
+		.landing-hero {
+			padding: var(--space-6) var(--space-4);
+			max-width: 1280px;
+			margin: 0 auto;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: var(--space-6);
+			align-items: center;
+		}
+
+		.hero-content {
+			display: grid;
+			gap: var(--space-3);
+			z-index: 2;
+		}
+
+		.hero-content h1 {
+			font-size: 3.5rem;
+			font-weight: 800;
+			line-height: 1.1;
+			color: var(--neutral-900);
+			margin: 0;
+		}
+
+		.hero-content .gradient-text {
+			background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.hero-content p {
+			font-size: var(--text-lg);
+			color: var(--neutral-600);
+			line-height: 1.6;
+			margin: 0;
+		}
+
+		.hero-cta-group {
+			display: flex;
+			gap: var(--space-2);
+			margin-top: var(--space-2);
+		}
+
+		.hero-cta-group .btn {
+			padding: var(--space-3) var(--space-4);
+			font-size: var(--text-base);
+			font-weight: 700;
+			border-radius: var(--radius-lg);
+			transition: all var(--transition-normal);
+		}
+
+		.btn-primary {
+			background: linear-gradient(135deg, var(--primary) 0%, #0d6359 100%);
+			color: white;
+			border: none;
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 12px 24px rgba(15, 118, 110, 0.3);
+		}
+
+		.btn-secondary {
+			background: transparent;
+			color: var(--primary);
+			border: 2px solid var(--primary);
+		}
+
+		.btn-secondary:hover {
+			background: rgba(15, 118, 110, 0.05);
+		}
+
+		.trust-badges {
+			display: flex;
+			gap: var(--space-2);
+			margin-top: var(--space-3);
+			flex-wrap: wrap;
+		}
+
+		.trust-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: var(--space-1);
+			font-size: var(--text-sm);
+			color: var(--neutral-600);
+			background: rgba(15, 118, 110, 0.08);
+			padding: var(--space-1) var(--space-2);
+			border-radius: var(--radius-full);
+		}
+
+		.trust-badge::before {
+			content: 'âœ“';
+			color: var(--primary);
+			font-weight: 700;
+		}
+
+		/* Hero Illustration */
+		.hero-visual {
+			position: relative;
+			height: 500px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.illustration-box {
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(245, 158, 11, 0.08) 100%);
+			border-radius: var(--radius-2xl);
+			border: 1px solid rgba(15, 118, 110, 0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.illustration-box::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			right: -20%;
+			width: 300px;
+			height: 300px;
+			background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+			border-radius: 50%;
+		}
+
+		.illustration-icon {
+			font-size: 120px;
+			opacity: 0.8;
+			z-index: 1;
+		}
+
+		/* Stats Bar */
+		.stats-bar {
+			background: #ffffff;
+			border-top: 1px solid #e7e5e4;
+			border-bottom: 1px solid #e7e5e4;
+			padding: var(--space-4);
+		}
+
+		.stats-bar-content {
+			max-width: 1280px;
+			margin: 0 auto;
+			padding: 0 var(--space-4);
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: var(--space-4);
+			text-align: center;
+		}
+
+		.stat-item {
+			display: grid;
+			gap: var(--space-1);
+		}
+
+		.stat-value {
+			font-size: 2rem;
+			font-weight: 800;
+			color: var(--primary);
+		}
+
+		.stat-label {
+			font-size: var(--text-sm);
+			color: var(--neutral-600);
+		}
+
+		/* How It Works Section */
+		.section-how-it-works {
+			padding: var(--space-6) var(--space-4);
+			background: #fafaf9;
+		}
+
+		.section-container {
+			max-width: 1280px;
+			margin: 0 auto;
+			padding: 0 var(--space-4);
+		}
+
+		.section-header {
+			text-align: center;
+			margin-bottom: var(--space-5);
+		}
+
+		.section-header h2 {
+			font-size: 2.5rem;
+			font-weight: 800;
+			color: var(--neutral-900);
+			margin: 0 0 var(--space-2) 0;
+		}
+
+		.section-header p {
+			font-size: var(--text-lg);
+			color: var(--neutral-600);
+			max-width: 600px;
+			margin: 0 auto;
+		}
+
+		.steps-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: var(--space-4);
+		}
+
+		.step-card {
+			background: #ffffff;
+			border: 1px solid #e7e5e4;
+			border-radius: var(--radius-xl);
+			padding: var(--space-4);
+			text-align: center;
+			transition: all var(--transition-normal);
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-2);
+		}
+
+		.step-card:hover {
+			border-color: var(--primary);
+			box-shadow: 0 8px 24px rgba(15, 118, 110, 0.1);
+			transform: translateY(-4px);
+		}
+
+		.step-number {
+			width: 48px;
+			height: 48px;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+			color: white;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: var(--text-lg);
+			margin: 0 auto;
+		}
+
+		.step-card h4 {
+			font-size: var(--text-lg);
+			font-weight: 700;
+			color: var(--neutral-900);
+			margin: 0;
+		}
+
+		.step-card p {
+			color: var(--neutral-600);
+			margin: 0;
+			font-size: var(--text-sm);
+		}
+
+		/* Features Section */
+		.section-features {
+			padding: var(--space-6) var(--space-4);
+			background: #ffffff;
+		}
+
+		.features-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: var(--space-4);
+			margin-top: var(--space-4);
+		}
+
+		.feature-card {
+			background: #fafaf9;
+			border: 1px solid #e7e5e4;
+			border-radius: var(--radius-xl);
+			padding: var(--space-4);
+			transition: all var(--transition-normal);
+		}
+
+		.feature-card:hover {
+			border-color: var(--primary);
+		}
+
+		.feature-icon {
+			font-size: 2.5rem;
+			margin-bottom: var(--space-2);
+		}
+
+		.feature-card h4 {
+			font-size: var(--text-lg);
+			font-weight: 700;
+			color: var(--neutral-900);
+			margin: 0 0 var(--space-2) 0;
+		}
+
+		.feature-card p {
+			color: var(--neutral-600);
+			margin: 0;
+			font-size: var(--text-sm);
+		}
+
+		/* CTA Section */
+		.section-cta {
+			padding: var(--space-6) var(--space-4);
+			background: linear-gradient(135deg, var(--primary) 0%, #0d6359 100%);
+			text-align: center;
+		}
+
+		.cta-content {
+			max-width: 600px;
+			margin: 0 auto;
+			display: grid;
+			gap: var(--space-3);
+		}
+
+		.cta-content h2 {
+			font-size: 2.5rem;
+			font-weight: 800;
+			color: white;
+			margin: 0;
+		}
+
+		.cta-content p {
+			font-size: var(--text-lg);
+			color: rgba(255, 255, 255, 0.9);
+			margin: 0;
+		}
+
+		.cta-button {
+			background: var(--accent);
+			color: var(--neutral-900);
+			padding: var(--space-3) var(--space-4);
+			font-size: var(--text-base);
+			font-weight: 700;
+			border-radius: var(--radius-lg);
+			border: none;
+			cursor: pointer;
+			transition: all var(--transition-normal);
+			display: inline-block;
+			text-decoration: none;
+		}
+
+		.cta-button:hover {
+			background: var(--accent-light);
+			transform: translateY(-2px);
+			box-shadow: 0 12px 24px rgba(245, 158, 11, 0.4);
+		}
+
+		/* Footer */
+		.landing-footer {
+			background: var(--neutral-900);
+			color: #a0aec0;
+			padding: var(--space-4);
+			text-align: center;
+			font-size: var(--text-sm);
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		/* Responsive */
+		@media (max-width: 980px) {
+			.landing-hero {
+				grid-template-columns: 1fr;
+				padding: var(--space-4);
+			}
+
+			.hero-content h1 {
+				font-size: 2.5rem;
+			}
+
+			.hero-visual {
+				height: 350px;
+			}
+
+			.stats-bar-content {
+				grid-template-columns: 1fr;
+				gap: var(--space-3);
+			}
+
+			.steps-grid,
+			.features-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.hero-cta-group {
+				flex-direction: column;
+			}
+
+			.btn {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.hero-content h1 {
+				font-size: 1.75rem;
+			}
+
+			.landing-nav-content {
+				flex-direction: column;
+				gap: var(--space-2);
+			}
+
+			.section-header h2 {
+				font-size: 1.75rem;
+			}
+
+			.cta-content h2 {
+				font-size: 1.75rem;
+			}
+		}
+
+		/* Animations */
+		@keyframes slideInUp {
+			from {
+				opacity: 0;
+				transform: translateY(30px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.hero-content {
+			animation: slideInUp 0.6s ease-out;
+		}
+
+		.hero-visual {
+			animation: slideInUp 0.6s ease-out 0.2s both;
+		}
+	</style>
+</head>
+<body>
+	<!-- Navigation -->
+	<nav class="landing-nav" aria-label="Primary">
+		<div class="landing-nav-content">
+			<a class="landing-brand" href="./landing.html">OpenDonate</a>
+			<div class="hero-cta-group" id="guestActions">
+				<a class="btn btn-outline" href="./login.html">Login</a>
+				<a class="btn btn-primary" href="./register.html">Get Started</a>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Hero Section -->
+	<section class="landing-hero">
+		<div class="hero-content">
+			<h1>
+				Make a real<br />
+				<span class="gradient-text">difference today</span>
+			</h1>
+			<p>
+				Support verified campaigns, track every donation, and see your impact in real-time.
+				Join 50,000+ donors changing lives through transparent, secure giving.
+			</p>
+
+			<div class="hero-cta-group">
+				<button class="btn btn-primary" id="exploreBtn">Explore Campaigns</button>
+				<a class="btn btn-secondary" href="./register.html">Create Free Account</a>
+			</div>
+
+			<div class="trust-badges">
+				<span class="trust-badge">Secure Payments</span>
+				<span class="trust-badge">100% Transparent</span>
+				<span class="trust-badge">Instant Updates</span>
+			</div>
+		</div>
+
+		<div class="hero-visual">
+			<div class="illustration-box">
+				<div class="illustration-icon">ðŸ¤</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Stats Bar -->
+	<section class="stats-bar">
+		<div class="stats-bar-content">
+			<div class="stat-item">
+				<div class="stat-value">150+</div>
+				<div class="stat-label">Active Campaigns</div>
+			</div>
+			<div class="stat-item">
+				<div class="stat-value">50k+</div>
+				<div class="stat-label">Verified Donors</div>
+			</div>
+			<div class="stat-item">
+				<div class="stat-value">99.9%</div>
+				<div class="stat-label">Payment Uptime</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- How It Works -->
+	<section class="section-how-it-works">
+		<div class="section-container">
+			<div class="section-header">
+				<h2>How It Works</h2>
+				<p>Get started in three simple steps</p>
+			</div>
+
+			<div class="steps-grid">
+				<div class="step-card">
+					<div class="step-number">1</div>
+					<h4>Discover Verified Campaigns</h4>
+					<p>Browse trusted fundraisers across multiple categories and causes.</p>
+				</div>
+				<div class="step-card">
+					<div class="step-number">2</div>
+					<h4>Donate Securely</h4>
+					<p>Fast, safe checkout powered by Razorpay with multiple payment options.</p>
+				</div>
+				<div class="step-card">
+					<div class="step-number">3</div>
+					<h4>Track Your Impact</h4>
+					<p>View live updates, donation history, and campaign progress from your dashboard.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Features -->
+	<section class="section-features">
+		<div class="section-container">
+			<div class="section-header">
+				<h2>Why Choose OpenDonate?</h2>
+				<p>Built for trust, transparency, and impact</p>
+			</div>
+
+			<div class="features-grid">
+				<div class="feature-card">
+					<div class="feature-icon">ðŸ”’</div>
+					<h4>Bank-Grade Security</h4>
+					<p>JWT authentication, encrypted sessions, and PCI-compliant payment processing.</p>
+				</div>
+				<div class="feature-card">
+					<div class="feature-icon">âš¡</div>
+					<h4>Lightning Fast</h4>
+					<p>Donations processed instantly with real-time confirmation and receipt generation.</p>
+				</div>
+				<div class="feature-card">
+					<div class="feature-icon">ðŸ“Š</div>
+					<h4>Full Transparency</h4>
+					<p>Complete donation tracking, campaign analytics, and verified fundraiser information.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA Section -->
+	<section class="section-cta">
+		<div class="cta-content">
+			<h2>Ready to make an impact?</h2>
+			<p>Join thousands of donors supporting important causes. Start giving securely today.</p>
+			<div>
+				<a class="cta-button" href="./register.html">Start Donating Now</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer class="landing-footer">
+		<p>&copy; 2026 OpenDonate Platform. All rights reserved. | Secure. Transparent. Impactful.</p>
+	</footer>
+
+	<div class="toast" id="toast"></div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script>
+		const guestActions = document.getElementById('guestActions');
+		const exploreBtn = document.getElementById('exploreBtn');
+		const toast = document.getElementById('toast');
+
+		function showToast(message) {
+			toast.textContent = message;
+			toast.classList.add('show');
+			setTimeout(() => toast.classList.remove('show'), 2600);
+		}
+
+		function redirectByRole() {
+			const user = Auth.getUser();
+			if (!user) {
+				return;
+			}
+
+			if (user.role === 'admin') {
+				window.location.href = '../admin/dashboard.html';
+			} else {
+				window.location.href = './home.html';
+			}
+		}
+
+		function initLanding() {
+			if (Auth.isLoggedIn()) {
+				guestActions.innerHTML = '<button class="btn btn-primary" id="continueBtn">Continue to Dashboard</button>';
+
+				const continueBtn = document.getElementById('continueBtn');
+				continueBtn.addEventListener('click', redirectByRole);
+			}
+
+			exploreBtn.addEventListener('click', () => {
+				if (!Auth.isLoggedIn()) {
+					showToast('Please login to explore campaigns.');
+					setTimeout(() => {
+						window.location.href = './login.html';
+					}, 700);
+					return;
+				}
+
+				redirectByRole();
+			});
+		}
+
+		initLanding();
+	</script>
+</body>
+</html>
+
+
