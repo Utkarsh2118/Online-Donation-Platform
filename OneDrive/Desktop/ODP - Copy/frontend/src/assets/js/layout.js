@@ -2,6 +2,7 @@
   const SIDEBAR_STORAGE_KEY = 'odp.sidebar.collapsed';
   const THEME_STORAGE_KEY = 'odp.theme.mode';
   const NOTIFICATION_STORAGE_KEY = 'odp.notifications';
+  const SYSTEM_THEME_QUERY = window.matchMedia('(prefers-color-scheme: dark)');
 
   function shouldUseDesktopSidebar() {
     return window.matchMedia('(min-width: 901px)').matches;
@@ -78,14 +79,20 @@
     });
   }
 
+  function normalizeThemeMode(mode) {
+    if (mode === 'light' || mode === 'dark' || mode === 'system') {
+      return mode;
+    }
+    return 'system';
+  }
+
   function applyTheme(mode) {
-    document.body.classList.remove('theme-compact', 'theme-high-contrast');
-    if (mode === 'compact') {
-      document.body.classList.add('theme-compact');
-    }
-    if (mode === 'high-contrast') {
-      document.body.classList.add('theme-high-contrast');
-    }
+    const resolvedMode = normalizeThemeMode(mode);
+    const isDark = resolvedMode === 'dark' || (resolvedMode === 'system' && SYSTEM_THEME_QUERY.matches);
+
+    document.body.classList.remove('theme-light', 'theme-dark', 'theme-system');
+    document.body.classList.add(resolvedMode === 'system' ? 'theme-system' : isDark ? 'theme-dark' : 'theme-light');
+    document.body.dataset.theme = isDark ? 'dark' : 'light';
   }
 
   function setupThemeControls() {
@@ -112,24 +119,30 @@
     const switcher = document.createElement('label');
     switcher.className = 'theme-switcher';
     switcher.innerHTML = `
-      <span>Theme</span>
+      <span>Appearance</span>
       <select id="themeMode" aria-label="Theme mode">
-        <option value="normal">Normal</option>
-        <option value="compact">Compact</option>
-        <option value="high-contrast">High Contrast</option>
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
       </select>
     `;
 
     target.appendChild(switcher);
     const select = switcher.querySelector('#themeMode');
-    const saved = localStorage.getItem(THEME_STORAGE_KEY) || 'normal';
+    const saved = normalizeThemeMode(localStorage.getItem(THEME_STORAGE_KEY));
     select.value = saved;
     applyTheme(saved);
 
     select.addEventListener('change', () => {
-      const mode = select.value;
+      const mode = normalizeThemeMode(select.value);
       localStorage.setItem(THEME_STORAGE_KEY, mode);
       applyTheme(mode);
+    });
+
+    SYSTEM_THEME_QUERY.addEventListener('change', () => {
+      if (normalizeThemeMode(localStorage.getItem(THEME_STORAGE_KEY)) === 'system') {
+        applyTheme('system');
+      }
     });
   }
 
