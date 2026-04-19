@@ -7,30 +7,17 @@ const cookieParser = require('cookie-parser');
 
 const apiRoutes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const { buildAllowedOrigins, isAllowedOrigin } = require('./utils/corsOrigins');
 
 const app = express();
 
-const envFrontendOrigin = process.env.FRONTEND_URL;
-const allowedOrigins = new Set([
-	envFrontendOrigin,
-	'http://localhost:5500',
-	'http://127.0.0.1:5500'
-].filter(Boolean));
-
-function isLocalDevOrigin(origin) {
-	try {
-		const parsed = new URL(origin);
-		return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
-	} catch {
-		return false;
-	}
-}
+const allowedOrigins = buildAllowedOrigins(process.env.FRONTEND_URL);
 
 app.use(
 	cors({
 		origin(origin, callback) {
 			// Allow same-origin, server-to-server, and approved browser origins.
-			if (!origin || allowedOrigins.has(origin) || isLocalDevOrigin(origin)) {
+			if (isAllowedOrigin(origin, allowedOrigins)) {
 				return callback(null, true);
 			}
 
