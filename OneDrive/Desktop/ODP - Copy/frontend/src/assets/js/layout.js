@@ -84,8 +84,25 @@
   }
 
   function setupThemeControls() {
-    const container = document.querySelector('.side-nav .brand') || document.querySelector('.nav-actions');
+    const sideNav = document.querySelector('.side-nav');
+    const fallbackContainer = document.querySelector('.nav-actions');
+    const container = sideNav || fallbackContainer;
     if (!container || container.querySelector('.theme-switcher')) return;
+
+    let target = container;
+    if (sideNav) {
+      target = sideNav.querySelector('.side-nav-tools');
+      if (!target) {
+        target = document.createElement('div');
+        target.className = 'side-nav-tools';
+        const brand = sideNav.querySelector('.brand');
+        if (brand && brand.nextSibling) {
+          sideNav.insertBefore(target, brand.nextSibling);
+        } else {
+          sideNav.appendChild(target);
+        }
+      }
+    }
 
     const switcher = document.createElement('label');
     switcher.className = 'theme-switcher';
@@ -98,7 +115,7 @@
       </select>
     `;
 
-    container.appendChild(switcher);
+    target.appendChild(switcher);
     const select = switcher.querySelector('#themeMode');
     const saved = localStorage.getItem(THEME_STORAGE_KEY) || 'normal';
     select.value = saved;
@@ -135,8 +152,25 @@
   }
 
   function setupNotificationCenter() {
-    const target = document.querySelector('.side-nav .brand') || document.querySelector('.nav-actions');
+    const sideNav = document.querySelector('.side-nav');
+    const fallbackTarget = document.querySelector('.nav-actions');
+    const target = sideNav || fallbackTarget;
     if (!target || target.querySelector('.notif-wrap')) return;
+
+    let container = target;
+    if (sideNav) {
+      container = sideNav.querySelector('.side-nav-tools');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'side-nav-tools';
+        const brand = sideNav.querySelector('.brand');
+        if (brand && brand.nextSibling) {
+          sideNav.insertBefore(container, brand.nextSibling);
+        } else {
+          sideNav.appendChild(container);
+        }
+      }
+    }
 
     const wrap = document.createElement('div');
     wrap.className = 'notif-wrap';
@@ -146,7 +180,7 @@
       </button>
       <section class="notif-panel" aria-live="polite"></section>
     `;
-    target.appendChild(wrap);
+    container.appendChild(wrap);
 
     const bell = wrap.querySelector('.notif-bell');
     const panel = wrap.querySelector('.notif-panel');

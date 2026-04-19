@@ -79,6 +79,14 @@ body {
   margin-bottom: 0.2rem;
 }
 
+.side-nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
 .side-nav-list {
   display: grid;
   gap: 0.4rem;
@@ -165,7 +173,6 @@ body {
 }
 
 .theme-switcher {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -185,7 +192,6 @@ body {
 
 .notif-wrap {
   position: relative;
-  margin-left: 6px;
 }
 
 .notif-bell {
@@ -896,6 +902,10 @@ body.theme-high-contrast .side-nav-link.active {
 
   .header-actions {
     justify-items: start;
+  }
+
+  .side-nav-tools {
+    justify-content: flex-start;
   }
 }
 
