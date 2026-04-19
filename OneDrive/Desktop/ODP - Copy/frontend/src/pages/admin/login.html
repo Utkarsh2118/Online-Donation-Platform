@@ -1,231 +1,523 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>ODP | Admin Login</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="../../assets/css/main.css" />
-	<style>
-		.auth-wrap {
-			min-height: 100vh;
-			display: grid;
-			place-items: center;
-			padding: 1.2rem;
-		}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenDonate | Admin Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/main.css" />
+  <style>
+    :root {
+      --auth-ink: #111827;
+      --auth-muted: #56627a;
+      --auth-panel: #ffffff;
+      --auth-border: #d6dfea;
+      --auth-primary: #a44922;
+      --auth-primary-strong: #7b341d;
+      --auth-ring: rgba(164, 73, 34, 0.2);
+      --auth-shadow: 0 28px 60px rgba(15, 23, 42, 0.17);
+    }
 
-		.auth-card {
-			width: min(470px, 100%);
-			background: #ffffff;
-			border-radius: 16px;
-			box-shadow: var(--shadow-soft);
-			padding: 1.2rem;
-			border: 1px solid #e2e8f0;
-		}
+    body {
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(245, 158, 11, 0.25), transparent 34%),
+        radial-gradient(circle at 84% 10%, rgba(239, 68, 68, 0.22), transparent 32%),
+        linear-gradient(150deg, #f7efe6 0%, #ebf0f8 56%, #f9f2e8 100%);
+      color: var(--auth-ink);
+    }
 
-		.badge {
-			display: inline-flex;
-			padding: 0.2rem 0.56rem;
-			border-radius: 999px;
-			font-size: 0.75rem;
-			font-weight: 800;
-			letter-spacing: 0.35px;
-			text-transform: uppercase;
-			background: #fef0c7;
-			color: #92400e;
-		}
+    .auth-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.25rem;
+    }
 
-		.auth-card h1 {
-			margin: 0.45rem 0 0.5rem;
-			font-size: 1.42rem;
-		}
+    .auth-shell {
+      width: min(1080px, 100%);
+      min-height: min(700px, calc(100vh - 2.5rem));
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--auth-shadow);
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
 
-		.auth-card p {
-			margin: 0 0 1rem;
-			color: var(--muted);
-		}
+    .auth-story {
+      position: relative;
+      padding: 2.8rem;
+      display: grid;
+      align-content: space-between;
+      gap: 1.5rem;
+      background: linear-gradient(155deg, #7b341d 0%, #9a3412 40%, #b45309 100%);
+      color: #fffaf6;
+      isolation: isolate;
+    }
 
-		.field {
-			display: grid;
-			gap: 0.35rem;
-			margin-bottom: 0.85rem;
-		}
+    .auth-story::before,
+    .auth-story::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.4;
+      z-index: -1;
+      animation: floatBlob 10s ease-in-out infinite;
+    }
 
-		.field label {
-			font-size: 0.9rem;
-			font-weight: 700;
-		}
+    .auth-story::before {
+      width: 240px;
+      height: 240px;
+      left: -55px;
+      top: -55px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.9) 0%, rgba(251, 191, 36, 0) 72%);
+    }
 
-		.field input {
-			width: 100%;
-			border: 1px solid #cbd5e1;
-			border-radius: 10px;
-			padding: 0.72rem 0.8rem;
-			font: inherit;
-			background: #fff;
-		}
+    .auth-story::after {
+      width: 240px;
+      height: 240px;
+      right: -65px;
+      bottom: -65px;
+      background: radial-gradient(circle, rgba(248, 113, 113, 0.82) 0%, rgba(248, 113, 113, 0) 72%);
+      animation-delay: -3s;
+    }
 
-		.auth-footer {
-			margin-top: 0.9rem;
-			font-size: 0.92rem;
-			color: var(--muted);
-			display: flex;
-			justify-content: space-between;
-			gap: 0.7rem;
-			flex-wrap: wrap;
-		}
+    .auth-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.04rem;
+      color: #ffffff;
+    }
 
-		.alert {
-			display: none;
-			margin-bottom: 0.8rem;
-			border-radius: 9px;
-			padding: 0.62rem 0.75rem;
-			font-size: 0.92rem;
-		}
+    .auth-brand::before {
+      content: "";
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.5) 100%);
+    }
 
-		.alert.error {
-			display: block;
-			background: #fef3f2;
-			color: var(--danger);
-			border: 1px solid #fecdca;
-		}
+    .story-main h1 {
+      margin: 0;
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      line-height: 1.1;
+    }
 
-		.alert.ok {
-			display: block;
-			background: #ecfdf3;
-			color: var(--ok);
-			border: 1px solid #abefc6;
-		}
-	</style>
+    .story-main p {
+      margin: 0.85rem 0 0;
+      line-height: 1.62;
+      max-width: 35ch;
+      color: rgba(255, 243, 236, 0.9);
+    }
+
+    .security-points {
+      margin-top: 1.35rem;
+      display: grid;
+      gap: 0.58rem;
+    }
+
+    .security-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.44rem;
+      padding: 0.42rem 0.78rem;
+      width: fit-content;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      background: rgba(255, 255, 255, 0.14);
+      font-size: 0.81rem;
+      font-weight: 700;
+    }
+
+    .security-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #fde68a;
+    }
+
+    .auth-panel {
+      background: var(--auth-panel);
+      padding: 2.2rem;
+      display: grid;
+      align-content: center;
+    }
+
+    .auth-card {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .auth-head {
+      display: grid;
+      gap: 0.8rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .admin-badge {
+      display: inline-flex;
+      width: fit-content;
+      padding: 0.28rem 0.62rem;
+      border-radius: 999px;
+      border: 1px solid #f9d9ad;
+      background: #fff4df;
+      color: #a04a1d;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.38px;
+    }
+
+    .auth-card h1 {
+      margin: 0;
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: 1.68rem;
+    }
+
+    .auth-sub {
+      margin: 0;
+      color: var(--auth-muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 0.95rem;
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .alert.error {
+      display: block;
+      background: #fff2f1;
+      color: #b42318;
+      border: 1px solid #fecdc9;
+    }
+
+    .alert.ok {
+      display: block;
+      background: #ecfdf3;
+      color: #047857;
+      border: 1px solid #abefc6;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .field {
+      position: relative;
+      display: grid;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid var(--auth-border);
+      border-radius: 14px;
+      padding: 1.02rem 0.92rem 0.52rem;
+      font: inherit;
+      font-size: 0.96rem;
+      background: #ffffff;
+      color: var(--auth-ink);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--auth-primary);
+      box-shadow: 0 0 0 4px var(--auth-ring);
+    }
+
+    .field label {
+      position: absolute;
+      left: 0.9rem;
+      top: 0.9rem;
+      font-size: 0.92rem;
+      color: #69809f;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      background: #ffffff;
+      padding: 0 0.25rem;
+    }
+
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      top: -0.5rem;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--auth-primary);
+    }
+
+    .field.password input {
+      padding-right: 3rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.55rem;
+      border: 0;
+      background: transparent;
+      padding: 0.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #4b607c;
+    }
+
+    .toggle-password:hover {
+      background: #f1f5f9;
+    }
+
+    .btn.btn-primary {
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      font-size: 0.96rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-strong) 100%);
+      color: #ffffff;
+      box-shadow: 0 12px 24px rgba(164, 73, 34, 0.25);
+    }
+
+    .auth-footer {
+      margin-top: 0.95rem;
+      font-size: 0.92rem;
+      color: var(--auth-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-footer a {
+      font-weight: 700;
+      color: #0f5f8c;
+    }
+
+    .auth-note {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #70839e;
+    }
+
+    @keyframes floatBlob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(12px) scale(1.04); }
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card > * {
+      opacity: 0;
+      animation: rise 0.6s ease forwards;
+    }
+
+    .auth-card > *:nth-child(1) { animation-delay: 0.05s; }
+    .auth-card > *:nth-child(2) { animation-delay: 0.11s; }
+    .auth-card > *:nth-child(3) { animation-delay: 0.17s; }
+    .auth-card > *:nth-child(4) { animation-delay: 0.23s; }
+    .auth-card > *:nth-child(5) { animation-delay: 0.3s; }
+
+    @media (max-width: 900px) {
+      .auth-shell { grid-template-columns: 1fr; min-height: 0; }
+      .auth-story { padding: 1.7rem; }
+      .story-main h1 { font-size: 1.55rem; }
+      .story-main p { max-width: 100%; }
+      .auth-panel { padding: 1.5rem; }
+    }
+
+    @media (max-width: 560px) {
+      .auth-wrap { padding: 0.8rem; }
+      .auth-shell { border-radius: 20px; }
+      .auth-story { padding: 1.2rem; }
+      .auth-panel { padding: 1rem; }
+      .auth-card h1 { font-size: 1.45rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-	<main class="auth-wrap">
-		<section class="auth-card" aria-labelledby="adminLoginTitle">
-			<a class="brand" href="../user/landing.html">OpenDonate Platform</a>
-			<span class="badge">Admin Access</span>
-			<h1 id="adminLoginTitle">Sign in to Admin Panel</h1>
-			<p>This area is restricted to authorized administrators only.</p>
+  <main class="auth-wrap">
+    <section class="auth-shell" aria-labelledby="adminLoginTitle">
+      <aside class="auth-story" aria-hidden="true">
+        <a class="auth-brand" href="../user/landing.html">OpenDonate Platform</a>
+        <div class="story-main">
+          <h1>Protected access for platform administrators.</h1>
+          <p>Manage campaigns, users, and donations from a secure admin space with role-restricted authentication.</p>
+          <div class="security-points">
+            <span class="security-chip">Role-based admin verification</span>
+            <span class="security-chip">Session token + route protection</span>
+            <span class="security-chip">Real-time moderation control</span>
+          </div>
+        </div>
+      </aside>
 
-			<div id="alertBox" class="alert"></div>
+      <div class="auth-panel">
+        <section class="auth-card">
+          <header class="auth-head">
+            <span class="admin-badge">Admin Access</span>
+            <h1 id="adminLoginTitle">Sign in to Admin Panel</h1>
+            <p class="auth-sub">This area is restricted to authorized administrators only.</p>
+          </header>
 
-			<form id="adminLoginForm" novalidate>
-				<div class="field">
-					<label for="email">Admin Email</label>
-					<input id="email" name="email" type="email" required />
-				</div>
+          <div id="alertBox" class="alert" role="alert" aria-live="polite"></div>
 
-				<div class="field">
-					<label for="password">Password</label>
-					<input id="password" name="password" type="password" required />
-				</div>
+          <form id="adminLoginForm" class="auth-form" novalidate>
+            <div class="field">
+              <input id="email" name="email" type="email" placeholder=" " autocomplete="email" required />
+              <label for="email">Admin Email</label>
+            </div>
 
-				<button id="loginBtn" class="btn btn-primary" type="submit">Login as Admin</button>
-			</form>
+            <div class="field password">
+              <input id="password" name="password" type="password" placeholder=" " autocomplete="current-password" required />
+              <label for="password">Password</label>
+              <button id="togglePasswordBtn" class="toggle-password" type="button" aria-label="Toggle password visibility">Show</button>
+            </div>
 
-			<p class="auth-footer">
-				<span>Regular user? <a href="../user/login.html">User login</a></span>
-				<span>New admin setup: use seeded admin credentials.</span>
-			</p>
-		</section>
-	</main>
+            <button id="loginBtn" class="btn btn-primary" type="submit">Login as Admin</button>
+          </form>
 
-	<script src="../../assets/js/config.js"></script>
-	<script src="../../assets/js/auth.js"></script>
-	<script src="../../assets/js/api.js"></script>
-	<script>
-		const form = document.getElementById('adminLoginForm');
-		const loginBtn = document.getElementById('loginBtn');
-		const alertBox = document.getElementById('alertBox');
+          <p class="auth-footer">
+            <span>Regular user? <a href="../user/login.html">User login</a></span>
+            <span>Need account access? Contact super admin.</span>
+          </p>
 
-		function showAlert(message, type) {
-			alertBox.className = `alert ${type}`;
-			alertBox.textContent = message;
-		}
+          <p class="auth-note">Seeded admin credentials are controlled from backend environment settings.</p>
+        </section>
+      </div>
+    </section>
+  </main>
 
-		function clearAlert() {
-			alertBox.className = 'alert';
-			alertBox.textContent = '';
-		}
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script>
+    const form = document.getElementById('adminLoginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const alertBox = document.getElementById('alertBox');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
 
-		function isValidEmail(email) {
-			return /^\S+@\S+\.\S+$/.test(email);
-		}
+    function showAlert(message, type) {
+      alertBox.className = `alert ${type}`;
+      alertBox.textContent = message;
+    }
 
-		async function handleAdminLogin(event) {
-			event.preventDefault();
-			clearAlert();
+    function clearAlert() {
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+    }
 
-			const formData = new FormData(form);
-			const email = String(formData.get('email') || '').trim().toLowerCase();
-			const password = String(formData.get('password') || '');
+    function isValidEmail(email) {
+      return /^\S+@\S+\.\S+$/.test(email);
+    }
 
-			if (!isValidEmail(email)) {
-				showAlert('Please enter a valid email.', 'error');
-				return;
-			}
+    async function handleAdminLogin(event) {
+      event.preventDefault();
+      clearAlert();
 
-			if (!password) {
-				showAlert('Password is required.', 'error');
-				return;
-			}
+      const formData = new FormData(form);
+      const email = String(formData.get('email') || '').trim().toLowerCase();
+      const password = String(formData.get('password') || '');
 
-			loginBtn.disabled = true;
-			loginBtn.textContent = 'Signing in...';
+      if (!isValidEmail(email)) {
+        showAlert('Please enter a valid email.', 'error');
+        return;
+      }
 
-			try {
-				const response = await apiRequest('/auth/login', {
-					method: 'POST',
-					body: JSON.stringify({ email, password })
-				});
+      if (!password) {
+        showAlert('Password is required.', 'error');
+        return;
+      }
 
-				const token = response?.data?.token;
-				const user = response?.data?.user;
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
 
-				if (!token || !user) {
-					throw new Error('Login response is incomplete.');
-				}
+      try {
+        const response = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
 
-				if (user.role !== 'admin') {
-					Auth.clearSession();
-					showAlert('Access denied: this account is not an admin.', 'error');
-					return;
-				}
+        const token = response?.data?.token;
+        const user = response?.data?.user;
 
-				Auth.setSession(token, user);
-				showAlert('Admin login successful. Redirecting...', 'ok');
+        if (!token || !user) {
+          throw new Error('Login response is incomplete.');
+        }
 
-				setTimeout(() => {
-					window.location.href = './dashboard.html';
-				}, 650);
-			} catch (error) {
-				const message = error.message || 'Unable to login right now.';
-				showAlert(message, 'error');
-			} finally {
-				loginBtn.disabled = false;
-				loginBtn.textContent = 'Login as Admin';
-			}
-		}
+        if (user.role !== 'admin') {
+          Auth.clearSession();
+          showAlert('Access denied: this account is not an admin.', 'error');
+          return;
+        }
 
-		function init() {
-			if (Auth.isLoggedIn()) {
-				const user = Auth.getUser();
+        Auth.setSession(token, user);
+        showAlert('Admin login successful. Redirecting...', 'ok');
 
-				if (user?.role === 'admin') {
-					window.location.href = './dashboard.html';
-					return;
-				}
+        setTimeout(() => {
+          window.location.href = './dashboard.html';
+        }, 650);
+      } catch (error) {
+        const message = error.message || 'Unable to login right now.';
+        showAlert(message, 'error');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login as Admin';
+      }
+    }
 
-				window.location.href = '../user/campaigns.html';
-				return;
-			}
+    function init() {
+      if (Auth.isLoggedIn()) {
+        const user = Auth.getUser();
 
-			form.addEventListener('submit', handleAdminLogin);
-		}
+        if (user?.role === 'admin') {
+          window.location.href = './dashboard.html';
+          return;
+        }
 
-		init();
-	</script>
+        window.location.href = '../user/campaigns.html';
+        return;
+      }
+
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPasswordHidden = passwordInput.type === 'password';
+        passwordInput.type = isPasswordHidden ? 'text' : 'password';
+        togglePasswordBtn.textContent = isPasswordHidden ? 'Hide' : 'Show';
+      });
+
+      form.addEventListener('submit', handleAdminLogin);
+    }
+
+    init();
+  </script>
 </body>
 </html>
-
