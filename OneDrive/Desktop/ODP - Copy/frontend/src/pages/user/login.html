@@ -1,222 +1,537 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>ODP | Login</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="../../assets/css/main.css" />
-	<style>
-		.auth-wrap {
-			min-height: 100vh;
-			display: grid;
-			place-items: center;
-			padding: 1.2rem;
-		}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenDonate | Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/main.css" />
+  <style>
+    :root {
+      --auth-ink: #0f172a;
+      --auth-muted: #526179;
+      --auth-panel: #ffffff;
+      --auth-border: #d8e1ed;
+      --auth-primary: #086f6a;
+      --auth-primary-strong: #045d59;
+      --auth-ring: rgba(8, 111, 106, 0.2);
+      --auth-shadow: 0 28px 60px rgba(15, 23, 42, 0.17);
+    }
 
-		.auth-card {
-			width: min(460px, 100%);
-			background: #ffffff;
-			border-radius: 16px;
-			box-shadow: var(--shadow-soft);
-			padding: 1.2rem;
-			border: 1px solid #e2e8f0;
-		}
+    body {
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(245, 158, 11, 0.28), transparent 34%),
+        radial-gradient(circle at 88% 12%, rgba(59, 130, 246, 0.3), transparent 32%),
+        linear-gradient(145deg, #f6f2e6 0%, #e6ecf8 50%, #f5efe2 100%);
+      color: var(--auth-ink);
+    }
 
-		.auth-card h1 {
-			margin: 0.35rem 0 0.5rem;
-			font-size: 1.45rem;
-		}
+    .auth-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.25rem;
+    }
 
-		.auth-card p {
-			margin: 0 0 1rem;
-			color: var(--muted);
-		}
+    .auth-shell {
+      width: min(1080px, 100%);
+      min-height: min(720px, calc(100vh - 2.5rem));
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--auth-shadow);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      -webkit-backdrop-filter: blur(9px);
+      backdrop-filter: blur(9px);
+    }
 
-		.field {
-			display: grid;
-			gap: 0.35rem;
-			margin-bottom: 0.85rem;
-		}
+    .auth-story {
+      position: relative;
+      padding: 2.8rem;
+      display: grid;
+      align-content: space-between;
+      gap: 1.5rem;
+      background: linear-gradient(150deg, #0c5c7f 0%, #103f6d 36%, #0d7a71 100%);
+      color: #f8fbff;
+      isolation: isolate;
+    }
 
-		.field label {
-			font-size: 0.9rem;
-			font-weight: 700;
-		}
+    .auth-story::before,
+    .auth-story::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(2px);
+      opacity: 0.42;
+      z-index: -1;
+      animation: floatBlob 9s ease-in-out infinite;
+    }
 
-		.field input {
-			width: 100%;
-			border: 1px solid #cbd5e1;
-			border-radius: 10px;
-			padding: 0.72rem 0.8rem;
-			font: inherit;
-			background: #fff;
-		}
+    .auth-story::before {
+      width: 280px;
+      height: 280px;
+      top: -70px;
+      left: -35px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.88) 0%, rgba(245, 158, 11, 0) 72%);
+    }
 
-		.auth-footer {
-			margin-top: 0.9rem;
-			font-size: 0.92rem;
-			color: var(--muted);
-			display: flex;
-			justify-content: space-between;
-			gap: 0.8rem;
-			flex-wrap: wrap;
-		}
+    .auth-story::after {
+      width: 240px;
+      height: 240px;
+      right: -70px;
+      bottom: -62px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.82) 0%, rgba(16, 185, 129, 0) 72%);
+      animation-delay: -3.2s;
+    }
 
-		.alert {
-			display: none;
-			margin-bottom: 0.8rem;
-			border-radius: 9px;
-			padding: 0.62rem 0.75rem;
-			font-size: 0.92rem;
-		}
+    .auth-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.04rem;
+      color: #ffffff;
+    }
 
-		.alert.error {
-			display: block;
-			background: #fef3f2;
-			color: var(--danger);
-			border: 1px solid #fecdca;
-		}
+    .auth-brand::before {
+      content: "";
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.5) 100%);
+    }
 
-		.alert.ok {
-			display: block;
-			background: #ecfdf3;
-			color: var(--ok);
-			border: 1px solid #abefc6;
-		}
-	</style>
+    .story-main h1 {
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .story-main p {
+      margin: 0.8rem 0 0;
+      line-height: 1.6;
+      max-width: 36ch;
+      color: rgba(235, 245, 255, 0.9);
+    }
+
+    .story-points {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1.4rem;
+    }
+
+    .story-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      width: fit-content;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.17);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+    }
+
+    .story-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #fcd34d;
+    }
+
+    .auth-panel {
+      background: var(--auth-panel);
+      padding: 2.2rem;
+      display: grid;
+      align-content: center;
+    }
+
+    .auth-card {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .auth-head {
+      display: grid;
+      gap: 0.85rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .auth-switch {
+      display: inline-flex;
+      background: #eef2f7;
+      padding: 0.25rem;
+      border-radius: 999px;
+      width: fit-content;
+      gap: 0.2rem;
+    }
+
+    .auth-switch a {
+      text-decoration: none;
+      padding: 0.46rem 0.95rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 999px;
+      color: #4a5d77;
+      transition: all 0.25s ease;
+    }
+
+    .auth-switch a.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.09);
+    }
+
+    .auth-card h1 {
+      margin: 0;
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: 1.72rem;
+    }
+
+    .auth-sub {
+      margin: 0;
+      color: var(--auth-muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 0.95rem;
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .alert.error {
+      display: block;
+      background: #fff2f1;
+      color: #b42318;
+      border: 1px solid #fecdc9;
+    }
+
+    .alert.ok {
+      display: block;
+      background: #ecfdf3;
+      color: #047857;
+      border: 1px solid #abefc6;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .field {
+      position: relative;
+      display: grid;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid var(--auth-border);
+      border-radius: 14px;
+      padding: 1.02rem 0.92rem 0.52rem;
+      font: inherit;
+      font-size: 0.96rem;
+      background: #ffffff;
+      color: var(--auth-ink);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--auth-primary);
+      box-shadow: 0 0 0 4px var(--auth-ring);
+    }
+
+    .field label {
+      position: absolute;
+      left: 0.9rem;
+      top: 0.9rem;
+      font-size: 0.92rem;
+      color: #69809f;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      background: #ffffff;
+      padding: 0 0.25rem;
+    }
+
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      top: -0.5rem;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--auth-primary);
+    }
+
+    .field.password input {
+      padding-right: 3rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.55rem;
+      border: 0;
+      background: transparent;
+      padding: 0.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #4b607c;
+    }
+
+    .toggle-password:hover {
+      background: #f1f5f9;
+    }
+
+    .btn.btn-primary {
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      font-size: 0.96rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-strong) 100%);
+      color: #ffffff;
+      box-shadow: 0 12px 24px rgba(8, 111, 106, 0.22);
+    }
+
+    .auth-footer {
+      margin-top: 0.9rem;
+      font-size: 0.92rem;
+      color: var(--auth-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-footer a {
+      font-weight: 700;
+      color: #0f5f8c;
+    }
+
+    .auth-note {
+      margin-top: 1.05rem;
+      font-size: 0.8rem;
+      color: #70839e;
+    }
+
+    @keyframes floatBlob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(12px) scale(1.04); }
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card > * {
+      opacity: 0;
+      animation: riseIn 0.6s ease forwards;
+    }
+
+    .auth-card > *:nth-child(1) { animation-delay: 0.05s; }
+    .auth-card > *:nth-child(2) { animation-delay: 0.11s; }
+    .auth-card > *:nth-child(3) { animation-delay: 0.17s; }
+    .auth-card > *:nth-child(4) { animation-delay: 0.23s; }
+    .auth-card > *:nth-child(5) { animation-delay: 0.3s; }
+    .auth-card > *:nth-child(6) { animation-delay: 0.36s; }
+
+    @media (max-width: 900px) {
+      .auth-shell { grid-template-columns: 1fr; min-height: 0; }
+      .auth-story { padding: 1.7rem; }
+      .story-main h1 { font-size: 1.56rem; }
+      .story-main p { max-width: 100%; }
+      .auth-panel { padding: 1.5rem; }
+    }
+
+    @media (max-width: 540px) {
+      .auth-wrap { padding: 0.8rem; }
+      .auth-shell { border-radius: 20px; }
+      .auth-story { padding: 1.2rem; }
+      .auth-panel { padding: 1rem; }
+      .auth-card h1 { font-size: 1.46rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-	<main class="auth-wrap">
-		<section class="auth-card" aria-labelledby="loginTitle">
-			<a class="brand" href="./landing.html">OpenDonate Platform</a>
-			<h1 id="loginTitle">Welcome back</h1>
-			<p>Login to manage donations, campaigns, and your dashboard.</p>
+  <main class="auth-wrap">
+    <section class="auth-shell" aria-labelledby="loginTitle">
+      <aside class="auth-story" aria-hidden="true">
+        <a class="auth-brand" href="./landing.html">OpenDonate Platform</a>
+        <div class="story-main">
+          <h1>Welcome back to your impact dashboard.</h1>
+          <p>Track campaigns, monitor donation activity, and keep your giving journey transparent in real time.</p>
+          <div class="story-points">
+            <span class="story-chip">Trusted by growing communities</span>
+            <span class="story-chip">Secure token-based access</span>
+            <span class="story-chip">Fast checkout and live updates</span>
+          </div>
+        </div>
+      </aside>
 
-			<div id="alertBox" class="alert"></div>
+      <div class="auth-panel">
+        <section class="auth-card">
+          <header class="auth-head">
+            <nav class="auth-switch" aria-label="Authentication pages">
+              <a class="active" href="./login.html" aria-current="page">Login</a>
+              <a href="./register.html">Sign Up</a>
+            </nav>
+            <h1 id="loginTitle">Sign in to continue</h1>
+            <p class="auth-sub">Access your donor profile, saved campaigns, and recent activity.</p>
+          </header>
 
-			<form id="loginForm" novalidate>
-				<div class="field">
-					<label for="email">Email Address</label>
-					<input id="email" name="email" type="email" required />
-				</div>
+          <div id="alertBox" class="alert" role="alert" aria-live="polite"></div>
 
-				<div class="field">
-					<label for="password">Password</label>
-					<input id="password" name="password" type="password" required />
-				</div>
+          <form id="loginForm" class="auth-form" novalidate>
+            <div class="field">
+              <input id="email" name="email" type="email" placeholder=" " autocomplete="email" required />
+              <label for="email">Email Address</label>
+            </div>
 
-				<button id="loginBtn" class="btn btn-primary" type="submit">Login</button>
-			</form>
+            <div class="field password">
+              <input id="password" name="password" type="password" placeholder=" " autocomplete="current-password" required />
+              <label for="password">Password</label>
+              <button id="togglePasswordBtn" class="toggle-password" type="button" aria-label="Toggle password visibility">Show</button>
+            </div>
 
-			<p class="auth-footer">
-				<span>New here? <a href="./register.html">Create account</a></span>
-				<span>Admin? <a href="../admin/login.html">Use admin login</a></span>
-			</p>
-		</section>
-	</main>
+            <button id="loginBtn" class="btn btn-primary" type="submit">Login</button>
+          </form>
 
-	<script src="../../assets/js/config.js"></script>
-	<script src="../../assets/js/auth.js"></script>
-	<script src="../../assets/js/api.js"></script>
-	<script>
-		const form = document.getElementById('loginForm');
-		const loginBtn = document.getElementById('loginBtn');
-		const alertBox = document.getElementById('alertBox');
+          <p class="auth-footer">
+            <span>New here? <a href="./register.html">Create account</a></span>
+            <span>Admin? <a href="../admin/login.html">Use admin login</a></span>
+          </p>
 
-		function showAlert(message, type) {
-			alertBox.className = `alert ${type}`;
-			alertBox.textContent = message;
-		}
+          <p class="auth-note">Tip: Use the same email/password you registered with on the platform.</p>
+        </section>
+      </div>
+    </section>
+  </main>
 
-		function clearAlert() {
-			alertBox.className = 'alert';
-			alertBox.textContent = '';
-		}
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script>
+    const form = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const alertBox = document.getElementById('alertBox');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
 
-		function validateInput(email, password) {
-			if (!/^\S+@\S+\.\S+$/.test(email)) {
-				return 'Please provide a valid email address.';
-			}
+    function showAlert(message, type) {
+      alertBox.className = `alert ${type}`;
+      alertBox.textContent = message;
+    }
 
-			if (!password) {
-				return 'Password is required.';
-			}
+    function clearAlert() {
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+    }
 
-			return null;
-		}
+    function validateInput(email, password) {
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        return 'Please provide a valid email address.';
+      }
+      if (!password) {
+        return 'Password is required.';
+      }
+      return null;
+    }
 
-		function roleRedirect(user) {
-			if (user.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
-				return;
-			}
+    function roleRedirect(user) {
+      if (user.role === 'admin') {
+        window.location.href = '../admin/dashboard.html';
+        return;
+      }
+      window.location.href = './home.html';
+    }
 
-			window.location.href = './home.html';
-		}
+    async function handleLogin(event) {
+      event.preventDefault();
+      clearAlert();
+      const formData = new FormData(form);
+      const email = String(formData.get('email') || '').trim().toLowerCase();
+      const password = String(formData.get('password') || '');
+      const validationError = validateInput(email, password);
 
-		async function handleLogin(event) {
-			event.preventDefault();
-			clearAlert();
+      if (validationError) {
+        showAlert(validationError, 'error');
+        return;
+      }
 
-			const formData = new FormData(form);
-			const email = String(formData.get('email') || '').trim().toLowerCase();
-			const password = String(formData.get('password') || '');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
 
-			const validationError = validateInput(email, password);
-			if (validationError) {
-				showAlert(validationError, 'error');
-				return;
-			}
+      try {
+        const response = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
 
-			loginBtn.disabled = true;
-			loginBtn.textContent = 'Signing in...';
+        const token = response?.data?.token;
+        const user = response?.data?.user;
 
-			try {
-				const response = await apiRequest('/auth/login', {
-					method: 'POST',
-					body: JSON.stringify({ email, password })
-				});
+        if (!token || !user) {
+          throw new Error('Login response is incomplete.');
+        }
 
-				const token = response?.data?.token;
-				const user = response?.data?.user;
+        Auth.setSession(token, user);
+        showAlert('Login successful. Redirecting...', 'ok');
+        setTimeout(() => roleRedirect(user), 650);
+      } catch (error) {
+        const message = error.message || 'Unable to login right now.';
+        if (message.toLowerCase().includes('blocked')) {
+          showAlert('Your account is blocked. Please contact support.', 'error');
+        } else {
+          showAlert(message, 'error');
+        }
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+      }
+    }
 
-				if (!token || !user) {
-					throw new Error('Login response is incomplete.');
-				}
+    function init() {
+      if (Auth.isLoggedIn()) {
+        const user = Auth.getUser();
+        roleRedirect(user || { role: 'user' });
+        return;
+      }
 
-				Auth.setSession(token, user);
-				showAlert('Login successful. Redirecting...', 'ok');
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPasswordHidden = passwordInput.type === 'password';
+        passwordInput.type = isPasswordHidden ? 'text' : 'password';
+        togglePasswordBtn.textContent = isPasswordHidden ? 'Hide' : 'Show';
+      });
 
-				setTimeout(() => roleRedirect(user), 650);
-			} catch (error) {
-				const message = error.message || 'Unable to login right now.';
+      form.addEventListener('submit', handleLogin);
+    }
 
-				if (message.toLowerCase().includes('blocked')) {
-					showAlert('Your account is blocked. Please contact support.', 'error');
-				} else {
-					showAlert(message, 'error');
-				}
-			} finally {
-				loginBtn.disabled = false;
-				loginBtn.textContent = 'Login';
-			}
-		}
-
-		function init() {
-			if (Auth.isLoggedIn()) {
-				const user = Auth.getUser();
-				roleRedirect(user || { role: 'user' });
-				return;
-			}
-
-			form.addEventListener('submit', handleLogin);
-		}
-
-		init();
-	</script>
+    init();
+  </script>
 </body>
 </html>
-

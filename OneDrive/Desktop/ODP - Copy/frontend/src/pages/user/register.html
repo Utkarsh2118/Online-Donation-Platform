@@ -1,220 +1,530 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>ODP | Register</title>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
-	<link rel="stylesheet" href="../../assets/css/main.css" />
-	<style>
-		.auth-wrap {
-			min-height: 100vh;
-			display: grid;
-			place-items: center;
-			padding: 1.2rem;
-		}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenDonate | Sign Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/main.css" />
+  <style>
+    :root {
+      --auth-ink: #111827;
+      --auth-muted: #56627a;
+      --auth-panel: #ffffff;
+      --auth-border: #d6dfea;
+      --auth-primary: #0c6f6a;
+      --auth-primary-strong: #065955;
+      --auth-ring: rgba(12, 111, 106, 0.2);
+      --auth-shadow: 0 28px 60px rgba(15, 23, 42, 0.17);
+    }
 
-		.auth-card {
-			width: min(480px, 100%);
-			background: #ffffff;
-			border-radius: 16px;
-			box-shadow: var(--shadow-soft);
-			padding: 1.2rem;
-			border: 1px solid #e2e8f0;
-		}
+    body {
+      font-family: "Manrope", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.24), transparent 36%),
+        radial-gradient(circle at 85% 14%, rgba(245, 158, 11, 0.22), transparent 30%),
+        linear-gradient(150deg, #eef6f4 0%, #e6edf8 52%, #f7f3e8 100%);
+      color: var(--auth-ink);
+    }
 
-		.auth-card h1 {
-			margin: 0 0 0.5rem;
-			font-size: 1.45rem;
-		}
+    .auth-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.25rem;
+    }
 
-		.auth-card p {
-			margin: 0 0 1rem;
-			color: var(--muted);
-		}
+    .auth-shell {
+      width: min(1100px, 100%);
+      min-height: min(740px, calc(100vh - 2.5rem));
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: var(--auth-shadow);
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
 
-		.field {
-			display: grid;
-			gap: 0.35rem;
-			margin-bottom: 0.85rem;
-		}
+    .auth-story {
+      position: relative;
+      padding: 2.8rem;
+      display: grid;
+      align-content: space-between;
+      gap: 1.6rem;
+      background: linear-gradient(160deg, #0b4f7f 0%, #0b6f7a 52%, #0e8b75 100%);
+      color: #f8fcff;
+      isolation: isolate;
+    }
 
-		.field label {
-			font-size: 0.9rem;
-			font-weight: 700;
-		}
+    .auth-story::before,
+    .auth-story::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.4;
+      z-index: -1;
+      animation: drift 10s ease-in-out infinite;
+    }
 
-		.field input {
-			width: 100%;
-			border: 1px solid #cbd5e1;
-			border-radius: 10px;
-			padding: 0.72rem 0.8rem;
-			font: inherit;
-			background: #fff;
-		}
+    .auth-story::before {
+      width: 260px;
+      height: 260px;
+      left: -58px;
+      top: -62px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.95) 0%, rgba(59, 130, 246, 0) 72%);
+    }
 
-		.auth-footer {
-			margin-top: 0.9rem;
-			font-size: 0.92rem;
-			color: var(--muted);
-		}
+    .auth-story::after {
+      width: 220px;
+      height: 220px;
+      right: -65px;
+      bottom: -65px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.88) 0%, rgba(245, 158, 11, 0) 72%);
+      animation-delay: -2.9s;
+    }
 
-		.alert {
-			display: none;
-			margin-bottom: 0.8rem;
-			border-radius: 9px;
-			padding: 0.62rem 0.75rem;
-			font-size: 0.92rem;
-		}
+    .auth-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.04rem;
+      color: #ffffff;
+    }
 
-		.alert.error {
-			display: block;
-			background: #fef3f2;
-			color: var(--danger);
-			border: 1px solid #fecdca;
-		}
+    .auth-brand::before {
+      content: "";
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.5) 100%);
+    }
 
-		.alert.ok {
-			display: block;
-			background: #ecfdf3;
-			color: var(--ok);
-			border: 1px solid #abefc6;
-		}
-	</style>
+    .story-main h1 {
+      margin: 0;
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: clamp(1.9rem, 4vw, 2.75rem);
+      line-height: 1.1;
+    }
+
+    .story-main p {
+      margin: 0.84rem 0 0;
+      line-height: 1.62;
+      max-width: 35ch;
+      color: rgba(237, 248, 255, 0.9);
+    }
+
+    .story-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.55rem;
+      margin-top: 1.4rem;
+    }
+
+    .metric {
+      padding: 0.72rem;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.23);
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1rem;
+    }
+
+    .auth-panel {
+      background: var(--auth-panel);
+      padding: 2.2rem;
+      display: grid;
+      align-content: center;
+    }
+
+    .auth-card {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .auth-head {
+      display: grid;
+      gap: 0.85rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .auth-switch {
+      display: inline-flex;
+      background: #eef2f7;
+      padding: 0.25rem;
+      border-radius: 999px;
+      width: fit-content;
+      gap: 0.2rem;
+    }
+
+    .auth-switch a {
+      text-decoration: none;
+      padding: 0.46rem 0.95rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 999px;
+      color: #4a5d77;
+      transition: all 0.25s ease;
+    }
+
+    .auth-switch a.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.09);
+    }
+
+    .auth-card h1 {
+      margin: 0;
+      font-family: "Sora", "Manrope", sans-serif;
+      font-size: 1.72rem;
+    }
+
+    .auth-sub {
+      margin: 0;
+      color: var(--auth-muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 0.95rem;
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .alert.error {
+      display: block;
+      background: #fff2f1;
+      color: #b42318;
+      border: 1px solid #fecdc9;
+    }
+
+    .alert.ok {
+      display: block;
+      background: #ecfdf3;
+      color: #047857;
+      border: 1px solid #abefc6;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .field {
+      position: relative;
+      display: grid;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid var(--auth-border);
+      border-radius: 14px;
+      padding: 1.02rem 0.92rem 0.52rem;
+      font: inherit;
+      font-size: 0.96rem;
+      background: #ffffff;
+      color: var(--auth-ink);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--auth-primary);
+      box-shadow: 0 0 0 4px var(--auth-ring);
+    }
+
+    .field label {
+      position: absolute;
+      left: 0.9rem;
+      top: 0.9rem;
+      font-size: 0.92rem;
+      color: #69809f;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      background: #ffffff;
+      padding: 0 0.25rem;
+    }
+
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      top: -0.5rem;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--auth-primary);
+    }
+
+    .field.password input {
+      padding-right: 3rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.55rem;
+      border: 0;
+      background: transparent;
+      padding: 0.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #4b607c;
+    }
+
+    .toggle-password:hover {
+      background: #f1f5f9;
+    }
+
+    .btn.btn-primary {
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      font-size: 0.96rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--auth-primary) 0%, var(--auth-primary-strong) 100%);
+      color: #ffffff;
+      box-shadow: 0 12px 24px rgba(8, 111, 106, 0.22);
+    }
+
+    .auth-footer {
+      margin-top: 0.95rem;
+      font-size: 0.92rem;
+      color: var(--auth-muted);
+    }
+
+    .auth-footer a {
+      font-weight: 700;
+      color: #0f5f8c;
+    }
+
+    .auth-note {
+      margin-top: 1.05rem;
+      font-size: 0.8rem;
+      color: #70839e;
+    }
+
+    @keyframes drift {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(12px) scale(1.04); }
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card > * {
+      opacity: 0;
+      animation: rise 0.6s ease forwards;
+    }
+
+    .auth-card > *:nth-child(1) { animation-delay: 0.05s; }
+    .auth-card > *:nth-child(2) { animation-delay: 0.11s; }
+    .auth-card > *:nth-child(3) { animation-delay: 0.17s; }
+    .auth-card > *:nth-child(4) { animation-delay: 0.23s; }
+    .auth-card > *:nth-child(5) { animation-delay: 0.3s; }
+
+    @media (max-width: 900px) {
+      .auth-shell { grid-template-columns: 1fr; min-height: 0; }
+      .auth-story { padding: 1.7rem; }
+      .story-main h1 { font-size: 1.52rem; }
+      .story-main p { max-width: 100%; }
+      .auth-panel { padding: 1.5rem; }
+    }
+
+    @media (max-width: 580px) {
+      .auth-wrap { padding: 0.8rem; }
+      .auth-shell { border-radius: 20px; }
+      .auth-story { padding: 1.2rem; }
+      .auth-panel { padding: 1rem; }
+      .story-metrics { grid-template-columns: 1fr; }
+      .auth-card h1 { font-size: 1.46rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-	<main class="auth-wrap">
-		<section class="auth-card" aria-labelledby="registerTitle">
-			<a class="brand" href="./landing.html">OpenDonate Platform</a>
-			<h1 id="registerTitle">Create your account</h1>
-			<p>Join in less than a minute and start supporting campaigns.</p>
+  <main class="auth-wrap">
+    <section class="auth-shell" aria-labelledby="registerTitle">
+      <aside class="auth-story" aria-hidden="true">
+        <a class="auth-brand" href="./landing.html">OpenDonate Platform</a>
+        <div class="story-main">
+          <h1>Create an account in under a minute.</h1>
+          <p>Join thousands of givers supporting verified campaigns with transparent donation flows.</p>
+          <div class="story-metrics">
+            <div class="metric"><strong>12k+</strong> Donors onboarded</div>
+            <div class="metric"><strong>2.8x</strong> Faster campaign launch</div>
+            <div class="metric"><strong>100%</strong> Secure checkout flow</div>
+          </div>
+        </div>
+      </aside>
 
-			<div id="alertBox" class="alert"></div>
+      <div class="auth-panel">
+        <section class="auth-card">
+          <header class="auth-head">
+            <nav class="auth-switch" aria-label="Authentication pages">
+              <a href="./login.html">Login</a>
+              <a class="active" href="./register.html" aria-current="page">Sign Up</a>
+            </nav>
+            <h1 id="registerTitle">Create your account</h1>
+            <p class="auth-sub">Set up your profile and start supporting campaigns right away.</p>
+          </header>
 
-			<form id="registerForm" novalidate>
-				<div class="field">
-					<label for="name">Full Name</label>
-					<input id="name" name="name" type="text" minlength="2" maxlength="60" required />
-				</div>
+          <div id="alertBox" class="alert" role="alert" aria-live="polite"></div>
 
-				<div class="field">
-					<label for="email">Email Address</label>
-					<input id="email" name="email" type="email" required />
-				</div>
+          <form id="registerForm" class="auth-form" novalidate>
+            <div class="field">
+              <input id="name" name="name" type="text" minlength="2" maxlength="60" placeholder=" " autocomplete="name" required />
+              <label for="name">Full Name</label>
+            </div>
 
-				<div class="field">
-					<label for="password">Password</label>
-					<input id="password" name="password" type="password" minlength="8" required />
-				</div>
+            <div class="field">
+              <input id="email" name="email" type="email" placeholder=" " autocomplete="email" required />
+              <label for="email">Email Address</label>
+            </div>
 
-				<button id="registerBtn" class="btn btn-primary" type="submit">Create Account</button>
-			</form>
+            <div class="field password">
+              <input id="password" name="password" type="password" minlength="8" placeholder=" " autocomplete="new-password" required />
+              <label for="password">Password</label>
+              <button id="togglePasswordBtn" class="toggle-password" type="button" aria-label="Toggle password visibility">Show</button>
+            </div>
 
-			<p class="auth-footer">
-				Already have an account?
-				<a href="./login.html">Login</a>
-			</p>
-		</section>
-	</main>
+            <button id="registerBtn" class="btn btn-primary" type="submit">Create Account</button>
+          </form>
 
-	<script src="../../assets/js/config.js"></script>
-	<script src="../../assets/js/auth.js"></script>
-	<script src="../../assets/js/api.js"></script>
-	<script>
-		const form = document.getElementById('registerForm');
-		const registerBtn = document.getElementById('registerBtn');
-		const alertBox = document.getElementById('alertBox');
+          <p class="auth-footer">
+            Already have an account? <a href="./login.html">Login</a>
+          </p>
 
-		function showAlert(message, type) {
-			alertBox.className = `alert ${type}`;
-			alertBox.textContent = message;
-		}
+          <p class="auth-note">By continuing, you agree to platform terms and secure account usage policies.</p>
+        </section>
+      </div>
+    </section>
+  </main>
 
-		function clearAlert() {
-			alertBox.className = 'alert';
-			alertBox.textContent = '';
-		}
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script>
+    const form = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+    const alertBox = document.getElementById('alertBox');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
 
-		function validateInput(name, email, password) {
-			if (name.trim().length < 2) {
-				return 'Name must be at least 2 characters.';
-			}
+    function showAlert(message, type) {
+      alertBox.className = `alert ${type}`;
+      alertBox.textContent = message;
+    }
 
-			if (!/^\S+@\S+\.\S+$/.test(email)) {
-				return 'Please provide a valid email address.';
-			}
+    function clearAlert() {
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+    }
 
-			if (password.length < 8) {
-				return 'Password must be at least 8 characters.';
-			}
+    function validateInput(name, email, password) {
+      if (name.trim().length < 2) {
+        return 'Name must be at least 2 characters.';
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        return 'Please provide a valid email address.';
+      }
+      if (password.length < 8) {
+        return 'Password must be at least 8 characters.';
+      }
+      return null;
+    }
 
-			return null;
-		}
+    async function handleRegister(event) {
+      event.preventDefault();
+      clearAlert();
 
-		async function handleRegister(event) {
-			event.preventDefault();
-			clearAlert();
+      const formData = new FormData(form);
+      const name = String(formData.get('name') || '').trim();
+      const email = String(formData.get('email') || '').trim().toLowerCase();
+      const password = String(formData.get('password') || '');
+      const validationError = validateInput(name, email, password);
 
-			const formData = new FormData(form);
-			const name = String(formData.get('name') || '').trim();
-			const email = String(formData.get('email') || '').trim().toLowerCase();
-			const password = String(formData.get('password') || '');
+      if (validationError) {
+        showAlert(validationError, 'error');
+        return;
+      }
 
-			const validationError = validateInput(name, email, password);
-			if (validationError) {
-				showAlert(validationError, 'error');
-				return;
-			}
+      registerBtn.disabled = true;
+      registerBtn.textContent = 'Creating...';
 
-			registerBtn.disabled = true;
-			registerBtn.textContent = 'Creating...';
+      try {
+        const response = await apiRequest('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password })
+        });
 
-			try {
-				const response = await apiRequest('/auth/register', {
-					method: 'POST',
-					body: JSON.stringify({ name, email, password })
-				});
+        const token = response?.data?.token;
+        const user = response?.data?.user;
 
-				const token = response?.data?.token;
-				const user = response?.data?.user;
+        if (!token || !user) {
+          throw new Error('Registration response is incomplete.');
+        }
 
-				if (!token || !user) {
-					throw new Error('Registration response is incomplete.');
-				}
+        Auth.setSession(token, user);
+        showAlert('Registration successful. Redirecting...', 'ok');
 
-				Auth.setSession(token, user);
-				showAlert('Registration successful. Redirecting...', 'ok');
+        setTimeout(() => {
+          window.location.href = './home.html';
+        }, 700);
+      } catch (error) {
+        showAlert(error.message || 'Unable to register right now.', 'error');
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Create Account';
+      }
+    }
 
-				setTimeout(() => {
-					window.location.href = './home.html';
-				}, 700);
-			} catch (error) {
-				showAlert(error.message || 'Unable to register right now.', 'error');
-			} finally {
-				registerBtn.disabled = false;
-				registerBtn.textContent = 'Create Account';
-			}
-		}
+    function init() {
+      if (Auth.isLoggedIn()) {
+        const user = Auth.getUser();
+        if (user?.role === 'admin') {
+          window.location.href = '../admin/dashboard.html';
+          return;
+        }
 
-		function init() {
-			if (Auth.isLoggedIn()) {
-				const user = Auth.getUser();
-				if (user?.role === 'admin') {
-					window.location.href = '../admin/dashboard.html';
-					return;
-				}
+        window.location.href = './home.html';
+        return;
+      }
 
-				window.location.href = './home.html';
-				return;
-			}
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPasswordHidden = passwordInput.type === 'password';
+        passwordInput.type = isPasswordHidden ? 'text' : 'password';
+        togglePasswordBtn.textContent = isPasswordHidden ? 'Hide' : 'Show';
+      });
 
-			form.addEventListener('submit', handleRegister);
-		}
+      form.addEventListener('submit', handleRegister);
+    }
 
-		init();
-	</script>
+    init();
+  </script>
 </body>
 </html>
-
