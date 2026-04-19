@@ -19,10 +19,22 @@
 			margin: 0;
 		}
 
+		.nav-actions {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+		}
+
+		.nav-actions .btn.active {
+			background: linear-gradient(135deg, #0f766e 0%, #0b5f58 100%);
+			border-color: #0f766e;
+			color: #ffffff;
+		}
+
 		.card {
 			background: #ffffff;
 			border: 1px solid #e2e8f0;
-			border-radius: 8px;
+			border-radius: 12px;
 			box-shadow: var(--shadow-soft);
 			padding: 1rem;
 			margin: 0.9rem 0 1.35rem;
@@ -43,6 +55,12 @@
 			padding: 0.55rem 0.85rem;
 			font: inherit;
 			background: #fffefb;
+			min-height: 42px;
+		}
+
+		.toolbar input {
+			flex: 1;
+			min-width: 220px;
 		}
 
 		.panel {
@@ -163,6 +181,7 @@
 			<div class="nav-actions">
 				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
 				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
+				<a class="btn btn-secondary active" href="./manage-users.html">Manage Users</a>
 				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
 				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
 			</div>
