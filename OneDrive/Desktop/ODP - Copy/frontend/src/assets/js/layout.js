@@ -35,6 +35,11 @@
   }
 
   function setupSidebarCollapse() {
+    if (document.body.classList.contains('admin-shell')) {
+      document.body.classList.remove('sidebar-collapsed');
+      return;
+    }
+
     const sideNav = document.querySelector('.side-nav');
     const brand = sideNav ? sideNav.querySelector('.brand') : null;
     if (!sideNav || !brand) return;

@@ -258,7 +258,7 @@
 		}
 	</style>
 </head>
-<body>
+<body class="admin-shell">
 	<div class="sidebar-layout">
 		<aside class="side-nav" aria-label="Admin navigation">
 			<div class="brand">
@@ -325,31 +325,31 @@
 
 				<section class="toolbar" aria-label="Filters">
 					<input id="searchInput" type="search" placeholder="Search campaigns" />
-					<select id="limitFilter">
+					<select id="limitFilter" aria-label="Rows per page">
 						<option value="8">8 / page</option>
 						<option value="20">20 / page</option>
 						<option value="50">50 / page</option>
 						<option value="100">100 / page</option>
 					</select>
-					<select id="statusFilter">
+					<select id="statusFilter" aria-label="Campaign status filter">
 						<option value="">All Status</option>
 						<option value="active">Active</option>
 						<option value="paused">Paused</option>
 						<option value="completed">Completed</option>
 					</select>
-					<select id="recordFilter">
+					<select id="recordFilter" aria-label="Record visibility filter">
 						<option value="active">Active Records</option>
 						<option value="all">All Records</option>
 						<option value="deleted">Archived Records</option>
 					</select>
-					<select id="sortBy">
+					<select id="sortBy" aria-label="Sort by field">
 						<option value="createdAt">Sort: Latest</option>
 						<option value="title">Title</option>
 						<option value="goalAmount">Goal Amount</option>
 						<option value="raisedAmount">Raised Amount</option>
 						<option value="status">Status</option>
 					</select>
-					<select id="sortDir">
+					<select id="sortDir" aria-label="Sort direction">
 						<option value="desc">Desc</option>
 						<option value="asc">Asc</option>
 					</select>
