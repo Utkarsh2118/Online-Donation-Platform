@@ -94,7 +94,7 @@
 
 		.layout {
 			display: grid;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: 1fr 1fr 1fr;
 			gap: 1rem;
 			margin-bottom: 1.35rem;
 		}
@@ -297,6 +297,11 @@
 					<h2>Recent Donations</h2>
 					<div id="recentDonations" class="list"></div>
 				</article>
+
+				<article class="card">
+					<h2>Recent Audit Trail</h2>
+					<div id="recentAuditLogs" class="list"></div>
+				</article>
 			</section>
 		</section>
 	</div>
@@ -316,6 +321,7 @@
 		const totalRaisedAmount = document.getElementById('totalRaisedAmount');
 		const recentUsers = document.getElementById('recentUsers');
 		const recentDonations = document.getElementById('recentDonations');
+		const recentAuditLogs = document.getElementById('recentAuditLogs');
 		const logoutBtn = document.getElementById('logoutBtn');
 		const trendUsers = document.getElementById('trendUsers');
 		const trendDonations = document.getElementById('trendDonations');
@@ -349,6 +355,7 @@
 			dashboardBody.classList.add('hidden');
 			recentUsers.innerHTML = `<article class="item skeleton-card"><div class="skeleton skeleton-line" style="width:65%;"></div><div class="skeleton skeleton-line" style="width:45%;"></div></article>`;
 			recentDonations.innerHTML = `<article class="item skeleton-card"><div class="skeleton skeleton-line" style="width:65%;"></div><div class="skeleton skeleton-line" style="width:45%;"></div></article>`;
+			recentAuditLogs.innerHTML = `<article class="item skeleton-card"><div class="skeleton skeleton-line" style="width:65%;"></div><div class="skeleton skeleton-line" style="width:45%;"></div></article>`;
 		}
 
 		function showDashboard() {
@@ -403,6 +410,28 @@
 			}).join('');
 		}
 
+		function renderRecentAuditLogs(logs) {
+			if (!logs.length) {
+				recentAuditLogs.innerHTML = '<article class="item">No recent audit events found.</article>';
+				return;
+			}
+
+			recentAuditLogs.innerHTML = logs.map((log) => {
+				const actorName = log?.actorId?.name || log?.actorId?.email || 'System';
+				return `
+					<article class="item">
+						<div class="top">
+							<strong>${log.action || 'audit.event'}</strong>
+							<span class="status ${log.status || 'success'}">${log.status || 'success'}</span>
+						</div>
+						<span class="muted">${log.entityType || 'entity'}: ${log.entityName || log.entityId || '-'}</span>
+						<span class="muted">Actor: ${actorName} (${log.actorRole || 'system'})</span>
+						<span class="muted">${formatDate(log.createdAt)}</span>
+					</article>
+				`;
+			}).join('');
+		}
+
 		function renderStats(stats) {
 			totalUsers.textContent = String(stats.totalUsers || 0);
 			blockedUsers.textContent = String(stats.blockedUsers || 0);
@@ -439,15 +468,21 @@
 			showFeedback('Loading dashboard analytics...');
 
 			try {
-				const response = await apiRequest('/admin/dashboard');
+				const [dashboardResponse, auditResponse] = await Promise.all([
+					apiRequest('/admin/dashboard'),
+					apiRequest('/admin/audit-logs?limit=5')
+				]);
+				const response = dashboardResponse;
 				const stats = response?.data?.stats || {};
 				const users = response?.data?.recentUsers || [];
 				const donations = response?.data?.recentDonations || [];
+				const logs = auditResponse?.data?.logs || [];
 
 				renderStats(stats);
 				renderTrends(users, donations);
 				renderRecentUsers(users);
 				renderRecentDonations(donations);
+				renderRecentAuditLogs(logs);
 				showDashboard();
 			} catch (error) {
 				showFeedback(error.message || 'Unable to load admin dashboard.');
