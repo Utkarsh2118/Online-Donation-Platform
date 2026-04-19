@@ -31,6 +31,25 @@ const Auth = {
     return Boolean(this.getToken());
   },
 
+  hasRole(roles) {
+    const user = this.getUser();
+    if (!user) {
+      return false;
+    }
+
+    const roleList = Array.isArray(roles) ? roles : [roles];
+    return roleList.map((role) => String(role).toLowerCase()).includes(String(user.role || '').toLowerCase());
+  },
+
+  requireRole(roles, redirectTo) {
+    if (!this.isLoggedIn() || !this.hasRole(roles)) {
+      window.location.href = redirectTo || '../user/login.html';
+      return false;
+    }
+
+    return true;
+  },
+
   requireAuth(redirectTo) {
     if (!this.isLoggedIn()) {
       window.location.href = redirectTo || './login.html';
@@ -41,12 +60,6 @@ const Auth = {
   },
 
   requireAdmin(redirectTo) {
-    const user = this.getUser();
-    if (!this.isLoggedIn() || !user || user.role !== 'admin') {
-      window.location.href = redirectTo || '../user/login.html';
-      return false;
-    }
-
-    return true;
+    return this.requireRole(['support', 'finance', 'admin', 'super_admin'], redirectTo);
   }
 };

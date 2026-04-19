@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Audit Logs</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.page-title {
+			margin: 0.5rem 0 0.35rem;
+			font-size: clamp(1.45rem, 2.9vw, 2.1rem);
+		}
+
+		.muted {
+			color: var(--muted);
+			margin: 0;
+		}
+
+		.nav-actions {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+		}
+
+		.nav-actions .btn.active {
+			background: linear-gradient(135deg, #0f766e 0%, #0b5f58 100%);
+			border-color: #0f766e;
+			color: #ffffff;
+		}
+
+		.card {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			box-shadow: var(--shadow-soft);
+			padding: 1rem;
+			margin: 0.9rem 0 1.35rem;
+		}
+
+		.toolbar {
+			display: flex;
+			gap: 0.55rem;
+			flex-wrap: wrap;
+			margin-bottom: 0.72rem;
+			align-items: center;
+		}
+
+		.toolbar input,
+		.toolbar select {
+			border: 1px solid #cbd5e1;
+			border-radius: 8px;
+			padding: 0.55rem 0.85rem;
+			font: inherit;
+			background: #fffefb;
+			min-height: 42px;
+		}
+
+		.toolbar input {
+			flex: 1;
+			min-width: 220px;
+		}
+
+		.panel {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.95rem;
+			color: var(--muted);
+			margin: 0.8rem 0;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.alert {
+			display: none;
+			border-radius: 9px;
+			padding: 0.62rem 0.75rem;
+			font-size: 0.92rem;
+			margin-bottom: 0.65rem;
+		}
+
+		.alert.error {
+			display: block;
+			background: #fef3f2;
+			color: var(--danger);
+			border: 1px solid #fecdca;
+		}
+
+		.alert.ok {
+			display: block;
+			background: #ecfdf3;
+			color: var(--ok);
+			border: 1px solid #abefc6;
+		}
+
+		.table-wrap {
+			border: 1px solid #e2e8f0;
+			border-radius: 8px;
+			overflow: auto;
+			background: #ffffff;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 1120px;
+		}
+
+		th,
+		td {
+			text-align: left;
+			padding: 0.7rem;
+			border-bottom: 1px solid #e2e8f0;
+			font-size: 0.9rem;
+			vertical-align: top;
+		}
+
+		th {
+			background: #f1f5f9;
+			font-size: 0.82rem;
+			letter-spacing: 0.35px;
+			text-transform: uppercase;
+			color: #5a4f43;
+		}
+
+		.badge {
+			display: inline-flex;
+			padding: 0.15rem 0.5rem;
+			border-radius: 999px;
+			font-size: 0.76rem;
+			font-weight: 700;
+			text-transform: capitalize;
+		}
+
+		.badge.success {
+			background: #ecfdf3;
+			color: #067647;
+		}
+
+		.badge.failure {
+			background: #fef3f2;
+			color: #b42318;
+		}
+
+		.badge.user {
+			background: #e0f2fe;
+			color: #075985;
+		}
+
+		.badge.admin,
+		.badge.super_admin {
+			background: #ede9fe;
+			color: #6d28d9;
+		}
+
+		.badge.support,
+		.badge.finance {
+			background: #fef3c7;
+			color: #92400e;
+		}
+
+		.pagination {
+			margin-top: 0.75rem;
+			display: flex;
+			justify-content: space-between;
+			gap: 0.7rem;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		@media (max-width: 700px) {
+			.toolbar {
+				flex-direction: column;
+				align-items: stretch;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<nav class="nav" aria-label="Primary">
+			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
+			<div class="nav-actions">
+				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
+				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
+				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
+				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
+				<a class="btn btn-secondary active" href="./audit-logs.html">Audit Logs</a>
+				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+			</div>
+		</nav>
+
+		<h1 class="page-title">Audit Logs</h1>
+		<p class="muted">Review administrative actions, moderation steps, and finance events.</p>
+
+		<section id="feedbackPanel" class="panel">Loading audit logs...</section>
+
+		<section id="logsCard" class="card hidden">
+			<section class="toolbar" aria-label="Audit log filters">
+				<input id="searchInput" type="search" placeholder="Search action, entity, or name" />
+				<select id="limitFilter">
+					<option value="10">10 / page</option>
+					<option value="25">25 / page</option>
+					<option value="50">50 / page</option>
+					<option value="100">100 / page</option>
+				</select>
+				<select id="entityFilter">
+					<option value="">All Entities</option>
+					<option value="user">Users</option>
+					<option value="campaign">Campaigns</option>
+					<option value="donation">Donations</option>
+				</select>
+				<select id="statusFilter">
+					<option value="">All Outcomes</option>
+					<option value="success">Success</option>
+					<option value="failure">Failure</option>
+				</select>
+				<select id="roleFilter">
+					<option value="">All Actors</option>
+					<option value="user">User</option>
+					<option value="support">Support</option>
+					<option value="finance">Finance</option>
+					<option value="admin">Admin</option>
+					<option value="super_admin">Super Admin</option>
+					<option value="system">System</option>
+				</select>
+				<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
+			</section>
+
+			<div id="listAlert" class="alert"></div>
+
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th class="sortable-th" data-sort="createdAt">Time</th>
+							<th class="sortable-th" data-sort="action">Action</th>
+							<th class="sortable-th" data-sort="entityType">Entity</th>
+							<th>Entity Name</th>
+							<th class="sortable-th" data-sort="actorRole">Actor Role</th>
+							<th>Actor</th>
+							<th class="sortable-th" data-sort="status">Outcome</th>
+							<th>Metadata</th>
+						</tr>
+					</thead>
+					<tbody id="logsTableBody"></tbody>
+				</table>
+			</div>
+
+			<section class="pagination">
+				<button id="prevBtn" class="btn btn-outline" type="button">Previous</button>
+				<span id="pageMeta" class="muted">Page 1 of 1</span>
+				<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
+			</section>
+		</section>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
+	<script>
+		const feedbackPanel = document.getElementById('feedbackPanel');
+		const logsCard = document.getElementById('logsCard');
+		const logsTableBody = document.getElementById('logsTableBody');
+		const searchInput = document.getElementById('searchInput');
+		const limitFilter = document.getElementById('limitFilter');
+		const entityFilter = document.getElementById('entityFilter');
+		const statusFilter = document.getElementById('statusFilter');
+		const roleFilter = document.getElementById('roleFilter');
+		const applyFilterBtn = document.getElementById('applyFilterBtn');
+		const prevBtn = document.getElementById('prevBtn');
+		const nextBtn = document.getElementById('nextBtn');
+		const pageMeta = document.getElementById('pageMeta');
+		const logoutBtn = document.getElementById('logoutBtn');
+		const listAlert = document.getElementById('listAlert');
+
+		const state = {
+			page: 1,
+			limit: Number(localStorage.getItem('odp.admin.audit.limit') || 10),
+			totalPages: 1,
+			search: '',
+			entityType: '',
+			status: '',
+			actorRole: '',
+			sortBy: 'createdAt',
+			sortDir: 'desc'
+		};
+
+		function escapeHtml(value) {
+			return String(value || '')
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;');
+		}
+
+		function formatDate(value) {
+			const date = new Date(value);
+			return date.toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		}
+
+		function setAlert(message, type) {
+			listAlert.className = `alert ${type}`;
+			listAlert.textContent = message;
+		}
+
+		function clearAlert() {
+			listAlert.className = 'alert';
+			listAlert.textContent = '';
+		}
+
+		function showPanel(message) {
+			feedbackPanel.style.display = 'block';
+			feedbackPanel.textContent = message;
+			logsCard.classList.add('hidden');
+		}
+
+		function showLogs() {
+			feedbackPanel.style.display = 'none';
+			logsCard.classList.remove('hidden');
+		}
+
+		function applySort(logs) {
+			const factor = state.sortDir === 'asc' ? 1 : -1;
+			return [...logs].sort((a, b) => {
+				if (state.sortBy === 'createdAt') {
+					return (new Date(a?.createdAt).getTime() - new Date(b?.createdAt).getTime()) * factor;
+				}
+
+				const left = String(a?.[state.sortBy] || '').toLowerCase();
+				const right = String(b?.[state.sortBy] || '').toLowerCase();
+				if (left < right) return -1 * factor;
+				if (left > right) return 1 * factor;
+				return 0;
+			});
+		}
+
+		function renderLogs(logs) {
+			if (!logs.length) {
+				logsTableBody.innerHTML = '<tr><td colspan="8">No audit logs found for the selected filters.</td></tr>';
+				return;
+			}
+
+			const sortedLogs = applySort(logs);
+			logsTableBody.innerHTML = sortedLogs.map((log) => {
+				const metadata = escapeHtml(JSON.stringify(log.metadata || {}, null, 0));
+				const actorName = escapeHtml(log?.actorId?.name || log?.actorId?.email || 'System');
+
+				return `
+					<tr>
+						<td>${formatDate(log.createdAt)}</td>
+						<td><strong>${escapeHtml(log.action || '-')}</strong></td>
+						<td>${escapeHtml(log.entityType || '-')}</td>
+						<td>${escapeHtml(log.entityName || log.entityId || '-')}</td>
+						<td><span class="badge ${escapeHtml(log.actorRole || 'system')}">${escapeHtml(log.actorRole || 'system')}</span></td>
+						<td>${actorName}</td>
+						<td><span class="badge ${escapeHtml(log.status || 'success')}">${escapeHtml(log.status || 'success')}</span></td>
+						<td>${metadata}</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		async function fetchLogs() {
+			clearAlert();
+
+			const params = new URLSearchParams({
+				page: String(state.page),
+				limit: String(state.limit)
+			});
+
+			if (state.search) params.set('search', state.search);
+			if (state.entityType) params.set('entityType', state.entityType);
+			if (state.status) params.set('status', state.status);
+			if (state.actorRole) params.set('actorRole', state.actorRole);
+
+			try {
+				const response = await apiRequest(`/admin/audit-logs?${params.toString()}`);
+				const logs = response?.data?.logs || [];
+				const pagination = response?.data?.pagination || {};
+
+				state.totalPages = Number(pagination.totalPages || 1);
+				pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
+				prevBtn.disabled = state.page <= 1;
+				nextBtn.disabled = state.page >= state.totalPages;
+
+				renderLogs(logs);
+			} catch (error) {
+				setAlert(error.message || 'Failed to load audit logs.', 'error');
+				logsTableBody.innerHTML = '';
+			}
+		}
+
+		function initControls() {
+			limitFilter.value = String(state.limit);
+
+			limitFilter.addEventListener('change', () => {
+				state.limit = Number(limitFilter.value || 10);
+				localStorage.setItem('odp.admin.audit.limit', String(state.limit));
+				state.page = 1;
+				fetchLogs();
+			});
+
+			applyFilterBtn.addEventListener('click', () => {
+				state.search = searchInput.value.trim();
+				state.entityType = entityFilter.value;
+				state.status = statusFilter.value;
+				state.actorRole = roleFilter.value;
+				state.page = 1;
+				fetchLogs();
+			});
+
+			searchInput.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter') {
+					state.search = searchInput.value.trim();
+					state.entityType = entityFilter.value;
+					state.status = statusFilter.value;
+					state.actorRole = roleFilter.value;
+					state.page = 1;
+					fetchLogs();
+				}
+			});
+
+			document.querySelectorAll('.sortable-th').forEach((header) => {
+				header.addEventListener('click', () => {
+					const key = header.getAttribute('data-sort');
+					if (!key) return;
+					if (state.sortBy === key) {
+						state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+					} else {
+						state.sortBy = key;
+						state.sortDir = 'asc';
+					}
+					fetchLogs();
+				});
+			});
+
+			prevBtn.addEventListener('click', () => {
+				if (state.page > 1) {
+					state.page -= 1;
+					fetchLogs();
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				if (state.page < state.totalPages) {
+					state.page += 1;
+					fetchLogs();
+				}
+			});
+		}
+
+		function init() {
+			if (!Auth.requireRole(['support', 'finance', 'admin', 'super_admin'], './login.html')) {
+				return;
+			}
+
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'admin-audit-logs',
+					containerSelector: '.page-shell',
+					title: 'Audit Trail',
+					subtitle: 'Review and trace platform actions across users, campaigns, and finance.',
+					primaryAction: { label: 'Dashboard', href: './dashboard.html' }
+				}
+			});
+
+			logoutBtn.addEventListener('click', () => {
+				Auth.clearSession();
+				window.location.href = './login.html';
+			});
+
+			initControls();
+			showLogs();
+			fetchLogs();
+		}
+
+		init();
+	</script>
+</body>
+</html>

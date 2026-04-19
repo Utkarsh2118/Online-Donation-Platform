@@ -215,6 +215,7 @@
 				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
 				<a class="btn btn-secondary active" href="./manage-users.html">Manage Users</a>
 				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
+				<a class="btn btn-secondary" href="./audit-logs.html">Audit Logs</a>
 				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
 			</div>
 		</nav>
@@ -242,6 +243,11 @@
 					<option value="">All Status</option>
 					<option value="false">Active</option>
 					<option value="true">Blocked</option>
+				</select>
+				<select id="recordFilter">
+					<option value="active">Active Records</option>
+					<option value="all">All Records</option>
+					<option value="deleted">Archived Records</option>
 				</select>
 				<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
 			</section>
@@ -293,6 +299,7 @@
 		const roleFilter = document.getElementById('roleFilter');
 		const limitFilter = document.getElementById('limitFilter');
 		const blockedFilter = document.getElementById('blockedFilter');
+		const recordFilter = document.getElementById('recordFilter');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
 		const prevBtn = document.getElementById('prevBtn');
 		const nextBtn = document.getElementById('nextBtn');
@@ -309,6 +316,7 @@
 			search: '',
 			role: '',
 			blocked: '',
+			record: 'active',
 			sortBy: 'createdAt',
 			sortDir: 'desc'
 		};
@@ -346,8 +354,16 @@
 		}
 
 		function userActionsTemplate(user) {
-			if (user.role === 'admin') {
-				return '<span class="muted">Admin protected</span>';
+			if (user.role === 'super_admin') {
+				return '<span class="muted">Super admin protected</span>';
+			}
+
+			if (user.isDeleted) {
+				return `
+					<div class="actions">
+						<button class="btn btn-secondary" type="button" data-restore-id="${user._id}">Restore</button>
+					</div>
+				`;
 			}
 
 			const blockAction = user.isBlocked
@@ -357,7 +373,7 @@
 			return `
 				<div class="actions">
 					${blockAction}
-					<button class="btn btn-secondary" type="button" data-delete-id="${user._id}">Delete</button>
+					<button class="btn btn-secondary" type="button" data-archive-id="${user._id}">Archive</button>
 				</div>
 			`;
 		}
@@ -366,6 +382,7 @@
 			const lastLogin = user?.lastLoginAt ? formatDate(user.lastLoginAt) : 'N/A';
 			const totalDonations = user?.donationCount ?? 'N/A';
 			const totalRaised = user?.totalDonatedAmount ? `INR ${user.totalDonatedAmount}` : 'N/A';
+			const archiveState = user?.isDeleted ? 'Archived' : 'Active';
 			userDrawerBody.innerHTML = `
 				<div class="info-grid">
 					<div class="info-item"><label class="info-label">Name</label><div class="info-value">${user?.name || '-'}</div></div>
@@ -374,10 +391,12 @@
 					<div class="info-item"><label class="info-label">Last Login</label><div class="info-value">${lastLogin}</div></div>
 					<div class="info-item"><label class="info-label">Donation Count</label><div class="info-value">${totalDonations}</div></div>
 					<div class="info-item"><label class="info-label">Total Donated</label><div class="info-value">${totalRaised}</div></div>
+					<div class="info-item"><label class="info-label">Archive State</label><div class="info-value">${archiveState}</div></div>
 				</div>
 				<div class="timeline">
 					<article class="timeline-item">Joined platform on ${formatDate(user?.createdAt)}</article>
 					<article class="timeline-item">Account status: ${user?.isBlocked ? 'Blocked' : 'Active'}</article>
+					<article class="timeline-item">Record state: ${archiveState}</article>
 					<article class="timeline-item">Recent activity timeline sync is ready for backend enrichment.</article>
 				</div>
 			`;
@@ -410,9 +429,11 @@
 						searchInput.value = '';
 						roleFilter.value = '';
 						blockedFilter.value = '';
+						recordFilter.value = 'active';
 						state.search = '';
 						state.role = '';
 						state.blocked = '';
+						state.record = 'active';
 						state.page = 1;
 						fetchUsers();
 					});
@@ -457,9 +478,15 @@
 				});
 			});
 
-			usersTableBody.querySelectorAll('[data-delete-id]').forEach((btn) => {
+			usersTableBody.querySelectorAll('[data-archive-id]').forEach((btn) => {
 				btn.addEventListener('click', () => {
-					handleDeleteUser(btn.getAttribute('data-delete-id'));
+					handleArchiveUser(btn.getAttribute('data-archive-id'));
+				});
+			});
+
+			usersTableBody.querySelectorAll('[data-restore-id]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					handleRestoreUser(btn.getAttribute('data-restore-id'));
 				});
 			});
 		}
@@ -482,6 +509,12 @@
 
 			if (state.blocked !== '') {
 				params.set('blocked', state.blocked);
+			}
+
+			if (state.record === 'all') {
+				params.set('includeDeleted', 'true');
+			} else if (state.record === 'deleted') {
+				params.set('deleted', 'true');
 			}
 
 			try {
@@ -527,8 +560,8 @@
 			}
 		}
 
-		async function handleDeleteUser(userId) {
-			const confirmed = window.confirm('Delete this user account permanently?');
+		async function handleArchiveUser(userId) {
+			const confirmed = window.confirm('Archive this user account?');
 			if (!confirmed) {
 				return;
 			}
@@ -538,10 +571,23 @@
 					method: 'DELETE'
 				});
 
-				setAlert(listAlert, 'User deleted successfully.', 'ok');
+				setAlert(listAlert, 'User archived successfully.', 'ok');
 				await fetchUsers();
 			} catch (error) {
-				setAlert(listAlert, error.message || 'Failed to delete user.', 'error');
+				setAlert(listAlert, error.message || 'Failed to archive user.', 'error');
+			}
+		}
+
+		async function handleRestoreUser(userId) {
+			try {
+				await apiRequest(`/admin/users/${userId}/restore`, {
+					method: 'PATCH'
+				});
+
+				setAlert(listAlert, 'User restored successfully.', 'ok');
+				await fetchUsers();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to restore user.', 'error');
 			}
 		}
 
@@ -581,6 +627,7 @@
 				state.search = searchInput.value.trim();
 				state.role = roleFilter.value;
 				state.blocked = blockedFilter.value;
+				state.record = recordFilter.value;
 				state.page = 1;
 				fetchUsers();
 				setTimeout(() => applyFilterBtn.classList.remove('pulse-once'), 600);
@@ -591,6 +638,7 @@
 					state.search = searchInput.value.trim();
 					state.role = roleFilter.value;
 					state.blocked = blockedFilter.value;
+					state.record = recordFilter.value;
 					state.page = 1;
 					fetchUsers();
 				}
@@ -612,7 +660,7 @@
 		}
 
 		function init() {
-			if (!Auth.requireAdmin('./login.html')) {
+			if (!Auth.requireRole(['support', 'finance', 'admin', 'super_admin'], './login.html')) {
 				return;
 			}
 

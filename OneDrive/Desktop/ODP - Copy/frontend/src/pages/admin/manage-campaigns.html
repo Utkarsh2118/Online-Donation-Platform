@@ -263,6 +263,7 @@
 				<a class="btn btn-secondary active" href="./manage-campaigns.html">Manage Campaigns</a>
 				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
 				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
+				<a class="btn btn-secondary" href="./audit-logs.html">Audit Logs</a>
 				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
 			</div>
 		</nav>
@@ -328,6 +329,11 @@
 						<option value="paused">Paused</option>
 						<option value="completed">Completed</option>
 					</select>
+					<select id="recordFilter">
+						<option value="active">Active Records</option>
+						<option value="all">All Records</option>
+						<option value="deleted">Archived Records</option>
+					</select>
 					<select id="sortBy">
 						<option value="createdAt">Sort: Latest</option>
 						<option value="title">Title</option>
@@ -343,6 +349,7 @@
 					<button id="quickCreateBtn" class="btn btn-secondary" type="button">Quick Create</button>
 					<button id="bulkPauseBtn" class="btn btn-secondary" type="button">Bulk Pause</button>
 					<button id="bulkActivateBtn" class="btn btn-secondary" type="button">Bulk Activate</button>
+					<button id="bulkRestoreBtn" class="btn btn-secondary" type="button">Bulk Restore</button>
 					<button id="bulkDeleteBtn" class="btn btn-outline" type="button">Bulk Delete</button>
 					<button id="bulkExportBtn" class="btn btn-outline" type="button">Export Selected</button>
 				</section>
@@ -401,6 +408,7 @@
 		const searchInput = document.getElementById('searchInput');
 		const limitFilter = document.getElementById('limitFilter');
 		const statusFilter = document.getElementById('statusFilter');
+		const recordFilter = document.getElementById('recordFilter');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
 		const sortBy = document.getElementById('sortBy');
 		const sortDir = document.getElementById('sortDir');
@@ -412,6 +420,7 @@
 		const quickCreateSubmit = document.getElementById('quickCreateSubmit');
 		const bulkPauseBtn = document.getElementById('bulkPauseBtn');
 		const bulkActivateBtn = document.getElementById('bulkActivateBtn');
+		const bulkRestoreBtn = document.getElementById('bulkRestoreBtn');
 		const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
 		const bulkExportBtn = document.getElementById('bulkExportBtn');
 		const prevBtn = document.getElementById('prevBtn');
@@ -425,6 +434,7 @@
 			totalPages: 1,
 			search: '',
 			status: '',
+			record: 'active',
 			sortBy: 'createdAt',
 			sortDir: 'desc',
 			selectedIds: []
@@ -570,7 +580,7 @@
 					<span class="muted">${campaign.description.length > 140 ? `${campaign.description.slice(0, 140)}...` : campaign.description}</span>
 					<div class="actions">
 						<button class="btn btn-outline" type="button" data-edit-id="${campaign._id}">Edit</button>
-						<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Delete</button>
+						${campaign.isDeleted ? `<button class="btn btn-secondary" type="button" data-restore-id="${campaign._id}">Restore</button>` : `<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Archive</button>`}
 					</div>
 				</article>
 			}).join('');
@@ -607,6 +617,13 @@
 				});
 			});
 
+			campaignList.querySelectorAll('[data-restore-id]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const id = btn.getAttribute('data-restore-id');
+					handleRestoreCampaign(id);
+				});
+			});
+
 			campaignList.querySelectorAll('[data-select-id]').forEach((checkbox) => {
 				checkbox.addEventListener('change', () => {
 					const id = checkbox.getAttribute('data-select-id');
@@ -637,6 +654,12 @@
 
 			if (state.status) {
 				params.set('status', state.status);
+			}
+
+			if (state.record === 'all') {
+				params.set('includeDeleted', 'true');
+			} else if (state.record === 'deleted') {
+				params.set('deleted', 'true');
 			}
 
 			try {
@@ -767,7 +790,7 @@
 		}
 
 		async function handleDeleteCampaign(id) {
-			const confirmed = window.confirm('Delete this campaign permanently?');
+			const confirmed = window.confirm('Archive this campaign?');
 			if (!confirmed) {
 				return;
 			}
@@ -777,10 +800,23 @@
 					method: 'DELETE'
 				});
 
-				setAlert(listAlert, 'Campaign deleted successfully.', 'ok');
+				setAlert(listAlert, 'Campaign archived successfully.', 'ok');
 				await fetchCampaigns();
 			} catch (error) {
-				setAlert(listAlert, error.message || 'Failed to delete campaign.', 'error');
+				setAlert(listAlert, error.message || 'Failed to archive campaign.', 'error');
+			}
+		}
+
+		async function handleRestoreCampaign(id) {
+			try {
+				await apiRequest(`/admin/campaigns/${id}/restore`, {
+					method: 'PATCH'
+				});
+
+				setAlert(listAlert, 'Campaign restored successfully.', 'ok');
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Failed to restore campaign.', 'error');
 			}
 		}
 
@@ -799,6 +835,21 @@
 				await fetchCampaigns();
 			} catch (error) {
 				setAlert(listAlert, error.message || 'Bulk update failed.', 'error');
+			}
+		}
+
+		async function handleBulkRestore() {
+			if (!state.selectedIds.length) {
+				setAlert(listAlert, 'Select campaigns first.', 'error');
+				return;
+			}
+			try {
+				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}/restore`, { method: 'PATCH' })));
+				setAlert(listAlert, 'Selected campaigns restored.', 'ok');
+				state.selectedIds = [];
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Bulk restore failed.', 'error');
 			}
 		}
 
@@ -850,6 +901,7 @@
 				applyFilterBtn.classList.add('pulse-once');
 				state.search = searchInput.value.trim();
 				state.status = statusFilter.value;
+				state.record = recordFilter.value;
 				state.sortBy = sortBy.value;
 				state.sortDir = sortDir.value;
 				state.page = 1;
@@ -861,6 +913,7 @@
 				if (event.key === 'Enter') {
 					state.search = searchInput.value.trim();
 					state.status = statusFilter.value;
+					state.record = recordFilter.value;
 					state.sortBy = sortBy.value;
 					state.sortDir = sortDir.value;
 					state.page = 1;
@@ -871,6 +924,7 @@
 			quickCreateBtn.addEventListener('click', openQuickModal);
 			bulkPauseBtn.addEventListener('click', () => handleBulkStatusUpdate('paused'));
 			bulkActivateBtn.addEventListener('click', () => handleBulkStatusUpdate('active'));
+			bulkRestoreBtn.addEventListener('click', handleBulkRestore);
 			bulkDeleteBtn.addEventListener('click', handleBulkDelete);
 			bulkExportBtn.addEventListener('click', handleBulkExport);
 			quickCreateClose.addEventListener('click', closeQuickModal);
@@ -899,7 +953,7 @@
 		}
 
 		function init() {
-			if (!Auth.requireAdmin('./login.html')) {
+			if (!Auth.requireRole(['admin', 'super_admin'], './login.html')) {
 				return;
 			}
 
