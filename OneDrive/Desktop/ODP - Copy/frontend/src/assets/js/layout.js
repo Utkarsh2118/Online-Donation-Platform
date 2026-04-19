@@ -95,9 +95,9 @@
       if (!target) {
         target = document.createElement('div');
         target.className = 'side-nav-tools';
-        const brand = sideNav.querySelector('.brand');
-        if (brand && brand.nextSibling) {
-          sideNav.insertBefore(target, brand.nextSibling);
+        const logoutButton = sideNav.querySelector('#logoutBtn');
+        if (logoutButton) {
+          sideNav.insertBefore(target, logoutButton);
         } else {
           sideNav.appendChild(target);
         }
@@ -163,9 +163,9 @@
       if (!container) {
         container = document.createElement('div');
         container.className = 'side-nav-tools';
-        const brand = sideNav.querySelector('.brand');
-        if (brand && brand.nextSibling) {
-          sideNav.insertBefore(container, brand.nextSibling);
+        const logoutButton = sideNav.querySelector('#logoutBtn');
+        if (logoutButton) {
+          sideNav.insertBefore(container, logoutButton);
         } else {
           sideNav.appendChild(container);
         }
