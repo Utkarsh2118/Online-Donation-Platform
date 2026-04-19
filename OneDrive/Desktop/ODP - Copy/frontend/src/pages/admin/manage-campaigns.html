@@ -101,6 +101,45 @@
 			min-width: 220px;
 		}
 
+		.modal-backdrop {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.45);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			padding: 1rem;
+			z-index: 60;
+		}
+
+		.modal-backdrop.show {
+			display: flex;
+		}
+
+		.quick-modal {
+			width: min(560px, 100%);
+			background: #ffffff;
+			border: 1px solid #dbe3ee;
+			border-radius: 14px;
+			box-shadow: 0 20px 44px rgba(15, 23, 42, 0.25);
+			padding: 1rem;
+		}
+
+		.quick-modal-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 0.6rem;
+			margin-bottom: 0.8rem;
+		}
+
+		.quick-modal-actions {
+			display: flex;
+			gap: 0.55rem;
+			justify-content: flex-end;
+			flex-wrap: wrap;
+		}
+
 		.panel {
 			background: #ffffff;
 			border: 1px solid #e2e8f0;
@@ -283,7 +322,19 @@
 						<option value="paused">Paused</option>
 						<option value="completed">Completed</option>
 					</select>
+					<select id="sortBy">
+						<option value="createdAt">Sort: Latest</option>
+						<option value="title">Title</option>
+						<option value="goalAmount">Goal Amount</option>
+						<option value="raisedAmount">Raised Amount</option>
+						<option value="status">Status</option>
+					</select>
+					<select id="sortDir">
+						<option value="desc">Desc</option>
+						<option value="asc">Asc</option>
+					</select>
 					<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
+					<button id="quickCreateBtn" class="btn btn-secondary" type="button">Quick Create</button>
 				</section>
 
 				<div id="listAlert" class="alert"></div>
@@ -296,6 +347,33 @@
 				</section>
 			</article>
 		</section>
+
+		<div id="quickCreateModal" class="modal-backdrop" aria-hidden="true">
+			<section class="quick-modal" role="dialog" aria-modal="true" aria-labelledby="quickCreateTitle">
+				<div class="quick-modal-head">
+					<h3 id="quickCreateTitle">Quick Create Campaign</h3>
+					<button id="quickCreateClose" class="btn btn-outline" type="button">Close</button>
+				</div>
+				<div id="quickCreateAlert" class="alert"></div>
+				<form id="quickCreateForm" novalidate>
+					<div class="field">
+						<label for="quickTitle">Title</label>
+						<input id="quickTitle" name="title" type="text" minlength="5" maxlength="120" required />
+					</div>
+					<div class="field">
+						<label for="quickGoalAmount">Goal Amount (INR)</label>
+						<input id="quickGoalAmount" name="goalAmount" type="number" min="1" step="1" required />
+					</div>
+					<div class="field">
+						<label for="quickDescription">Description</label>
+						<textarea id="quickDescription" name="description" minlength="20" required></textarea>
+					</div>
+					<div class="quick-modal-actions">
+						<button id="quickCreateSubmit" class="btn btn-primary" type="submit">Create Now</button>
+					</div>
+				</form>
+			</section>
+		</div>
 	</div>
 
 	<script src="../../assets/js/config.js"></script>
@@ -312,6 +390,14 @@
 		const searchInput = document.getElementById('searchInput');
 		const statusFilter = document.getElementById('statusFilter');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
+		const sortBy = document.getElementById('sortBy');
+		const sortDir = document.getElementById('sortDir');
+		const quickCreateBtn = document.getElementById('quickCreateBtn');
+		const quickCreateModal = document.getElementById('quickCreateModal');
+		const quickCreateClose = document.getElementById('quickCreateClose');
+		const quickCreateForm = document.getElementById('quickCreateForm');
+		const quickCreateAlert = document.getElementById('quickCreateAlert');
+		const quickCreateSubmit = document.getElementById('quickCreateSubmit');
 		const prevBtn = document.getElementById('prevBtn');
 		const nextBtn = document.getElementById('nextBtn');
 		const pageMeta = document.getElementById('pageMeta');
@@ -322,8 +408,50 @@
 			limit: 8,
 			totalPages: 1,
 			search: '',
-			status: ''
+			status: '',
+			sortBy: 'createdAt',
+			sortDir: 'desc'
 		};
+
+		function renderCampaignSkeleton() {
+			campaignList.innerHTML = Array.from({ length: 5 }).map(() => `
+				<article class="campaign-item skeleton-card">
+					<div class="skeleton skeleton-line" style="width: 44%;"></div>
+					<div class="skeleton skeleton-line" style="width: 88%;"></div>
+					<div class="skeleton skeleton-line" style="width: 72%;"></div>
+				</article>
+			`).join('');
+		}
+
+		function applySort(campaigns) {
+			const factor = state.sortDir === 'asc' ? 1 : -1;
+			return [...campaigns].sort((a, b) => {
+				const left = a?.[state.sortBy];
+				const right = b?.[state.sortBy];
+				if (state.sortBy === 'goalAmount' || state.sortBy === 'raisedAmount') {
+					return (Number(left || 0) - Number(right || 0)) * factor;
+				}
+				if (state.sortBy === 'createdAt') {
+					return (new Date(left).getTime() - new Date(right).getTime()) * factor;
+				}
+				const l = String(left || '').toLowerCase();
+				const r = String(right || '').toLowerCase();
+				if (l < r) return -1 * factor;
+				if (l > r) return 1 * factor;
+				return 0;
+			});
+		}
+
+		function openQuickModal() {
+			quickCreateModal.classList.add('show');
+			quickCreateModal.setAttribute('aria-hidden', 'false');
+		}
+
+		function closeQuickModal() {
+			quickCreateModal.classList.remove('show');
+			quickCreateModal.setAttribute('aria-hidden', 'true');
+			clearAlert(quickCreateAlert);
+		}
 
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
@@ -391,11 +519,31 @@
 
 		function renderList(campaigns) {
 			if (!campaigns.length) {
-				campaignList.innerHTML = '<article class="campaign-item">No campaigns found with current filters.</article>';
+				campaignList.innerHTML = '<article class="campaign-item">No campaigns found with current filters.<div class="empty-cta"><button id="resetCampaignFiltersBtn" class="btn btn-secondary btn-sm" type="button">Reset Filters</button><button id="openQuickCreateFromEmpty" class="btn btn-primary btn-sm" type="button">Quick Create</button></div></article>';
+				const resetBtn = document.getElementById('resetCampaignFiltersBtn');
+				const quickBtn = document.getElementById('openQuickCreateFromEmpty');
+				if (resetBtn) {
+					resetBtn.addEventListener('click', () => {
+						searchInput.value = '';
+						statusFilter.value = '';
+						sortBy.value = 'createdAt';
+						sortDir.value = 'desc';
+						state.search = '';
+						state.status = '';
+						state.sortBy = 'createdAt';
+						state.sortDir = 'desc';
+						state.page = 1;
+						fetchCampaigns();
+					});
+				}
+				if (quickBtn) {
+					quickBtn.addEventListener('click', openQuickModal);
+				}
 				return;
 			}
 
-			campaignList.innerHTML = campaigns.map((campaign) => `
+			const sortedCampaigns = applySort(campaigns);
+			campaignList.innerHTML = sortedCampaigns.map((campaign) => `
 				<article class="campaign-item" data-item-id="${campaign._id}">
 					<div class="top">
 						<strong>${campaign.title}</strong>
@@ -408,13 +556,13 @@
 						<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Delete</button>
 					</div>
 				</article>
-			`).join('');
+			}).join('');
 
 			campaignList.querySelectorAll('[data-edit-id]').forEach((btn) => {
 				btn.addEventListener('click', () => {
 					const id = btn.getAttribute('data-edit-id');
 					const item = campaignList.querySelector(`[data-item-id="${id}"]`);
-					const campaign = campaigns.find((c) => c._id === id);
+					const campaign = sortedCampaigns.find((c) => c._id === id);
 
 					if (!item || !campaign || item.querySelector('[data-edit-box]')) {
 						return;
@@ -445,6 +593,7 @@
 
 		async function fetchCampaigns() {
 			clearAlert(listAlert);
+			renderCampaignSkeleton();
 
 			const params = new URLSearchParams({
 				page: String(state.page),
@@ -472,7 +621,46 @@
 				renderList(campaigns);
 			} catch (error) {
 				setAlert(listAlert, error.message || 'Failed to load campaigns.', 'error');
-				campaignList.innerHTML = '';
+				campaignList.innerHTML = '<article class="campaign-item">Unable to load campaigns right now.</article>';
+			}
+		}
+
+		async function handleQuickCreate(event) {
+			event.preventDefault();
+			clearAlert(quickCreateAlert);
+
+			const formData = new FormData(quickCreateForm);
+			const payload = {
+				title: String(formData.get('title') || '').trim(),
+				description: String(formData.get('description') || '').trim(),
+				goalAmount: Number(formData.get('goalAmount')),
+				status: 'active',
+				coverImage: ''
+			};
+
+			if (payload.title.length < 5 || payload.description.length < 20 || payload.goalAmount < 1) {
+				setAlert(quickCreateAlert, 'Please provide valid campaign details.', 'error');
+				return;
+			}
+
+			quickCreateSubmit.disabled = true;
+			quickCreateSubmit.textContent = 'Creating...';
+
+			try {
+				await apiRequest('/admin/campaigns', {
+					method: 'POST',
+					body: JSON.stringify(payload)
+				});
+				setAlert(quickCreateAlert, 'Campaign created successfully.', 'ok');
+				quickCreateForm.reset();
+				state.page = 1;
+				await fetchCampaigns();
+				setTimeout(closeQuickModal, 450);
+			} catch (error) {
+				setAlert(quickCreateAlert, error.message || 'Failed to create campaign.', 'error');
+			} finally {
+				quickCreateSubmit.disabled = false;
+				quickCreateSubmit.textContent = 'Create Now';
 			}
 		}
 
@@ -567,20 +755,35 @@
 
 		function initControls() {
 			applyFilterBtn.addEventListener('click', () => {
+				applyFilterBtn.classList.add('pulse-once');
 				state.search = searchInput.value.trim();
 				state.status = statusFilter.value;
+				state.sortBy = sortBy.value;
+				state.sortDir = sortDir.value;
 				state.page = 1;
 				fetchCampaigns();
+				setTimeout(() => applyFilterBtn.classList.remove('pulse-once'), 600);
 			});
 
 			searchInput.addEventListener('keydown', (event) => {
 				if (event.key === 'Enter') {
 					state.search = searchInput.value.trim();
 					state.status = statusFilter.value;
+					state.sortBy = sortBy.value;
+					state.sortDir = sortDir.value;
 					state.page = 1;
 					fetchCampaigns();
 				}
 			});
+
+			quickCreateBtn.addEventListener('click', openQuickModal);
+			quickCreateClose.addEventListener('click', closeQuickModal);
+			quickCreateModal.addEventListener('click', (event) => {
+				if (event.target === quickCreateModal) {
+					closeQuickModal();
+				}
+			});
+			quickCreateForm.addEventListener('submit', handleQuickCreate);
 
 			prevBtn.addEventListener('click', () => {
 				if (state.page > 1) {
