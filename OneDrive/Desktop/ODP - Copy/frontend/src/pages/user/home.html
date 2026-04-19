@@ -258,15 +258,27 @@
 
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const homeTitle = document.getElementById('homeTitle');
 		const homeSubtitle = document.getElementById('homeSubtitle');
 		const logoutBtn = document.getElementById('logoutBtn');
 
+		function getProfileCompletion(user) {
+			let score = 55;
+			if (user?.name) score += 15;
+			if (user?.email) score += 15;
+			if (user?.mobileNumber) score += 10;
+			if (user?.profilePicture) score += 5;
+			return Math.min(100, score);
+		}
+
 		function init() {
 			if (!Auth.requireAuth('./login.html')) {
 				return;
 			}
+
+			ODPLayout.setupSidebarCollapse();
 
 			const user = Auth.getUser();
 			if (user?.role === 'admin') {
@@ -277,6 +289,14 @@
 			const firstName = (user?.name || 'Supporter').split(' ')[0];
 				homeTitle.textContent = `Welcome, ${firstName}!`;
 			homeSubtitle.textContent = 'Your trusted platform for making a real difference.';
+			ODPLayout.renderUserProgressStrip({
+				title: `Hello ${firstName}, keep growing your impact`,
+				subtitle: 'Your account progress and quick metrics update as your activity grows.',
+				profileComplete: getProfileCompletion(user),
+				pendingActions: user?.mobileNumber ? 0 : 1,
+				supportedCampaigns: 0,
+				paidDonations: 0
+			});
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();

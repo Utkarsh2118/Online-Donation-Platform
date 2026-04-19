@@ -573,6 +573,7 @@
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const avatarBadge = document.getElementById('avatarBadge');
 		const profileName = document.getElementById('profileName');
@@ -595,6 +596,15 @@
 		const logoutLink = document.getElementById('logoutLink');
 		const currentToken = Auth.getToken();
 		let currentUser = null;
+
+		function getProfileCompletion(user) {
+			let score = 55;
+			if (user?.name) score += 15;
+			if (user?.email) score += 15;
+			if (user?.mobileNumber) score += 10;
+			if (user?.profilePicture) score += 5;
+			return Math.min(100, score);
+		}
 
 		function getInitials(name) {
 			if (!name) return 'U';
@@ -684,6 +694,9 @@
 		async function loadProfile() {
 			const sessionUser = Auth.getUser() || {};
 			updateProfileView(sessionUser);
+			document.querySelectorAll('.info-section').forEach((section) => {
+				section.classList.add('skeleton-card');
+			});
 
 			try {
 				const [userRes, donRes] = await Promise.all([
@@ -701,9 +714,21 @@
 				totalDonationsProfile.textContent = String(donations.length);
 				const supportedSet = new Set(donations.map((d) => d?.campaignId?._id).filter(Boolean));
 				campaignsSupportedProfile.textContent = String(supportedSet.size);
+				ODPLayout.renderUserProgressStrip({
+					title: 'Profile Health',
+					subtitle: 'Complete profile details to improve trust and speed up donation workflows.',
+					profileComplete: getProfileCompletion(user || sessionUser),
+					pendingActions: (user || sessionUser)?.mobileNumber ? 0 : 1,
+					supportedCampaigns: supportedSet.size,
+					paidDonations: donations.filter((d) => d.paymentStatus === 'paid').length
+				});
 			} catch (error) {
 				console.error('Profile load error:', error);
 				showMessage(error.message || 'Could not load profile data.', 'error');
+			} finally {
+				document.querySelectorAll('.info-section').forEach((section) => {
+					section.classList.remove('skeleton-card');
+				});
 			}
 		}
 
@@ -761,6 +786,7 @@
 
 		function init() {
 			if (!Auth.requireAuth('./login.html')) return;
+			ODPLayout.setupSidebarCollapse();
 			if (Auth.getUser()?.role === 'admin') {
 				window.location.href = '../admin/dashboard.html';
 				return;

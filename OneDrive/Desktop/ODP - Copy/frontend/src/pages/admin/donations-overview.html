@@ -240,12 +240,12 @@
 				<table>
 					<thead>
 						<tr>
-							<th>Donor</th>
-							<th>Email</th>
-							<th>Campaign</th>
-							<th>Amount</th>
-							<th>Status</th>
-							<th>Date</th>
+							<th class="sortable-th" data-sort="donor">Donor</th>
+							<th class="sortable-th" data-sort="email">Email</th>
+							<th class="sortable-th" data-sort="campaign">Campaign</th>
+							<th class="sortable-th" data-sort="amount">Amount</th>
+							<th class="sortable-th" data-sort="paymentStatus">Status</th>
+							<th class="sortable-th" data-sort="createdAt">Date</th>
 							<th>Order ID</th>
 						</tr>
 					</thead>
@@ -284,8 +284,49 @@
 			page: 1,
 			limit: 12,
 			totalPages: 1,
-			paymentStatus: ''
+			paymentStatus: '',
+			sortBy: 'createdAt',
+			sortDir: 'desc'
 		};
+
+		function applySort(donations) {
+			const factor = state.sortDir === 'asc' ? 1 : -1;
+			return [...donations].sort((a, b) => {
+				const donorA = a?.userId?.name || '';
+				const donorB = b?.userId?.name || '';
+				const emailA = a?.userId?.email || '';
+				const emailB = b?.userId?.email || '';
+				const campaignA = a?.campaignId?.title || '';
+				const campaignB = b?.campaignId?.title || '';
+				const map = {
+					donor: donorA,
+					email: emailA,
+					campaign: campaignA,
+					amount: Number(a?.amount || 0),
+					paymentStatus: String(a?.paymentStatus || ''),
+					createdAt: new Date(a?.createdAt).getTime()
+				};
+				const mapB = {
+					donor: donorB,
+					email: emailB,
+					campaign: campaignB,
+					amount: Number(b?.amount || 0),
+					paymentStatus: String(b?.paymentStatus || ''),
+					createdAt: new Date(b?.createdAt).getTime()
+				};
+
+				const left = map[state.sortBy];
+				const right = mapB[state.sortBy];
+				if (typeof left === 'number' && typeof right === 'number') {
+					return (left - right) * factor;
+				}
+				const leftStr = String(left || '').toLowerCase();
+				const rightStr = String(right || '').toLowerCase();
+				if (leftStr < rightStr) return -1 * factor;
+				if (leftStr > rightStr) return 1 * factor;
+				return 0;
+			});
+		}
 
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
@@ -340,12 +381,22 @@
 
 		function renderTable(donations) {
 			if (!donations.length) {
-				donationsTableBody.innerHTML = '<tr><td colspan="7">No donation records found for the selected filter.</td></tr>';
+				donationsTableBody.innerHTML = '<tr><td colspan="7">No donation records found for the selected filter. <button id="resetDonationsFilterBtn" class="btn btn-secondary btn-sm" type="button">Reset Filter</button></td></tr>';
+				const resetBtn = document.getElementById('resetDonationsFilterBtn');
+				if (resetBtn) {
+					resetBtn.addEventListener('click', () => {
+						statusFilter.value = '';
+						state.paymentStatus = '';
+						state.page = 1;
+						fetchDonations();
+					});
+				}
 				renderSummary([]);
 				return;
 			}
 
-			donationsTableBody.innerHTML = donations.map((donation) => {
+			const sortedDonations = applySort(donations);
+			donationsTableBody.innerHTML = sortedDonations.map((donation) => {
 				const donorName = donation?.userId?.name || 'Unknown Donor';
 				const donorEmail = donation?.userId?.email || '-';
 				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
@@ -398,10 +449,30 @@
 		}
 
 		function initControls() {
+			document.querySelectorAll('.sortable-th').forEach((header) => {
+				header.addEventListener('click', () => {
+					const key = header.getAttribute('data-sort');
+					if (!key) return;
+					if (state.sortBy === key) {
+						state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+					} else {
+						state.sortBy = key;
+						state.sortDir = 'asc';
+					}
+					document.querySelectorAll('.sortable-th').forEach((th) => {
+						th.removeAttribute('data-dir');
+					});
+					header.setAttribute('data-dir', state.sortDir);
+					fetchDonations();
+				});
+			});
+
 			applyFilterBtn.addEventListener('click', () => {
+				applyFilterBtn.classList.add('pulse-once');
 				state.paymentStatus = statusFilter.value;
 				state.page = 1;
 				fetchDonations();
+				setTimeout(() => applyFilterBtn.classList.remove('pulse-once'), 600);
 			});
 
 			prevBtn.addEventListener('click', () => {

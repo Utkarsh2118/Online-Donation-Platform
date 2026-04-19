@@ -380,6 +380,9 @@
 				<div id="historyEmpty" class="empty-state history-empty">
 					<div class="empty-icon">0</div>
 					<p>No donations yet. Start by supporting a campaign!</p>
+					<div class="empty-cta">
+						<a class="btn btn-primary btn-sm" href="./campaigns.html">Explore Campaigns</a>
+					</div>
 				</div>
 
 				<div id="historyContent" class="table-wrap">
@@ -399,6 +402,7 @@
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const statsContainer = document.getElementById('statsContainer');
 		const totalDonations = document.getElementById('totalDonations');
@@ -420,6 +424,35 @@
 			allDonations: [],
 			filter: 'all'
 		};
+
+		function getProfileCompletion(user) {
+			let score = 55;
+			if (user?.name) score += 15;
+			if (user?.email) score += 15;
+			if (user?.mobileNumber) score += 10;
+			if (user?.profilePicture) score += 5;
+			return Math.min(100, score);
+		}
+
+		function renderDashboardSkeleton() {
+			monthBars.innerHTML = `
+				<div class="skeleton skeleton-card">
+					<div class="skeleton skeleton-line" style="width: 55%;"></div>
+					<div class="skeleton skeleton-line" style="width: 85%;"></div>
+					<div class="skeleton skeleton-line" style="width: 78%;"></div>
+				</div>
+			`;
+
+			historyTableBody.innerHTML = Array.from({ length: 3 }).map(() => `
+				<div class="donation-row">
+					<div class="skeleton skeleton-line" style="height: 14px;"></div>
+					<div class="skeleton skeleton-line" style="height: 14px;"></div>
+					<div class="skeleton skeleton-line" style="height: 14px;"></div>
+					<div></div>
+					<div class="skeleton skeleton-line" style="height: 14px;"></div>
+				</div>
+			`).join('');
+		}
 
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
@@ -510,6 +543,15 @@
 			momentumPercent.textContent = `${momentum}%`;
 			contributionFill.style.width = `${momentum}%`;
 			impactText.textContent = success >= 70 ? 'Excellent. Your contribution rate is strong.' : 'Your donation activity is building steadily.';
+			const user = Auth.getUser() || {};
+			ODPLayout.renderUserProgressStrip({
+				title: 'Impact Snapshot',
+				subtitle: 'Your donations, profile completion, and campaign support are tracked live.',
+				profileComplete: getProfileCompletion(user),
+				pendingActions: Math.max(0, 3 - paid.length),
+				supportedCampaigns: supportedSet.size,
+				paidDonations: paid.length
+			});
 
 			renderMonthlyChart(donations);
 		}
@@ -579,6 +621,7 @@
 		}
 
 		async function loadDashboard() {
+			renderDashboardSkeleton();
 			try {
 				const [profileResponse, donationResponse] = await Promise.all([
 					apiRequest('/auth/me'),
@@ -596,6 +639,7 @@
 
 		function init() {
 			if (!Auth.requireAuth('./login.html')) return;
+			ODPLayout.setupSidebarCollapse();
 			if (Auth.getUser()?.role === 'admin') {
 				window.location.href = '../admin/dashboard.html';
 				return;

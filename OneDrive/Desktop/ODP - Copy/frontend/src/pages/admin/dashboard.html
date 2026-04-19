@@ -71,6 +71,17 @@
 			margin-bottom: 1.35rem;
 		}
 
+		.quick-actions {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 0.6rem;
+			margin-bottom: 1rem;
+		}
+
+		.quick-actions .btn {
+			min-height: 42px;
+		}
+
 		.card {
 			background: #ffffff;
 			border: 1px solid #e2e8f0;
@@ -160,6 +171,10 @@
 				grid-template-columns: 1fr 1fr;
 			}
 
+			.quick-actions {
+				grid-template-columns: 1fr 1fr;
+			}
+
 			.layout {
 				grid-template-columns: 1fr;
 			}
@@ -191,6 +206,13 @@
 		<section id="feedbackPanel" class="panel">Loading dashboard analytics...</section>
 
 		<section id="dashboardBody" class="hidden">
+			<section class="quick-actions" aria-label="Quick admin actions">
+				<a class="btn btn-primary" href="./manage-campaigns.html">Create Campaign</a>
+				<a class="btn btn-secondary" href="./manage-users.html">Block/Unblock Users</a>
+				<a class="btn btn-secondary" href="./donations-overview.html">Review Failed Payments</a>
+				<a class="btn btn-outline" href="./donations-overview.html">Export Ready View</a>
+			</section>
+
 			<section class="stats-grid" aria-label="Platform stats">
 				<article class="stat-card">
 					<strong id="totalUsers">0</strong>
@@ -271,6 +293,8 @@
 			feedbackPanel.style.display = 'block';
 			feedbackPanel.textContent = message;
 			dashboardBody.classList.add('hidden');
+			recentUsers.innerHTML = `<article class="item skeleton-card"><div class="skeleton skeleton-line" style="width:65%;"></div><div class="skeleton skeleton-line" style="width:45%;"></div></article>`;
+			recentDonations.innerHTML = `<article class="item skeleton-card"><div class="skeleton skeleton-line" style="width:65%;"></div><div class="skeleton skeleton-line" style="width:45%;"></div></article>`;
 		}
 
 		function showDashboard() {

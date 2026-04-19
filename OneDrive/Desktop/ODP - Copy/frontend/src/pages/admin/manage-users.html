@@ -214,11 +214,11 @@
 				<table>
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Email</th>
-							<th>Role</th>
-							<th>Status</th>
-							<th>Joined</th>
+							<th class="sortable-th" data-sort="name">Name</th>
+							<th class="sortable-th" data-sort="email">Email</th>
+							<th class="sortable-th" data-sort="role">Role</th>
+							<th class="sortable-th" data-sort="isBlocked">Status</th>
+							<th class="sortable-th" data-sort="createdAt">Joined</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
@@ -257,7 +257,9 @@
 			totalPages: 1,
 			search: '',
 			role: '',
-			blocked: ''
+			blocked: '',
+			sortBy: 'createdAt',
+			sortDir: 'desc'
 		};
 
 		function formatDate(value) {
@@ -309,13 +311,44 @@
 			`;
 		}
 
+		function applySort(users) {
+			const factor = state.sortDir === 'asc' ? 1 : -1;
+			const sorted = [...users].sort((a, b) => {
+				const leftRaw = a?.[state.sortBy];
+				const rightRaw = b?.[state.sortBy];
+				if (state.sortBy === 'createdAt') {
+					return (new Date(leftRaw).getTime() - new Date(rightRaw).getTime()) * factor;
+				}
+				const left = String(leftRaw ?? '').toLowerCase();
+				const right = String(rightRaw ?? '').toLowerCase();
+				if (left < right) return -1 * factor;
+				if (left > right) return 1 * factor;
+				return 0;
+			});
+			return sorted;
+		}
+
 		function renderUsers(users) {
 			if (!users.length) {
-				usersTableBody.innerHTML = '<tr><td colspan="6">No users found for current filters.</td></tr>';
+				usersTableBody.innerHTML = '<tr><td colspan="6">No users found for current filters. <button id="clearUserFiltersBtn" class="btn btn-secondary btn-sm" type="button">Reset Filters</button></td></tr>';
+				const clearBtn = document.getElementById('clearUserFiltersBtn');
+				if (clearBtn) {
+					clearBtn.addEventListener('click', () => {
+						searchInput.value = '';
+						roleFilter.value = '';
+						blockedFilter.value = '';
+						state.search = '';
+						state.role = '';
+						state.blocked = '';
+						state.page = 1;
+						fetchUsers();
+					});
+				}
 				return;
 			}
 
-			usersTableBody.innerHTML = users.map((user) => {
+			const sortedUsers = applySort(users);
+			usersTableBody.innerHTML = sortedUsers.map((user) => {
 				const statusClass = user.isBlocked ? 'blocked' : 'active';
 				return `
 					<tr>
@@ -430,12 +463,32 @@
 		}
 
 		function initControls() {
+			document.querySelectorAll('.sortable-th').forEach((header) => {
+				header.addEventListener('click', () => {
+					const key = header.getAttribute('data-sort');
+					if (!key) return;
+					if (state.sortBy === key) {
+						state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+					} else {
+						state.sortBy = key;
+						state.sortDir = 'asc';
+					}
+					document.querySelectorAll('.sortable-th').forEach((th) => {
+						th.removeAttribute('data-dir');
+					});
+					header.setAttribute('data-dir', state.sortDir);
+					fetchUsers();
+				});
+			});
+
 			applyFilterBtn.addEventListener('click', () => {
+				applyFilterBtn.classList.add('pulse-once');
 				state.search = searchInput.value.trim();
 				state.role = roleFilter.value;
 				state.blocked = blockedFilter.value;
 				state.page = 1;
 				fetchUsers();
+				setTimeout(() => applyFilterBtn.classList.remove('pulse-once'), 600);
 			});
 
 			searchInput.addEventListener('keydown', (event) => {

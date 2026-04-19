@@ -282,6 +282,7 @@ color: var(--neutral-500);
 <script src="../../assets/js/config.js"></script>
 <script src="../../assets/js/auth.js"></script>
 <script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/layout.js"></script>
 <script>
 const campaignGrid = document.getElementById('campaignGrid');
 const searchInput = document.getElementById('searchInput');
@@ -292,6 +293,17 @@ const pageMeta = document.getElementById('pageMeta');
 const logoutBtn = document.getElementById('logoutBtn');
 
 const state = { page: 1, limit: 9, search: '', totalPages: 1 };
+
+function renderCampaignSkeleton() {
+campaignGrid.innerHTML = Array.from({ length: 6 }).map(() => `
+<article class="campaign-card skeleton-card">
+<div class="skeleton skeleton-line" style="height: 16px; width: 35%;"></div>
+<div class="skeleton skeleton-line" style="height: 12px; width: 100%;"></div>
+<div class="skeleton skeleton-line" style="height: 12px; width: 84%;"></div>
+<div class="skeleton skeleton-line" style="height: 12px; width: 68%;"></div>
+</article>
+`).join('');
+}
 
 function formatCurrency(value) {
 return new Intl.NumberFormat('en-IN', {
@@ -344,7 +356,16 @@ return `
 
 function renderCampaigns(campaigns) {
 if (!campaigns.length) {
-campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">0</div><h3>No campaigns found</h3><p>Try adjusting your search or filters to find more campaigns.</p></div>`;
+campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">0</div><h3>No campaigns found</h3><p>Try adjusting your search or filters to find more campaigns.</p><div class="empty-cta"><button id="resetFiltersBtn" class="btn btn-secondary btn-sm" type="button">Reset Filters</button><a class="btn btn-primary btn-sm" href="./home.html">Back to Home</a></div></div>`;
+const resetBtn = document.getElementById('resetFiltersBtn');
+if (resetBtn) {
+resetBtn.addEventListener('click', () => {
+searchInput.value = '';
+state.search = '';
+state.page = 1;
+fetchCampaigns();
+});
+}
 return;
 }
 
@@ -358,7 +379,7 @@ window.location.href = `./campaign-details.html?id=${campaignId}`;
 }
 
 async function fetchCampaigns() {
-campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">...</div><p>Loading campaigns...</p></div>`;
+renderCampaignSkeleton();
 try {
 const query = new URLSearchParams({ page: String(state.page), limit: String(state.limit), ...(state.search && { search: state.search }) });
 const response = await apiRequest(`/campaigns?${query.toString()}`);
@@ -368,6 +389,14 @@ state.totalPages = Number(pagination.totalPages || 1);
 pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
 prevBtn.disabled = state.page <= 1;
 nextBtn.disabled = state.page >= state.totalPages;
+ODPLayout.renderUserProgressStrip({
+title: 'Campaign Discovery',
+subtitle: 'Filter and discover trusted fundraisers with live progress updates.',
+profileComplete: (Auth.getUser()?.mobileNumber ? 90 : 80),
+pendingActions: campaigns.length ? 0 : 1,
+supportedCampaigns: campaigns.length,
+paidDonations: 0
+});
 renderCampaigns(campaigns);
 } catch (error) {
 campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">!</div><h3>Failed to load campaigns</h3><p>${error.message || 'Please try again later.'}</p></div>`;
@@ -376,6 +405,7 @@ campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">!</di
 
 function init() {
 if (!Auth.requireAuth('./login.html')) return;
+ODPLayout.setupSidebarCollapse();
 if (Auth.getUser()?.role === 'admin') {
 window.location.href = '../admin/dashboard.html';
 return;
@@ -387,9 +417,11 @@ window.location.href = './login.html';
 });
 
 searchBtn.addEventListener('click', () => {
+searchBtn.classList.add('pulse-once');
 state.search = searchInput.value.trim();
 state.page = 1;
 fetchCampaigns();
+setTimeout(() => searchBtn.classList.remove('pulse-once'), 600);
 });
 
 searchInput.addEventListener('keydown', (e) => {
