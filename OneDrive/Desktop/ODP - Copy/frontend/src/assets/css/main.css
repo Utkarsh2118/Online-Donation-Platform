@@ -53,8 +53,8 @@ body {
   align-content: start;
   position: sticky;
   top: 0;
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 100%;
+  height: auto;
   overflow-y: auto;
 }
 
