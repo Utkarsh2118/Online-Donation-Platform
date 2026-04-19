@@ -19,7 +19,7 @@ margin-bottom: var(--space-4);
 
 .toolbar {
 display: flex;
-justify-content: space-between;
+justify-content: flex-start;
 align-items: center;
 gap: var(--space-2);
 margin-bottom: var(--space-4);
@@ -37,6 +37,7 @@ border: 1px solid var(--neutral-200);
 border-radius: var(--radius-lg);
 padding: var(--space-1);
 transition: all var(--transition-fast);
+width: min(720px, 100%);
 }
 
 .search-bar:focus-within {
@@ -58,6 +59,7 @@ border: none;
 background: transparent;
 color: var(--neutral-900);
 font-size: var(--text-base);
+min-width: 220px;
 }
 
 .search-bar input::placeholder { color: var(--neutral-400); }
@@ -234,19 +236,19 @@ color: var(--neutral-500);
 </div>
 <nav class="side-nav-list" aria-label="Sidebar links">
 <a class="side-nav-link" href="./home.html">
-<span class="side-nav-icon">Home</span>
+<span class="side-nav-icon">HM</span>
 <span>Home</span>
 </a>
 <a class="side-nav-link" href="./dashboard.html">
-<span class="side-nav-icon">Stats</span>
+<span class="side-nav-icon">DB</span>
 <span>Dashboard</span>
 </a>
 <a class="side-nav-link active" href="./campaigns.html" aria-current="page">
-<span class="side-nav-icon">Track</span>
+<span class="side-nav-icon">CP</span>
 <span>Campaigns</span>
 </a>
 <a class="side-nav-link" href="./profile.html">
-<span class="side-nav-icon">Account</span>
+<span class="side-nav-icon">PR</span>
 <span>Profile</span>
 </a>
 </nav>
