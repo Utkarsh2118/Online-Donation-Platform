@@ -1,20 +1,19 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const deletedQueryFilter = function deletedQueryFilter(next) {
+const deletedQueryFilter = function deletedQueryFilter() {
   const options = this.getOptions ? this.getOptions() : {};
 
   if (options.withDeleted) {
-    return next();
+    return;
   }
 
   if (options.onlyDeleted) {
     this.where({ isDeleted: true });
-    return next();
+    return;
   }
 
   this.where({ isDeleted: { $ne: true } });
-  next();
 };
 
 const userSchema = new mongoose.Schema(
