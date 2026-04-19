@@ -13,25 +13,29 @@
 			margin: 0.5rem 0 0.35rem;
 			font-size: clamp(1.45rem, 2.9vw, 2.1rem);
 		}
+			<div class="sidebar-layout">
+				<aside class="side-nav" aria-label="Admin navigation">
+					<div class="brand">
+						<div class="brand-icon">OD</div>
+						<span>OpenDonate Admin</span>
+					</div>
+					<nav class="side-nav-list" aria-label="Admin links">
+						<a class="side-nav-link" href="./dashboard.html"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+						<a class="side-nav-link active" href="./manage-campaigns.html" aria-current="page"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+						<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
+						<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
+						<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
+					</nav>
+					<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+				</aside>
 
-		.muted {
-			color: var(--muted);
-			margin: 0;
-		}
+				<main class="content-panel">
+					<h1 class="page-title">Manage Campaigns</h1>
+					<p class="muted">Create, update, and control campaign lifecycle with better visibility.</p>
 
-		.nav-actions {
-			display: flex;
-			gap: 0.5rem;
-			flex-wrap: wrap;
-		}
+					<section id="feedbackPanel" class="panel">Loading campaign manager...</section>
 
-		.nav-actions .btn.active {
-			background: linear-gradient(135deg, #0f766e 0%, #0b5f58 100%);
-			border-color: #0f766e;
-			color: #ffffff;
-		}
-
-		.layout {
+					<section id="managerLayout" class="layout hidden">
 			display: grid;
 			grid-template-columns: 1fr 1.5fr;
 			gap: 1rem;
@@ -255,25 +259,29 @@
 	</style>
 </head>
 <body>
-	<div class="page-shell">
-		<nav class="nav" aria-label="Primary">
-			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
-			<div class="nav-actions">
-				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
-				<a class="btn btn-secondary active" href="./manage-campaigns.html">Manage Campaigns</a>
-				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
-				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
-				<a class="btn btn-secondary" href="./audit-logs.html">Audit Logs</a>
-				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="Admin navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate Admin</span>
 			</div>
-		</nav>
+			<nav class="side-nav-list" aria-label="Admin links">
+				<a class="side-nav-link" href="./dashboard.html"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link active" href="./manage-campaigns.html" aria-current="page"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
+				<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
+				<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+		</aside>
 
-		<h1 class="page-title">Manage Campaigns</h1>
-		<p class="muted">Create, update, and control campaign lifecycle with better visibility.</p>
+		<main class="content-panel">
+			<h1 class="page-title">Manage Campaigns</h1>
+			<p class="muted">Create, update, and control campaign lifecycle with better visibility.</p>
 
-		<section id="feedbackPanel" class="panel">Loading campaign manager...</section>
+			<section id="feedbackPanel" class="panel">Loading campaign manager...</section>
 
-		<section id="managerLayout" class="layout hidden">
+			<section id="managerLayout" class="layout hidden">
 			<article class="card">
 				<h2>Create Campaign</h2>
 				<div id="createAlert" class="alert"></div>
@@ -363,9 +371,9 @@
 					<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
 				</section>
 			</article>
-		</section>
+				</section>
 
-		<div id="quickCreateModal" class="modal-backdrop" aria-hidden="true">
+				<div id="quickCreateModal" class="modal-backdrop" aria-hidden="true">
 			<section class="quick-modal" role="dialog" aria-modal="true" aria-labelledby="quickCreateTitle">
 				<div class="quick-modal-head">
 					<h3 id="quickCreateTitle">Quick Create Campaign</h3>
@@ -390,7 +398,8 @@
 					</div>
 				</form>
 			</section>
-		</div>
+			</div>
+		</main>
 	</div>
 
 	<script src="../../assets/js/config.js"></script>
@@ -539,7 +548,8 @@
 					<div class="actions">
 						<button class="btn btn-primary" type="button" data-save-id="${campaign._id}">Save</button>
 						<button class="btn btn-outline" type="button" data-cancel-id="${campaign._id}">Cancel</button>
-					</div>
+						</div>
+					</main>
 				</div>
 			`;
 		}

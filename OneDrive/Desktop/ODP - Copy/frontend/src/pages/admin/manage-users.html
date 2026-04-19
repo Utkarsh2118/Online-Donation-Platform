@@ -207,25 +207,29 @@
 	</style>
 </head>
 <body>
-	<div class="page-shell">
-		<nav class="nav" aria-label="Primary">
-			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
-			<div class="nav-actions">
-				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
-				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
-				<a class="btn btn-secondary active" href="./manage-users.html">Manage Users</a>
-				<a class="btn btn-secondary" href="./donations-overview.html">Donations Overview</a>
-				<a class="btn btn-secondary" href="./audit-logs.html">Audit Logs</a>
-				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="Admin navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate Admin</span>
 			</div>
-		</nav>
+			<nav class="side-nav-list" aria-label="Admin links">
+				<a class="side-nav-link" href="./dashboard.html"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link" href="./manage-campaigns.html"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link active" href="./manage-users.html" aria-current="page"><span class="side-nav-icon">US</span><span>Users</span></a>
+				<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
+				<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+		</aside>
 
-		<h1 class="page-title">Manage Users</h1>
-		<p class="muted">Search members and moderate account access.</p>
+		<main class="content-panel">
+			<h1 class="page-title">Manage Users</h1>
+			<p class="muted">Search members and moderate account access.</p>
 
-		<section id="feedbackPanel" class="panel">Loading user manager...</section>
+			<section id="feedbackPanel" class="panel">Loading user manager...</section>
 
-		<section id="usersCard" class="card hidden">
+			<section id="usersCard" class="card hidden">
 			<section class="toolbar" aria-label="User filters">
 				<input id="searchInput" type="search" placeholder="Search by name or email" />
 				<select id="limitFilter">
@@ -275,15 +279,16 @@
 				<span id="pageMeta" class="muted">Page 1 of 1</span>
 				<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
 			</section>
-		</section>
+			</section>
 
-		<aside id="userDrawer" class="user-drawer" aria-live="polite" aria-label="User details drawer">
+			<aside id="userDrawer" class="user-drawer" aria-live="polite" aria-label="User details drawer">
 			<div class="card-header">
 				<h3 class="card-title">User Details</h3>
 				<button id="closeDrawerBtn" class="btn btn-outline btn-sm" type="button">Close</button>
 			</div>
 			<div id="userDrawerBody" class="text-muted">Select a user row to inspect details.</div>
-		</aside>
+			</aside>
+		</main>
 	</div>
 
 	<script src="../../assets/js/config.js"></script>

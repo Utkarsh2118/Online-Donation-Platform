@@ -206,25 +206,29 @@
 	</style>
 </head>
 <body>
-	<div class="page-shell">
-		<nav class="nav" aria-label="Primary">
-			<a class="brand" href="./dashboard.html">OpenDonate Admin</a>
-			<div class="nav-actions">
-				<a class="btn btn-secondary" href="./dashboard.html">Dashboard</a>
-				<a class="btn btn-secondary" href="./manage-campaigns.html">Manage Campaigns</a>
-				<a class="btn btn-secondary" href="./manage-users.html">Manage Users</a>
-				<a class="btn btn-secondary active" href="./donations-overview.html">Donations Overview</a>
-				<a class="btn btn-secondary" href="./audit-logs.html">Audit Logs</a>
-				<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="Admin navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate Admin</span>
 			</div>
-		</nav>
+			<nav class="side-nav-list" aria-label="Admin links">
+				<a class="side-nav-link" href="./dashboard.html"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link" href="./manage-campaigns.html"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
+				<a class="side-nav-link active" href="./donations-overview.html" aria-current="page"><span class="side-nav-icon">DN</span><span>Donations</span></a>
+				<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
+		</aside>
 
-		<h1 class="page-title">Donations Overview</h1>
-		<p class="muted">Monitor payment outcomes and donation performance.</p>
+		<main class="content-panel">
+			<h1 class="page-title">Donations Overview</h1>
+			<p class="muted">Monitor payment outcomes and donation performance.</p>
 
-		<section id="feedbackPanel" class="panel">Loading donations overview...</section>
+			<section id="feedbackPanel" class="panel">Loading donations overview...</section>
 
-		<section id="overviewCard" class="card hidden">
+			<section id="overviewCard" class="card hidden">
 			<section class="toolbar" aria-label="Donations filters">
 				<select id="limitFilter">
 					<option value="12">12 / page</option>
@@ -288,7 +292,8 @@
 				<span id="pageMeta" class="muted">Page 1 of 1</span>
 				<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
 			</section>
-		</section>
+			</section>
+		</main>
 	</div>
 
 	<script src="../../assets/js/config.js"></script>
