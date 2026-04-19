@@ -13,29 +13,8 @@
 			margin: 0.5rem 0 0.35rem;
 			font-size: clamp(1.45rem, 2.9vw, 2.1rem);
 		}
-			<div class="sidebar-layout">
-				<aside class="side-nav" aria-label="Admin navigation">
-					<div class="brand">
-						<div class="brand-icon">OD</div>
-						<span>OpenDonate Admin</span>
-					</div>
-					<nav class="side-nav-list" aria-label="Admin links">
-						<a class="side-nav-link" href="./dashboard.html"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
-						<a class="side-nav-link active" href="./manage-campaigns.html" aria-current="page"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
-						<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
-						<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
-						<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
-					</nav>
-					<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
-				</aside>
 
-				<main class="content-panel">
-					<h1 class="page-title">Manage Campaigns</h1>
-					<p class="muted">Create, update, and control campaign lifecycle with better visibility.</p>
-
-					<section id="feedbackPanel" class="panel">Loading campaign manager...</section>
-
-					<section id="managerLayout" class="layout hidden">
+		.layout {
 			display: grid;
 			grid-template-columns: 1fr 1.5fr;
 			gap: 1rem;
