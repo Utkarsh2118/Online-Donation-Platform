@@ -80,10 +80,8 @@ body {
 }
 
 .side-nav-tools {
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 0.5rem;
-  flex-wrap: wrap;
   margin-bottom: 0.8rem;
 }
 
@@ -192,6 +190,7 @@ body {
 
 .notif-wrap {
   position: relative;
+  width: 100%;
 }
 
 .notif-bell {
@@ -201,6 +200,8 @@ body {
   padding: 6px 10px;
   font-weight: 700;
   cursor: pointer;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .notif-count {
@@ -213,10 +214,8 @@ body {
 }
 
 .notif-panel {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  width: min(360px, 86vw);
+  position: static;
+  width: 100%;
   background: #ffffff;
   border: 1px solid var(--neutral-200);
   border-radius: 12px;
@@ -227,7 +226,7 @@ body {
 }
 
 .notif-wrap.open .notif-panel {
-  display: block;
+  display: grid;
 }
 
 .notif-head {
