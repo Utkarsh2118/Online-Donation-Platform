@@ -322,6 +322,41 @@
 				display: none;
 			}
 		}
+
+		@media (max-width: 640px) {
+			.page-header {
+				padding: var(--space-2);
+			}
+
+			.chart-controls,
+			.range-switch,
+			.chart-switch,
+			.filter-group {
+				width: 100%;
+			}
+
+			.range-switch,
+			.chart-switch,
+			.filter-group {
+				justify-content: stretch;
+			}
+
+			.switch-btn,
+			.filter-btn,
+			#exportChartBtn {
+				width: 100%;
+			}
+
+			.donation-row,
+			.donation-row-header {
+				grid-template-columns: 1fr;
+			}
+
+			.align-right,
+			.align-center {
+				text-align: left;
+			}
+		}
 	</style>
 </head>
 <body class="user-shell">

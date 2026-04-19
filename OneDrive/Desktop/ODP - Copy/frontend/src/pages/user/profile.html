@@ -400,6 +400,29 @@
 				align-items: flex-start;
 			}
 		}
+
+		@media (max-width: 640px) {
+			.profile-container {
+				gap: var(--space-3);
+			}
+
+			.profile-card,
+			.info-section {
+				padding: var(--space-3);
+			}
+
+			.profile-actions,
+			.quick-links,
+			.edit-actions {
+				width: 100%;
+			}
+
+			.profile-actions .btn,
+			.edit-actions .btn,
+			.quick-links .quick-link-item {
+				width: 100%;
+			}
+		}
 	</style>
 </head>
 <body class="user-shell">

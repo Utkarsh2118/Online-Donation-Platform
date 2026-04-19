@@ -278,6 +278,38 @@ color: var(--neutral-500);
 @media (max-width: 520px) {
 .advanced-filters { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 640px) {
+.toolbar {
+gap: var(--space-1);
+}
+
+.search-bar,
+.advanced-filters,
+.toolbar .btn,
+.search-bar input,
+.advanced-filters select,
+.advanced-filters input {
+width: 100%;
+}
+
+.campaign-card-header {
+padding: var(--space-2);
+height: auto;
+gap: var(--space-2);
+}
+
+.campaign-card-content {
+padding: var(--space-2);
+}
+
+.campaign-meta,
+.fund-info,
+.progress-header,
+.pagination {
+gap: var(--space-1);
+}
+}
 </style>
 </head>
 <body class="user-shell">

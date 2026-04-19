@@ -32,7 +32,7 @@
   box-sizing: border-box;
 }
 
-body {
+    overflow-x: hidden;
   margin: 0;
   font-family: "Manrope", "Segoe UI", sans-serif;
   color: var(--ink);

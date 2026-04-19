@@ -172,6 +172,30 @@
 				width: 100%;
 			}
 		}
+
+		@media (max-width: 640px) {
+			.home-hero {
+				padding: var(--space-3);
+			}
+
+			.home-hero::before,
+			.home-hero::after {
+				display: none;
+			}
+
+			.action-grid {
+				margin: var(--space-4) 0;
+			}
+
+			.action-card,
+			.trust-section {
+				padding: var(--space-3);
+			}
+
+			.trust-value {
+				font-size: var(--text-2xl);
+			}
+		}
 	</style>
 </head>
 <body class="user-shell">
