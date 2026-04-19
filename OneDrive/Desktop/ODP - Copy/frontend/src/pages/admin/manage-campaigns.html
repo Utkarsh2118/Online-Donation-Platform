@@ -316,6 +316,12 @@
 
 				<section class="toolbar" aria-label="Filters">
 					<input id="searchInput" type="search" placeholder="Search campaigns" />
+					<select id="limitFilter">
+						<option value="8">8 / page</option>
+						<option value="20">20 / page</option>
+						<option value="50">50 / page</option>
+						<option value="100">100 / page</option>
+					</select>
 					<select id="statusFilter">
 						<option value="">All Status</option>
 						<option value="active">Active</option>
@@ -335,6 +341,10 @@
 					</select>
 					<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
 					<button id="quickCreateBtn" class="btn btn-secondary" type="button">Quick Create</button>
+					<button id="bulkPauseBtn" class="btn btn-secondary" type="button">Bulk Pause</button>
+					<button id="bulkActivateBtn" class="btn btn-secondary" type="button">Bulk Activate</button>
+					<button id="bulkDeleteBtn" class="btn btn-outline" type="button">Bulk Delete</button>
+					<button id="bulkExportBtn" class="btn btn-outline" type="button">Export Selected</button>
 				</section>
 
 				<div id="listAlert" class="alert"></div>
@@ -379,6 +389,7 @@
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const feedbackPanel = document.getElementById('feedbackPanel');
 		const managerLayout = document.getElementById('managerLayout');
@@ -388,6 +399,7 @@
 		const listAlert = document.getElementById('listAlert');
 		const campaignList = document.getElementById('campaignList');
 		const searchInput = document.getElementById('searchInput');
+		const limitFilter = document.getElementById('limitFilter');
 		const statusFilter = document.getElementById('statusFilter');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
 		const sortBy = document.getElementById('sortBy');
@@ -398,6 +410,10 @@
 		const quickCreateForm = document.getElementById('quickCreateForm');
 		const quickCreateAlert = document.getElementById('quickCreateAlert');
 		const quickCreateSubmit = document.getElementById('quickCreateSubmit');
+		const bulkPauseBtn = document.getElementById('bulkPauseBtn');
+		const bulkActivateBtn = document.getElementById('bulkActivateBtn');
+		const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+		const bulkExportBtn = document.getElementById('bulkExportBtn');
 		const prevBtn = document.getElementById('prevBtn');
 		const nextBtn = document.getElementById('nextBtn');
 		const pageMeta = document.getElementById('pageMeta');
@@ -405,12 +421,13 @@
 
 		const state = {
 			page: 1,
-			limit: 8,
+			limit: Number(localStorage.getItem('odp.admin.campaigns.limit') || 8),
 			totalPages: 1,
 			search: '',
 			status: '',
 			sortBy: 'createdAt',
-			sortDir: 'desc'
+			sortDir: 'desc',
+			selectedIds: []
 		};
 
 		function renderCampaignSkeleton() {
@@ -546,7 +563,7 @@
 			campaignList.innerHTML = sortedCampaigns.map((campaign) => `
 				<article class="campaign-item" data-item-id="${campaign._id}">
 					<div class="top">
-						<strong>${campaign.title}</strong>
+						<strong><label><input type="checkbox" data-select-id="${campaign._id}" ${state.selectedIds.includes(campaign._id) ? 'checked' : ''}/> ${campaign.title}</label></strong>
 						<span class="status ${campaign.status}">${campaign.status}</span>
 					</div>
 					<span class="muted">Goal: ${formatCurrency(campaign.goalAmount)} | Raised: ${formatCurrency(campaign.raisedAmount)}</span>
@@ -587,6 +604,20 @@
 				btn.addEventListener('click', () => {
 					const id = btn.getAttribute('data-delete-id');
 					handleDeleteCampaign(id);
+				});
+			});
+
+			campaignList.querySelectorAll('[data-select-id]').forEach((checkbox) => {
+				checkbox.addEventListener('change', () => {
+					const id = checkbox.getAttribute('data-select-id');
+					if (!id) return;
+					if (checkbox.checked) {
+						if (!state.selectedIds.includes(id)) {
+							state.selectedIds.push(id);
+						}
+					} else {
+						state.selectedIds = state.selectedIds.filter((item) => item !== id);
+					}
 				});
 			});
 		}
@@ -753,7 +784,68 @@
 			}
 		}
 
+		async function handleBulkStatusUpdate(status) {
+			if (!state.selectedIds.length) {
+				setAlert(listAlert, 'Select campaigns first.', 'error');
+				return;
+			}
+			try {
+				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}`, {
+					method: 'PUT',
+					body: JSON.stringify({ status })
+				})));
+				setAlert(listAlert, `Updated ${state.selectedIds.length} campaigns to ${status}.`, 'ok');
+				state.selectedIds = [];
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Bulk update failed.', 'error');
+			}
+		}
+
+		async function handleBulkDelete() {
+			if (!state.selectedIds.length) {
+				setAlert(listAlert, 'Select campaigns first.', 'error');
+				return;
+			}
+			const confirmed = window.confirm(`Delete ${state.selectedIds.length} selected campaigns?`);
+			if (!confirmed) return;
+			try {
+				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}`, { method: 'DELETE' })));
+				setAlert(listAlert, 'Selected campaigns deleted.', 'ok');
+				state.selectedIds = [];
+				await fetchCampaigns();
+			} catch (error) {
+				setAlert(listAlert, error.message || 'Bulk delete failed.', 'error');
+			}
+		}
+
+		function handleBulkExport() {
+			if (!state.selectedIds.length) {
+				setAlert(listAlert, 'Select campaigns first.', 'error');
+				return;
+			}
+			const rows = [...campaignList.querySelectorAll('.campaign-item')]
+				.filter((item) => state.selectedIds.includes(item.getAttribute('data-item-id')))
+				.map((item) => item.textContent.replace(/\s+/g, ' ').trim());
+			const csv = ['Campaign Summary', ...rows.map((row) => `"${row.replace(/"/g, '""')}"`)].join('\n');
+			const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'campaigns-selected.csv';
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+		}
+
 		function initControls() {
+			limitFilter.value = String(state.limit);
+			limitFilter.addEventListener('change', () => {
+				state.limit = Number(limitFilter.value || 8);
+				localStorage.setItem('odp.admin.campaigns.limit', String(state.limit));
+				state.page = 1;
+				fetchCampaigns();
+			});
+
 			applyFilterBtn.addEventListener('click', () => {
 				applyFilterBtn.classList.add('pulse-once');
 				state.search = searchInput.value.trim();
@@ -777,6 +869,10 @@
 			});
 
 			quickCreateBtn.addEventListener('click', openQuickModal);
+			bulkPauseBtn.addEventListener('click', () => handleBulkStatusUpdate('paused'));
+			bulkActivateBtn.addEventListener('click', () => handleBulkStatusUpdate('active'));
+			bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+			bulkExportBtn.addEventListener('click', handleBulkExport);
 			quickCreateClose.addEventListener('click', closeQuickModal);
 			quickCreateModal.addEventListener('click', (event) => {
 				if (event.target === quickCreateModal) {
@@ -806,6 +902,16 @@
 			if (!Auth.requireAdmin('./login.html')) {
 				return;
 			}
+
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'admin-campaigns',
+					containerSelector: '.page-shell',
+					title: 'Campaign Operations',
+					subtitle: 'Create, moderate, bulk update, and export campaign operations with confidence.',
+					primaryAction: { label: 'Quick Create', href: '#quickCreateBtn' }
+				}
+			});
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();

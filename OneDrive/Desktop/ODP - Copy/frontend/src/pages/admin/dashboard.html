@@ -38,6 +38,34 @@
 			gap: 0.75rem;
 		}
 
+		.kpi-trends {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.7rem;
+			margin-bottom: 1rem;
+		}
+
+		.trend-card {
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.72rem;
+			background: #ffffff;
+		}
+
+		.workflow-lane {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.65rem;
+			margin-bottom: 1rem;
+		}
+
+		.workflow-item {
+			border: 1px solid #e2e8f0;
+			border-radius: 10px;
+			padding: 0.68rem;
+			background: #f8fafc;
+		}
+
 		.stat-card {
 			background: #ffffff;
 			border: 1px solid #e2e8f0;
@@ -175,6 +203,11 @@
 				grid-template-columns: 1fr 1fr;
 			}
 
+			.kpi-trends,
+			.workflow-lane {
+				grid-template-columns: 1fr;
+			}
+
 			.layout {
 				grid-template-columns: 1fr;
 			}
@@ -211,6 +244,18 @@
 				<a class="btn btn-secondary" href="./manage-users.html">Block/Unblock Users</a>
 				<a class="btn btn-secondary" href="./donations-overview.html">Review Failed Payments</a>
 				<a class="btn btn-outline" href="./donations-overview.html">Export Ready View</a>
+			</section>
+
+			<section class="kpi-trends" aria-label="KPI trends">
+				<article class="trend-card"><strong id="trendUsers">0%</strong><p class="muted">User Growth vs Previous</p></article>
+				<article class="trend-card"><strong id="trendDonations">0%</strong><p class="muted">Donation Volume vs Previous</p></article>
+				<article class="trend-card"><strong id="trendSuccess">0%</strong><p class="muted">Payment Success Ratio</p></article>
+			</section>
+
+			<section class="workflow-lane" aria-label="Workflow lane">
+				<article class="workflow-item"><strong id="pendingApprovals">0</strong><p class="muted">Pending Approvals</p></article>
+				<article class="workflow-item"><strong id="failedPayments">0</strong><p class="muted">Failed Payments</p></article>
+				<article class="workflow-item"><strong id="blockedQueue">0</strong><p class="muted">Blocked Users</p></article>
 			</section>
 
 			<section class="stats-grid" aria-label="Platform stats">
@@ -257,6 +302,7 @@
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const feedbackPanel = document.getElementById('feedbackPanel');
 		const dashboardBody = document.getElementById('dashboardBody');
@@ -269,6 +315,12 @@
 		const recentUsers = document.getElementById('recentUsers');
 		const recentDonations = document.getElementById('recentDonations');
 		const logoutBtn = document.getElementById('logoutBtn');
+		const trendUsers = document.getElementById('trendUsers');
+		const trendDonations = document.getElementById('trendDonations');
+		const trendSuccess = document.getElementById('trendSuccess');
+		const pendingApprovals = document.getElementById('pendingApprovals');
+		const failedPayments = document.getElementById('failedPayments');
+		const blockedQueue = document.getElementById('blockedQueue');
 
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
@@ -356,6 +408,29 @@
 			activeCampaigns.textContent = String(stats.activeCampaigns || 0);
 			totalDonations.textContent = String(stats.totalDonations || 0);
 			totalRaisedAmount.textContent = formatCurrency(stats.totalRaisedAmount || 0);
+			blockedQueue.textContent = String(stats.blockedUsers || 0);
+			pendingApprovals.textContent = String(Math.max(0, (stats.totalCampaigns || 0) - (stats.activeCampaigns || 0)));
+		}
+
+		function renderTrends(users, donations) {
+			const halfUsers = Math.max(1, Math.floor(users.length / 2));
+			const firstUsers = users.slice(0, halfUsers).length;
+			const secondUsers = users.slice(halfUsers).length;
+			const usersTrend = firstUsers ? Math.round(((secondUsers - firstUsers) / firstUsers) * 100) : 0;
+
+			const halfDonations = Math.max(1, Math.floor(donations.length / 2));
+			const firstDon = donations.slice(0, halfDonations).length;
+			const secondDon = donations.slice(halfDonations).length;
+			const donationTrend = firstDon ? Math.round(((secondDon - firstDon) / firstDon) * 100) : 0;
+
+			const paid = donations.filter((item) => item.paymentStatus === 'paid').length;
+			const failed = donations.filter((item) => item.paymentStatus === 'failed').length;
+			const success = donations.length ? Math.round((paid / donations.length) * 100) : 0;
+
+			trendUsers.textContent = `${usersTrend >= 0 ? '+' : ''}${usersTrend}%`;
+			trendDonations.textContent = `${donationTrend >= 0 ? '+' : ''}${donationTrend}%`;
+			trendSuccess.textContent = `${success}%`;
+			failedPayments.textContent = String(failed);
 		}
 
 		async function loadDashboard() {
@@ -368,6 +443,7 @@
 				const donations = response?.data?.recentDonations || [];
 
 				renderStats(stats);
+				renderTrends(users, donations);
 				renderRecentUsers(users);
 				renderRecentDonations(donations);
 				showDashboard();
@@ -380,6 +456,16 @@
 			if (!Auth.requireAdmin('./login.html')) {
 				return;
 			}
+
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'admin-dashboard',
+					containerSelector: '.page-shell',
+					title: 'Admin Control Center',
+					subtitle: 'Monitor platform health, user safety, and donation performance from one place.',
+					primaryAction: { label: 'Manage Campaigns', href: './manage-campaigns.html' }
+				}
+			});
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();

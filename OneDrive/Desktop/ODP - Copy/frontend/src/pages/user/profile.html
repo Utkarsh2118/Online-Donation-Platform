@@ -786,7 +786,15 @@
 
 		function init() {
 			if (!Auth.requireAuth('./login.html')) return;
-			ODPLayout.setupSidebarCollapse();
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'user-profile',
+					containerSelector: '.content-panel',
+					title: 'Profile & Settings',
+					subtitle: 'Manage account information, trust signals, and profile completeness.',
+					primaryAction: { label: 'View Dashboard', href: './dashboard.html' }
+				}
+			});
 			if (Auth.getUser()?.role === 'admin') {
 				window.location.href = '../admin/dashboard.html';
 				return;

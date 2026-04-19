@@ -157,6 +157,38 @@
 			flex-wrap: wrap;
 		}
 
+		.user-drawer {
+			position: fixed;
+			top: 0;
+			right: -420px;
+			width: min(420px, 100%);
+			height: 100vh;
+			background: #ffffff;
+			border-left: 1px solid #e2e8f0;
+			box-shadow: -12px 0 28px rgba(15, 23, 42, 0.15);
+			z-index: 70;
+			padding: 1rem;
+			transition: right 0.26s ease;
+			overflow: auto;
+		}
+
+		.user-drawer.show {
+			right: 0;
+		}
+
+		.timeline {
+			display: grid;
+			gap: 0.55rem;
+			margin-top: 0.85rem;
+		}
+
+		.timeline-item {
+			border: 1px solid #e2e8f0;
+			border-radius: 9px;
+			padding: 0.6rem;
+			background: #f8fafc;
+		}
+
 		.pagination {
 			margin-top: 0.75rem;
 			display: flex;
@@ -195,6 +227,12 @@
 		<section id="usersCard" class="card hidden">
 			<section class="toolbar" aria-label="User filters">
 				<input id="searchInput" type="search" placeholder="Search by name or email" />
+				<select id="limitFilter">
+					<option value="10">10 / page</option>
+					<option value="25">25 / page</option>
+					<option value="50">50 / page</option>
+					<option value="100">100 / page</option>
+				</select>
 				<select id="roleFilter">
 					<option value="">All Roles</option>
 					<option value="user">User</option>
@@ -232,11 +270,20 @@
 				<button id="nextBtn" class="btn btn-outline" type="button">Next</button>
 			</section>
 		</section>
+
+		<aside id="userDrawer" class="user-drawer" aria-live="polite" aria-label="User details drawer">
+			<div class="card-header">
+				<h3 class="card-title">User Details</h3>
+				<button id="closeDrawerBtn" class="btn btn-outline btn-sm" type="button">Close</button>
+			</div>
+			<div id="userDrawerBody" class="text-muted">Select a user row to inspect details.</div>
+		</aside>
 	</div>
 
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const feedbackPanel = document.getElementById('feedbackPanel');
 		const usersCard = document.getElementById('usersCard');
@@ -244,16 +291,20 @@
 		const usersTableBody = document.getElementById('usersTableBody');
 		const searchInput = document.getElementById('searchInput');
 		const roleFilter = document.getElementById('roleFilter');
+		const limitFilter = document.getElementById('limitFilter');
 		const blockedFilter = document.getElementById('blockedFilter');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
 		const prevBtn = document.getElementById('prevBtn');
 		const nextBtn = document.getElementById('nextBtn');
 		const pageMeta = document.getElementById('pageMeta');
 		const logoutBtn = document.getElementById('logoutBtn');
+		const userDrawer = document.getElementById('userDrawer');
+		const userDrawerBody = document.getElementById('userDrawerBody');
+		const closeDrawerBtn = document.getElementById('closeDrawerBtn');
 
 		const state = {
 			page: 1,
-			limit: 10,
+			limit: Number(localStorage.getItem('odp.admin.users.limit') || 10),
 			totalPages: 1,
 			search: '',
 			role: '',
@@ -311,6 +362,28 @@
 			`;
 		}
 
+		function openUserDrawer(user) {
+			const lastLogin = user?.lastLoginAt ? formatDate(user.lastLoginAt) : 'N/A';
+			const totalDonations = user?.donationCount ?? 'N/A';
+			const totalRaised = user?.totalDonatedAmount ? `INR ${user.totalDonatedAmount}` : 'N/A';
+			userDrawerBody.innerHTML = `
+				<div class="info-grid">
+					<div class="info-item"><label class="info-label">Name</label><div class="info-value">${user?.name || '-'}</div></div>
+					<div class="info-item"><label class="info-label">Email</label><div class="info-value">${user?.email || '-'}</div></div>
+					<div class="info-item"><label class="info-label">Role</label><div class="info-value">${user?.role || '-'}</div></div>
+					<div class="info-item"><label class="info-label">Last Login</label><div class="info-value">${lastLogin}</div></div>
+					<div class="info-item"><label class="info-label">Donation Count</label><div class="info-value">${totalDonations}</div></div>
+					<div class="info-item"><label class="info-label">Total Donated</label><div class="info-value">${totalRaised}</div></div>
+				</div>
+				<div class="timeline">
+					<article class="timeline-item">Joined platform on ${formatDate(user?.createdAt)}</article>
+					<article class="timeline-item">Account status: ${user?.isBlocked ? 'Blocked' : 'Active'}</article>
+					<article class="timeline-item">Recent activity timeline sync is ready for backend enrichment.</article>
+				</div>
+			`;
+			userDrawer.classList.add('show');
+		}
+
 		function applySort(users) {
 			const factor = state.sortDir === 'asc' ? 1 : -1;
 			const sorted = [...users].sort((a, b) => {
@@ -351,7 +424,7 @@
 			usersTableBody.innerHTML = sortedUsers.map((user) => {
 				const statusClass = user.isBlocked ? 'blocked' : 'active';
 				return `
-					<tr>
+					<tr data-row-user-id="${user._id}">
 						<td>${user.name || '-'}</td>
 						<td>${user.email || '-'}</td>
 						<td><span class="status ${user.role}">${user.role}</span></td>
@@ -361,6 +434,16 @@
 					</tr>
 				`;
 			}).join('');
+
+			sortedUsers.forEach((user) => {
+				const row = usersTableBody.querySelector(`[data-row-user-id="${user._id}"]`);
+				if (row) {
+					row.addEventListener('click', (event) => {
+						if (event.target.closest('button')) return;
+						openUserDrawer(user);
+					});
+				}
+			});
 
 			usersTableBody.querySelectorAll('[data-block-id]').forEach((btn) => {
 				btn.addEventListener('click', () => {
@@ -463,6 +546,18 @@
 		}
 
 		function initControls() {
+			limitFilter.value = String(state.limit);
+			closeDrawerBtn.addEventListener('click', () => {
+				userDrawer.classList.remove('show');
+			});
+
+			limitFilter.addEventListener('change', () => {
+				state.limit = Number(limitFilter.value || 10);
+				localStorage.setItem('odp.admin.users.limit', String(state.limit));
+				state.page = 1;
+				fetchUsers();
+			});
+
 			document.querySelectorAll('.sortable-th').forEach((header) => {
 				header.addEventListener('click', () => {
 					const key = header.getAttribute('data-sort');
@@ -520,6 +615,16 @@
 			if (!Auth.requireAdmin('./login.html')) {
 				return;
 			}
+
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'admin-users',
+					containerSelector: '.page-shell',
+					title: 'User Governance',
+					subtitle: 'Moderate accounts, review access status, and respond quickly to safety actions.',
+					primaryAction: { label: 'Open Dashboard', href: './dashboard.html' }
+				}
+			});
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();

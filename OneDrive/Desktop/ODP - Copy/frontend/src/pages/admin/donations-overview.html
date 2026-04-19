@@ -57,6 +57,25 @@
 			min-height: 42px;
 		}
 
+		.anomaly {
+			display: inline-flex;
+			padding: 0.14rem 0.5rem;
+			border-radius: 999px;
+			font-size: 0.74rem;
+			font-weight: 700;
+			margin-left: 0.25rem;
+		}
+
+		.anomaly.warn {
+			background: #fef3c7;
+			color: #92400e;
+		}
+
+		.anomaly.risk {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+
 		.stats {
 			display: grid;
 			grid-template-columns: repeat(4, 1fr);
@@ -206,12 +225,21 @@
 
 		<section id="overviewCard" class="card hidden">
 			<section class="toolbar" aria-label="Donations filters">
+				<select id="limitFilter">
+					<option value="12">12 / page</option>
+					<option value="25">25 / page</option>
+					<option value="50">50 / page</option>
+					<option value="100">100 / page</option>
+				</select>
 				<select id="statusFilter">
 					<option value="">All Payment Status</option>
 					<option value="paid">Paid</option>
 					<option value="created">Created</option>
 					<option value="failed">Failed</option>
 				</select>
+				<button id="saveFilterBtn" class="btn btn-secondary" type="button">Save Filter</button>
+				<button id="loadFilterBtn" class="btn btn-secondary" type="button">Load Saved</button>
+				<button id="downloadReportBtn" class="btn btn-outline" type="button">Download CSV</button>
 				<button id="applyFilterBtn" class="btn btn-outline" type="button">Apply</button>
 			</section>
 
@@ -247,6 +275,7 @@
 							<th class="sortable-th" data-sort="paymentStatus">Status</th>
 							<th class="sortable-th" data-sort="createdAt">Date</th>
 							<th>Order ID</th>
+							<th>Anomaly</th>
 						</tr>
 					</thead>
 					<tbody id="donationsTableBody"></tbody>
@@ -264,10 +293,15 @@
 	<script src="../../assets/js/config.js"></script>
 	<script src="../../assets/js/auth.js"></script>
 	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
 	<script>
 		const feedbackPanel = document.getElementById('feedbackPanel');
 		const overviewCard = document.getElementById('overviewCard');
 		const statusFilter = document.getElementById('statusFilter');
+		const limitFilter = document.getElementById('limitFilter');
+		const saveFilterBtn = document.getElementById('saveFilterBtn');
+		const loadFilterBtn = document.getElementById('loadFilterBtn');
+		const downloadReportBtn = document.getElementById('downloadReportBtn');
 		const applyFilterBtn = document.getElementById('applyFilterBtn');
 		const listAlert = document.getElementById('listAlert');
 		const donationsTableBody = document.getElementById('donationsTableBody');
@@ -282,7 +316,7 @@
 
 		const state = {
 			page: 1,
-			limit: 12,
+			limit: Number(localStorage.getItem('odp.admin.donations.limit') || 12),
 			totalPages: 1,
 			paymentStatus: '',
 			sortBy: 'createdAt',
@@ -381,7 +415,7 @@
 
 		function renderTable(donations) {
 			if (!donations.length) {
-				donationsTableBody.innerHTML = '<tr><td colspan="7">No donation records found for the selected filter. <button id="resetDonationsFilterBtn" class="btn btn-secondary btn-sm" type="button">Reset Filter</button></td></tr>';
+				donationsTableBody.innerHTML = '<tr><td colspan="8">No donation records found for the selected filter. <button id="resetDonationsFilterBtn" class="btn btn-secondary btn-sm" type="button">Reset Filter</button></td></tr>';
 				const resetBtn = document.getElementById('resetDonationsFilterBtn');
 				if (resetBtn) {
 					resetBtn.addEventListener('click', () => {
@@ -402,6 +436,11 @@
 				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
 				const status = donation.paymentStatus || 'created';
 
+				const anomalies = [];
+				if (Number(donation.amount || 0) > 100000) anomalies.push('<span class="anomaly risk">High Amount</span>');
+				if (status === 'failed') anomalies.push('<span class="anomaly warn">Failure</span>');
+				if (status === 'created' && donation.razorpayOrderId) anomalies.push('<span class="anomaly warn">Retry Pending</span>');
+
 				return `
 					<tr>
 						<td>${donorName}</td>
@@ -411,6 +450,7 @@
 						<td><span class="status ${status}">${status}</span></td>
 						<td>${formatDate(donation.createdAt)}</td>
 						<td>${donation.razorpayOrderId || '-'}</td>
+						<td>${anomalies.join(' ') || '-'}</td>
 					</tr>
 				`;
 			}).join('');
@@ -449,6 +489,56 @@
 		}
 
 		function initControls() {
+			limitFilter.value = String(state.limit);
+
+			limitFilter.addEventListener('change', () => {
+				state.limit = Number(limitFilter.value || 12);
+				localStorage.setItem('odp.admin.donations.limit', String(state.limit));
+				state.page = 1;
+				fetchDonations();
+			});
+
+			saveFilterBtn.addEventListener('click', () => {
+				const snapshot = {
+					paymentStatus: statusFilter.value,
+					limit: limitFilter.value
+				};
+				localStorage.setItem('odp.admin.donations.savedFilter', JSON.stringify(snapshot));
+				setAlert(listAlert, 'Filter saved successfully.', 'ok');
+			});
+
+			loadFilterBtn.addEventListener('click', () => {
+				try {
+					const saved = JSON.parse(localStorage.getItem('odp.admin.donations.savedFilter') || '{}');
+					statusFilter.value = saved.paymentStatus || '';
+					limitFilter.value = saved.limit || String(state.limit);
+					state.paymentStatus = statusFilter.value;
+					state.limit = Number(limitFilter.value || state.limit);
+					state.page = 1;
+					fetchDonations();
+				} catch (error) {
+					setAlert(listAlert, 'Saved filter is invalid.', 'error');
+				}
+			});
+
+			downloadReportBtn.addEventListener('click', () => {
+				const rows = [...donationsTableBody.querySelectorAll('tr')];
+				if (!rows.length) {
+					setAlert(listAlert, 'No rows available for export.', 'error');
+					return;
+				}
+				const data = rows.map((row) => [...row.querySelectorAll('td')].map((cell) => `"${cell.textContent.replace(/"/g, '""')}"`).join(','));
+				const header = 'Donor,Email,Campaign,Amount,Status,Date,Order ID,Anomaly';
+				const csv = [header, ...data].join('\n');
+				const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(blob);
+				link.download = 'donations-report.csv';
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+			});
+
 			document.querySelectorAll('.sortable-th').forEach((header) => {
 				header.addEventListener('click', () => {
 					const key = header.getAttribute('data-sort');
@@ -494,6 +584,16 @@
 			if (!Auth.requireAdmin('./login.html')) {
 				return;
 			}
+
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'admin-donations',
+					containerSelector: '.page-shell',
+					title: 'Donations Risk & Finance View',
+					subtitle: 'Track payments, detect anomalies, and keep financial records auditable.',
+					primaryAction: { label: 'Saved Filters', href: '#statusFilter' }
+				}
+			});
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();

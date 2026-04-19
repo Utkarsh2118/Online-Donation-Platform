@@ -278,7 +278,15 @@
 				return;
 			}
 
-			ODPLayout.setupSidebarCollapse();
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'user-home',
+					containerSelector: '.content-panel',
+					title: 'Home',
+					subtitle: 'Your personalized donation workspace with live progress insights.',
+					primaryAction: { label: 'Explore Campaigns', href: './campaigns.html' }
+				}
+			});
 
 			const user = Auth.getUser();
 			if (user?.role === 'admin') {

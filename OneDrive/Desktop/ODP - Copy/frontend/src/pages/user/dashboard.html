@@ -88,6 +88,39 @@
 			stroke-width: 2;
 		}
 
+		.chart-controls {
+			display: flex;
+			gap: var(--space-1);
+			flex-wrap: wrap;
+			margin-top: var(--space-1);
+		}
+
+		.range-switch,
+		.chart-switch {
+			display: inline-flex;
+			gap: 6px;
+			padding: 4px;
+			border: 1px solid var(--neutral-200);
+			border-radius: 999px;
+			background: #ffffff;
+		}
+
+		.switch-btn {
+			border: 0;
+			border-radius: 999px;
+			padding: 6px 10px;
+			font-size: var(--text-xs);
+			font-weight: 700;
+			background: transparent;
+			cursor: pointer;
+			color: var(--neutral-600);
+		}
+
+		.switch-btn.active {
+			background: var(--primary);
+			color: #ffffff;
+		}
+
 		.donation-history-header {
 			display: flex;
 			justify-content: space-between;
@@ -210,6 +243,18 @@
 		.view-btn:hover {
 			background: var(--primary);
 			color: white;
+		}
+
+		.receipt-btn,
+		.resend-btn {
+			padding: var(--space-05) var(--space-1);
+			border: 1px solid var(--neutral-300);
+			background: #ffffff;
+			color: var(--neutral-700);
+			border-radius: var(--radius-md);
+			cursor: pointer;
+			font-size: var(--text-xs);
+			font-weight: 600;
 		}
 
 		.empty-state {
@@ -342,6 +387,19 @@
 						<h3 class="card-title">Last 6 Months</h3>
 						<span class="text-muted" id="chartTotal">INR 0</span>
 					</div>
+					<div class="chart-controls">
+						<div class="range-switch" id="rangeSwitch">
+							<button class="switch-btn active" data-range="30" type="button">30D</button>
+							<button class="switch-btn" data-range="90" type="button">90D</button>
+							<button class="switch-btn" data-range="180" type="button">180D</button>
+							<button class="switch-btn" data-range="all" type="button">All</button>
+						</div>
+						<div class="chart-switch" id="chartSwitch">
+							<button class="switch-btn active" data-chart="line" type="button">Line</button>
+							<button class="switch-btn" data-chart="bar" type="button">Bar</button>
+						</div>
+						<button id="exportChartBtn" class="btn btn-outline btn-sm" type="button">Export PNG</button>
+					</div>
 					<div class="chart-container" id="monthBars"></div>
 				</article>
 
@@ -414,6 +472,9 @@
 		const momentumPercent = document.getElementById('momentumPercent');
 		const chartTotal = document.getElementById('chartTotal');
 		const monthBars = document.getElementById('monthBars');
+		const rangeSwitch = document.getElementById('rangeSwitch');
+		const chartSwitch = document.getElementById('chartSwitch');
+		const exportChartBtn = document.getElementById('exportChartBtn');
 		const historyFilters = document.getElementById('historyFilters');
 		const historyTableBody = document.getElementById('historyTableBody');
 		const historyEmpty = document.getElementById('historyEmpty');
@@ -422,7 +483,9 @@
 
 		const state = {
 			allDonations: [],
-			filter: 'all'
+			filter: 'all',
+			range: '30',
+			chartType: 'line'
 		};
 
 		function getProfileCompletion(user) {
@@ -481,6 +544,13 @@
 			return donations.filter((d) => d.paymentStatus === filter);
 		}
 
+		function filterByRange(donations) {
+			if (state.range === 'all') return donations;
+			const days = Number(state.range || 30);
+			const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+			return donations.filter((d) => new Date(d.createdAt).getTime() >= cutoff);
+		}
+
 		function renderDonationHistory(donations) {
 			if (!donations.length) {
 				historyEmpty.style.display = 'block';
@@ -491,12 +561,13 @@
 			historyEmpty.style.display = 'none';
 			historyContent.style.display = 'block';
 
-			historyTableBody.innerHTML = donations.map((donation) => {
+				historyTableBody.innerHTML = donations.map((donation) => {
 				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
 				const amount = formatCurrency(donation.amount);
 				const status = donation.paymentStatus || 'created';
 				const date = formatDate(donation.createdAt);
 				const campaignId = donation?.campaignId?._id || '';
+				const orderId = donation?.razorpayOrderId || 'N/A';
 
 				return `
 					<div class="donation-row">
@@ -513,6 +584,8 @@
 						<div></div>
 						<div class="action-cell">
 							<button class="view-btn" data-campaign-id="${campaignId}">View</button>
+							<button class="receipt-btn" data-receipt-id="${orderId}" data-campaign="${campaignTitle}" data-amount="${amount}" data-date="${date}">Receipt</button>
+							<button class="resend-btn" data-resend-id="${orderId}">Resend</button>
 						</div>
 					</div>
 				`;
@@ -526,13 +599,46 @@
 					}
 				});
 			});
+
+			historyTableBody.querySelectorAll('.receipt-btn').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const receiptId = btn.getAttribute('data-receipt-id') || 'N/A';
+					const campaign = btn.getAttribute('data-campaign') || 'Unknown Campaign';
+					const amount = btn.getAttribute('data-amount') || 'INR 0';
+					const date = btn.getAttribute('data-date') || '-';
+					const text = [
+						'OpenDonate Receipt',
+						`Receipt ID: ${receiptId}`,
+						`Campaign: ${campaign}`,
+						`Amount: ${amount}`,
+						`Date: ${date}`
+					].join('\n');
+					const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+					const link = document.createElement('a');
+					link.href = URL.createObjectURL(blob);
+					link.download = `receipt-${receiptId}.txt`;
+					document.body.appendChild(link);
+					link.click();
+					link.remove();
+					URL.revokeObjectURL(link.href);
+				});
+			});
+
+			historyTableBody.querySelectorAll('.resend-btn').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const receiptId = btn.getAttribute('data-resend-id') || 'N/A';
+					alert(`Receipt resend request queued for ${receiptId}.`);
+				});
+			});
 		}
 
 		function renderStats(donations) {
-			const total = donations.length;
-			const paid = donations.filter((d) => d.paymentStatus === 'paid');
+			const rangedDonations = filterByRange(donations);
+			const donationsToUse = rangedDonations;
+			const total = donationsToUse.length;
+			const paid = donationsToUse.filter((d) => d.paymentStatus === 'paid');
 			const paidAmount = paid.reduce((sum, d) => sum + Number(d.amount || 0), 0);
-			const supportedSet = new Set(donations.map((d) => d?.campaignId?._id).filter(Boolean));
+			const supportedSet = new Set(donationsToUse.map((d) => d?.campaignId?._id).filter(Boolean));
 			const success = total ? Math.round((paid.length / total) * 100) : 0;
 			const momentum = Math.min(100, Math.round((paid.length + total * 0.2) * 10));
 
@@ -553,7 +659,8 @@
 				paidDonations: paid.length
 			});
 
-			renderMonthlyChart(donations);
+			renderMonthlyChart(donationsToUse);
+			renderDonationHistory(filterDonations(donationsToUse, state.filter));
 		}
 
 		function renderMonthlyChart(donations) {
@@ -596,17 +703,54 @@
 			const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
 			const areaPath = `${linePath} L ${padding + plotWidth} ${padding + plotHeight} L ${padding} ${padding + plotHeight} Z`;
 
+			const bars = points.map((point, index) => {
+				const barWidth = Math.max(16, step * 0.36);
+				const month = months[index];
+				const barHeight = (month.total / max) * plotHeight;
+				const x = point.x - barWidth / 2;
+				const y = padding + plotHeight - barHeight;
+				return `<rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(1, barHeight)}" rx="6" fill="rgba(27, 43, 107, 0.78)"></rect>`;
+			}).join('');
+
 			monthBars.innerHTML = `
 				<svg class="chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Donation totals over the last 6 months">
 					${[0, 1, 2, 3].map((row) => `<line class="chart-grid-line" x1="${padding}" y1="${padding + (plotHeight / 3) * row}" x2="${padding + plotWidth}" y2="${padding + (plotHeight / 3) * row}" />`).join('')}
-					<path class="chart-area" d="${areaPath}" />
-					<path class="chart-line" d="${linePath}" />
+					${state.chartType === 'line' ? `<path class="chart-area" d="${areaPath}" />` : ''}
+					${state.chartType === 'line' ? `<path class="chart-line" d="${linePath}" />` : bars}
 					${points.map((point) => `
-						<circle class="chart-dot" cx="${point.x}" cy="${point.y}" r="4" />
+						${state.chartType === 'line' ? `<circle class="chart-dot" cx="${point.x}" cy="${point.y}" r="4" />` : ''}
 						<text class="chart-axis-label" x="${point.x}" y="${height - 8}" text-anchor="middle">${point.label}</text>
 					`).join('')}
 				</svg>
 			`;
+		}
+
+		function exportChartAsPng() {
+			const svg = monthBars.querySelector('svg');
+			if (!svg) return;
+			const svgData = new XMLSerializer().serializeToString(svg);
+			const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+			const svgUrl = URL.createObjectURL(svgBlob);
+			const img = new Image();
+			img.onload = () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = 1280;
+				canvas.height = 480;
+				const ctx = canvas.getContext('2d');
+				if (!ctx) return;
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				const pngUrl = canvas.toDataURL('image/png');
+				const link = document.createElement('a');
+				link.href = pngUrl;
+				link.download = 'impact-chart.png';
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+				URL.revokeObjectURL(svgUrl);
+			};
+			img.src = svgUrl;
 		}
 
 		function bindHistoryFilters() {
@@ -618,6 +762,26 @@
 					renderDonationHistory(filterDonations(state.allDonations, state.filter));
 				});
 			});
+
+			rangeSwitch.querySelectorAll('[data-range]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					rangeSwitch.querySelectorAll('[data-range]').forEach((item) => item.classList.remove('active'));
+					btn.classList.add('active');
+					state.range = btn.getAttribute('data-range') || '30';
+					renderStats(state.allDonations);
+				});
+			});
+
+			chartSwitch.querySelectorAll('[data-chart]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					chartSwitch.querySelectorAll('[data-chart]').forEach((item) => item.classList.remove('active'));
+					btn.classList.add('active');
+					state.chartType = btn.getAttribute('data-chart') || 'line';
+					renderMonthlyChart(filterByRange(state.allDonations));
+				});
+			});
+
+			exportChartBtn.addEventListener('click', exportChartAsPng);
 		}
 
 		async function loadDashboard() {
@@ -631,7 +795,7 @@
 				const donations = donationResponse?.data?.donations || [];
 				state.allDonations = donations;
 				renderStats(donations);
-				renderDonationHistory(filterDonations(donations, state.filter));
+				renderDonationHistory(filterDonations(filterByRange(donations), state.filter));
 			} catch (error) {
 				console.error('Dashboard error:', error);
 			}
@@ -639,7 +803,15 @@
 
 		function init() {
 			if (!Auth.requireAuth('./login.html')) return;
-			ODPLayout.setupSidebarCollapse();
+			ODPLayout.initGlobalUX({
+				pageHeader: {
+					pageKey: 'user-dashboard',
+					containerSelector: '.content-panel',
+					title: 'Impact Dashboard',
+					subtitle: 'Review trends, donation outcomes, and your account progress over time.',
+					primaryAction: { label: 'Donate Now', href: './campaigns.html' }
+				}
+			});
 			if (Auth.getUser()?.role === 'admin') {
 				window.location.href = '../admin/dashboard.html';
 				return;

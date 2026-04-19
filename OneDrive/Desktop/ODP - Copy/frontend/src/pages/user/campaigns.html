@@ -64,6 +64,45 @@ min-width: 220px;
 
 .search-bar input::placeholder { color: var(--neutral-400); }
 
+.advanced-filters {
+display: grid;
+grid-template-columns: repeat(4, minmax(0, 1fr));
+gap: var(--space-1);
+width: 100%;
+}
+
+.advanced-filters select,
+.advanced-filters input {
+border: 1px solid var(--neutral-300);
+border-radius: var(--radius-md);
+padding: 8px 10px;
+font: inherit;
+background: #ffffff;
+}
+
+.compare-panel {
+display: none;
+margin-bottom: var(--space-3);
+border: 1px solid var(--neutral-200);
+background: #ffffff;
+border-radius: var(--radius-lg);
+padding: var(--space-2);
+}
+
+.compare-grid {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: var(--space-2);
+margin-top: var(--space-2);
+}
+
+.compare-item {
+border: 1px solid var(--neutral-200);
+border-radius: var(--radius-md);
+padding: var(--space-2);
+background: var(--surface-secondary);
+}
+
 .campaign-grid {
 display: grid;
 grid-template-columns: repeat(3, 1fr);
@@ -126,6 +165,14 @@ display: flex;
 flex-direction: column;
 gap: var(--space-2);
 flex-grow: 1;
+}
+
+.compare-toggle {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+font-size: var(--text-xs);
+color: var(--neutral-600);
 }
 
 .campaign-status { display: inline-block; width: fit-content; }
@@ -224,6 +271,12 @@ color: var(--neutral-500);
 .campaign-grid { grid-template-columns: 1fr; }
 .search-bar { width: 100%; }
 .search-bar input { font-size: 16px; }
+.advanced-filters { grid-template-columns: 1fr 1fr; }
+.compare-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+.advanced-filters { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -266,8 +319,27 @@ color: var(--neutral-500);
 <span class="search-icon">Search</span>
 <input id="searchInput" type="search" placeholder="Search campaigns by title or cause..." />
 </div>
+<div class="advanced-filters">
+<select id="campaignStatusFilter" title="Campaign status filter" aria-label="Campaign status filter">
+<option value="">Any Status</option>
+<option value="active">Active</option>
+<option value="paused">Paused</option>
+<option value="completed">Completed</option>
+</select>
+<select id="campaignSortBy" title="Campaign sorting" aria-label="Campaign sorting">
+<option value="newest">Newest</option>
+<option value="most-funded">Most Funded</option>
+<option value="least-funded">Least Funded</option>
+<option value="goal-high">Highest Goal</option>
+<option value="goal-low">Lowest Goal</option>
+</select>
+<input id="goalMin" type="number" min="0" placeholder="Min Goal" />
+<input id="goalMax" type="number" min="0" placeholder="Max Goal" />
+</div>
 <button id="searchBtn" class="btn btn-primary">Search</button>
 </div>
+
+<section id="comparePanel" class="compare-panel" aria-live="polite"></section>
 
 <div id="campaignGrid" class="campaign-grid" aria-live="polite"></div>
 
@@ -287,12 +359,27 @@ color: var(--neutral-500);
 const campaignGrid = document.getElementById('campaignGrid');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const campaignStatusFilter = document.getElementById('campaignStatusFilter');
+const campaignSortBy = document.getElementById('campaignSortBy');
+const goalMin = document.getElementById('goalMin');
+const goalMax = document.getElementById('goalMax');
+const comparePanel = document.getElementById('comparePanel');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const pageMeta = document.getElementById('pageMeta');
 const logoutBtn = document.getElementById('logoutBtn');
 
-const state = { page: 1, limit: 9, search: '', totalPages: 1 };
+const state = {
+page: 1,
+limit: Number(localStorage.getItem('odp.campaigns.limit') || 9),
+search: '',
+totalPages: 1,
+status: '',
+sortBy: 'newest',
+goalMin: '',
+goalMax: '',
+compareIds: []
+};
 
 function renderCampaignSkeleton() {
 campaignGrid.innerHTML = Array.from({ length: 6 }).map(() => `
@@ -324,6 +411,73 @@ const words = title.split(/\s+/).slice(0, 2);
 return words.map((word) => word[0]?.toUpperCase() || '').join('') || 'CP';
 }
 
+function applyAdvancedFilters(campaigns) {
+let filtered = [...campaigns];
+if (state.status) {
+filtered = filtered.filter((campaign) => String(campaign.status || '').toLowerCase() === state.status);
+}
+
+if (state.goalMin !== '') {
+filtered = filtered.filter((campaign) => Number(campaign.goalAmount || 0) >= Number(state.goalMin));
+}
+
+if (state.goalMax !== '') {
+filtered = filtered.filter((campaign) => Number(campaign.goalAmount || 0) <= Number(state.goalMax));
+}
+
+const sorters = {
+newest: (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+'most-funded': (a, b) => Number(b.raisedAmount || 0) - Number(a.raisedAmount || 0),
+'least-funded': (a, b) => Number(a.raisedAmount || 0) - Number(b.raisedAmount || 0),
+'goal-high': (a, b) => Number(b.goalAmount || 0) - Number(a.goalAmount || 0),
+'goal-low': (a, b) => Number(a.goalAmount || 0) - Number(b.goalAmount || 0)
+};
+
+if (sorters[state.sortBy]) {
+filtered.sort(sorters[state.sortBy]);
+}
+
+return filtered;
+}
+
+function renderComparePanel(campaigns) {
+const selected = campaigns.filter((campaign) => state.compareIds.includes(campaign._id));
+if (!selected.length) {
+comparePanel.style.display = 'none';
+comparePanel.innerHTML = '';
+return;
+}
+
+comparePanel.style.display = 'block';
+comparePanel.innerHTML = `
+<div class="card-header">
+<h3 class="card-title">Campaign Compare (${selected.length}/3)</h3>
+<button id="clearCompareBtn" class="btn btn-outline btn-sm" type="button">Clear Compare</button>
+</div>
+<div class="compare-grid">
+${selected.map((campaign) => {
+const progress = getProgress(campaign.raisedAmount, campaign.goalAmount);
+return `
+<article class="compare-item">
+<strong>${campaign.title}</strong>
+<p class="text-muted">Goal: ${formatCurrency(campaign.goalAmount)}</p>
+<p class="text-muted">Raised: ${formatCurrency(campaign.raisedAmount)}</p>
+<p class="text-muted">Progress: ${progress}%</p>
+</article>
+`;
+}).join('')}
+</div>
+`;
+
+const clearBtn = document.getElementById('clearCompareBtn');
+if (clearBtn) {
+clearBtn.addEventListener('click', () => {
+state.compareIds = [];
+fetchCampaigns();
+});
+}
+}
+
 function cardTemplate(campaign) {
 const progress = getProgress(campaign.raisedAmount, campaign.goalAmount);
 const badge = getCampaignBadge(campaign);
@@ -338,6 +492,7 @@ return `
 <div class="campaign-status"><span class="badge badge-success">${String(campaign.status || 'active').toUpperCase()}</span></div>
 <h3 class="campaign-title">${campaign.title}</h3>
 <p class="campaign-desc">${campaign.description}</p>
+<label class="compare-toggle"><input type="checkbox" data-compare-id="${campaign._id}" ${state.compareIds.includes(campaign._id) ? 'checked' : ''}/> Compare</label>
 <div class="campaign-meta">
 <div class="fund-info">
 <span>Raised: <strong class="fund-raised">${formatCurrency(campaign.raisedAmount)}</strong></span>
@@ -370,10 +525,29 @@ return;
 }
 
 campaignGrid.innerHTML = campaigns.map(cardTemplate).join('');
+renderComparePanel(campaigns);
 campaignGrid.querySelectorAll('button[data-id]').forEach((button) => {
 button.addEventListener('click', () => {
 const campaignId = button.getAttribute('data-id');
 window.location.href = `./campaign-details.html?id=${campaignId}`;
+});
+});
+
+campaignGrid.querySelectorAll('[data-compare-id]').forEach((checkbox) => {
+checkbox.addEventListener('change', () => {
+const id = checkbox.getAttribute('data-compare-id');
+if (!id) return;
+if (checkbox.checked) {
+if (state.compareIds.length >= 3) {
+checkbox.checked = false;
+alert('You can compare up to 3 campaigns.');
+return;
+}
+state.compareIds.push(id);
+} else {
+state.compareIds = state.compareIds.filter((item) => item !== id);
+}
+renderComparePanel(campaigns);
 });
 });
 }
@@ -384,6 +558,7 @@ try {
 const query = new URLSearchParams({ page: String(state.page), limit: String(state.limit), ...(state.search && { search: state.search }) });
 const response = await apiRequest(`/campaigns?${query.toString()}`);
 const campaigns = response?.data?.campaigns || [];
+const processed = applyAdvancedFilters(campaigns);
 const pagination = response?.data?.pagination || {};
 state.totalPages = Number(pagination.totalPages || 1);
 pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
@@ -394,10 +569,10 @@ title: 'Campaign Discovery',
 subtitle: 'Filter and discover trusted fundraisers with live progress updates.',
 profileComplete: (Auth.getUser()?.mobileNumber ? 90 : 80),
 pendingActions: campaigns.length ? 0 : 1,
-supportedCampaigns: campaigns.length,
+supportedCampaigns: processed.length,
 paidDonations: 0
 });
-renderCampaigns(campaigns);
+renderCampaigns(processed);
 } catch (error) {
 campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">!</div><h3>Failed to load campaigns</h3><p>${error.message || 'Please try again later.'}</p></div>`;
 }
@@ -405,7 +580,15 @@ campaignGrid.innerHTML = `<div class="empty-state"><div class="empty-icon">!</di
 
 function init() {
 if (!Auth.requireAuth('./login.html')) return;
-ODPLayout.setupSidebarCollapse();
+ODPLayout.initGlobalUX({
+pageHeader: {
+pageKey: 'user-campaigns',
+containerSelector: '.content-panel',
+title: 'Campaign Explorer',
+subtitle: 'Use filters and compare campaigns to choose where your support creates the most impact.',
+primaryAction: { label: 'Back to Home', href: './home.html' }
+}
+});
 if (Auth.getUser()?.role === 'admin') {
 window.location.href = '../admin/dashboard.html';
 return;
@@ -419,6 +602,10 @@ window.location.href = './login.html';
 searchBtn.addEventListener('click', () => {
 searchBtn.classList.add('pulse-once');
 state.search = searchInput.value.trim();
+state.status = campaignStatusFilter.value;
+state.sortBy = campaignSortBy.value;
+state.goalMin = goalMin.value.trim();
+state.goalMax = goalMax.value.trim();
 state.page = 1;
 fetchCampaigns();
 setTimeout(() => searchBtn.classList.remove('pulse-once'), 600);
@@ -427,6 +614,10 @@ setTimeout(() => searchBtn.classList.remove('pulse-once'), 600);
 searchInput.addEventListener('keydown', (e) => {
 if (e.key === 'Enter') {
 state.search = searchInput.value.trim();
+state.status = campaignStatusFilter.value;
+state.sortBy = campaignSortBy.value;
+state.goalMin = goalMin.value.trim();
+state.goalMax = goalMax.value.trim();
 state.page = 1;
 fetchCampaigns();
 }
