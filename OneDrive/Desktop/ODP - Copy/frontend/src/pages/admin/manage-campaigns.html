@@ -519,6 +519,7 @@
 		}
 
 		function createEditTemplate(campaign) {
+			const safeCoverImage = campaign.coverImage || '';
 			return `
 				<div class="edit-box" data-edit-box="${campaign._id}">
 					<div class="field">
@@ -543,13 +544,12 @@
 					</div>
 					<div class="field">
 						<label>Cover Image URL</label>
-						<input type="url" data-edit-field="coverImage" value="${campaign.coverImage || ''}" />
+						<input type="url" data-edit-field="coverImage" value="${safeCoverImage}" />
 					</div>
 					<div class="actions">
 						<button class="btn btn-primary" type="button" data-save-id="${campaign._id}">Save</button>
 						<button class="btn btn-outline" type="button" data-cancel-id="${campaign._id}">Cancel</button>
-						</div>
-					</main>
+					</div>
 				</div>
 			`;
 		}
@@ -581,18 +581,25 @@
 
 			const sortedCampaigns = applySort(campaigns);
 			campaignList.innerHTML = sortedCampaigns.map((campaign) => `
+				${(() => {
+					const shortDescription = campaign.description.length > 140
+						? campaign.description.slice(0, 140) + '...'
+						: campaign.description;
+					return `
 				<article class="campaign-item" data-item-id="${campaign._id}">
 					<div class="top">
 						<strong><label><input type="checkbox" data-select-id="${campaign._id}" ${state.selectedIds.includes(campaign._id) ? 'checked' : ''}/> ${campaign.title}</label></strong>
 						<span class="status ${campaign.status}">${campaign.status}</span>
 					</div>
 					<span class="muted">Goal: ${formatCurrency(campaign.goalAmount)} | Raised: ${formatCurrency(campaign.raisedAmount)}</span>
-					<span class="muted">${campaign.description.length > 140 ? `${campaign.description.slice(0, 140)}...` : campaign.description}</span>
+					<span class="muted">${shortDescription}</span>
 					<div class="actions">
 						<button class="btn btn-outline" type="button" data-edit-id="${campaign._id}">Edit</button>
 						${campaign.isDeleted ? `<button class="btn btn-secondary" type="button" data-restore-id="${campaign._id}">Restore</button>` : `<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Archive</button>`}
 					</div>
 				</article>
+					`;
+				})()}
 			}).join('');
 
 			campaignList.querySelectorAll('[data-edit-id]').forEach((btn) => {
