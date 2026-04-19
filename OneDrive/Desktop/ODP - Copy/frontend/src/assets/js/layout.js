@@ -36,7 +36,7 @@
   }
 
   function setupSidebarCollapse() {
-    if (document.body.classList.contains('admin-shell')) {
+    if (document.body.classList.contains('admin-shell') || document.body.classList.contains('user-shell')) {
       document.body.classList.remove('sidebar-collapsed');
       return;
     }
