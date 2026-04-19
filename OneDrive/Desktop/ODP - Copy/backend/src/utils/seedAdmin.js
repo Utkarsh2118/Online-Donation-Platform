@@ -4,7 +4,11 @@ const seedDefaultAdmin = async () => {
   const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || process.env.ADMIN_EMAIL;
   const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
   const adminName = process.env.DEFAULT_ADMIN_NAME || process.env.ADMIN_NAME || 'Platform Admin';
+  const configuredRole = String(process.env.DEFAULT_ADMIN_ROLE || process.env.ADMIN_ROLE || 'admin').trim().toLowerCase();
   const shouldSyncCredentials = String(process.env.SYNC_DEFAULT_ADMIN_CREDENTIALS || '').toLowerCase() === 'true';
+  const adminRole = ['admin', 'super_admin', 'finance', 'support'].includes(configuredRole)
+    ? configuredRole
+    : 'admin';
 
   if (!adminEmail || !adminPassword) {
     console.warn('Default admin seeding skipped: missing admin email/password env vars');
@@ -17,7 +21,7 @@ const seedDefaultAdmin = async () => {
     if (shouldSyncCredentials) {
       existingAdmin.name = adminName;
       existingAdmin.password = adminPassword;
-      existingAdmin.role = 'admin';
+      existingAdmin.role = adminRole;
       await existingAdmin.save();
       console.log('Default admin account synchronized from environment');
     }
@@ -29,7 +33,7 @@ const seedDefaultAdmin = async () => {
     name: adminName,
     email: adminEmail,
     password: adminPassword,
-    role: 'admin'
+    role: adminRole
   });
 
   console.log('Default admin account created');

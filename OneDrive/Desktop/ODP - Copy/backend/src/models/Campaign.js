@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const deletedQueryFilter = function deletedQueryFilter(next) {
+  const options = this.getOptions ? this.getOptions() : {};
+
+  if (options.withDeleted) {
+    return next();
+  }
+
+  if (options.onlyDeleted) {
+    this.where({ isDeleted: true });
+    return next();
+  }
+
+  this.where({ isDeleted: { $ne: true } });
+  next();
+};
+
 const campaignSchema = new mongoose.Schema(
   {
     title: {
@@ -38,6 +54,23 @@ const campaignSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedAt: {
+      type: Date,
+      default: null
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    deletionReason: {
+      type: String,
+      default: ''
     }
   },
   {
@@ -47,5 +80,18 @@ const campaignSchema = new mongoose.Schema(
 
 campaignSchema.index({ title: 'text', description: 'text' });
 campaignSchema.index({ status: 1, createdAt: -1 });
+
+campaignSchema.query.withDeleted = function withDeleted() {
+  this.setOptions({ ...(this.getOptions ? this.getOptions() : {}), withDeleted: true });
+  return this;
+};
+
+campaignSchema.query.onlyDeleted = function onlyDeleted() {
+  this.setOptions({ ...(this.getOptions ? this.getOptions() : {}), withDeleted: true, onlyDeleted: true });
+  return this;
+};
+
+campaignSchema.pre(/^find/, deletedQueryFilter);
+campaignSchema.pre('countDocuments', deletedQueryFilter);
 
 module.exports = mongoose.model('Campaign', campaignSchema);

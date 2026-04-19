@@ -1,6 +1,22 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const deletedQueryFilter = function deletedQueryFilter(next) {
+  const options = this.getOptions ? this.getOptions() : {};
+
+  if (options.withDeleted) {
+    return next();
+  }
+
+  if (options.onlyDeleted) {
+    this.where({ isDeleted: true });
+    return next();
+  }
+
+  this.where({ isDeleted: { $ne: true } });
+  next();
+};
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -26,12 +42,29 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'support', 'finance', 'admin', 'super_admin'],
       default: 'user'
     },
     isBlocked: {
       type: Boolean,
       default: false
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedAt: {
+      type: Date,
+      default: null
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    deletionReason: {
+      type: String,
+      default: ''
     },
     mobileNumber: {
       type: String,
@@ -48,6 +81,19 @@ const userSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+userSchema.query.withDeleted = function withDeleted() {
+  this.setOptions({ ...(this.getOptions ? this.getOptions() : {}), withDeleted: true });
+  return this;
+};
+
+userSchema.query.onlyDeleted = function onlyDeleted() {
+  this.setOptions({ ...(this.getOptions ? this.getOptions() : {}), withDeleted: true, onlyDeleted: true });
+  return this;
+};
+
+userSchema.pre(/^find/, deletedQueryFilter);
+userSchema.pre('countDocuments', deletedQueryFilter);
 
 userSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password')) {

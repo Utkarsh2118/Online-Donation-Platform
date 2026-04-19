@@ -5,19 +5,21 @@ const {
   getAllCampaignsForAdmin,
   createCampaign,
   updateCampaign,
-  deleteCampaign
+  deleteCampaign,
+  restoreCampaign
 } = require('../controllers/campaignController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireAdmin } = require('../middleware/adminMiddleware');
+const { requireRoles } = require('../middleware/adminMiddleware');
 
 const router = express.Router();
 
 router.get('/', getCampaigns);
-router.get('/admin/all', protect, requireAdmin, getAllCampaignsForAdmin);
+router.get('/admin/all', protect, requireRoles('admin', 'super_admin'), getAllCampaignsForAdmin);
 router.get('/:id', getCampaignById);
 
-router.post('/', protect, requireAdmin, createCampaign);
-router.put('/:id', protect, requireAdmin, updateCampaign);
-router.delete('/:id', protect, requireAdmin, deleteCampaign);
+router.post('/', protect, requireRoles('admin', 'super_admin'), createCampaign);
+router.put('/:id', protect, requireRoles('admin', 'super_admin'), updateCampaign);
+router.delete('/:id', protect, requireRoles('admin', 'super_admin'), deleteCampaign);
+router.patch('/:id/restore', protect, requireRoles('admin', 'super_admin'), restoreCampaign);
 
 module.exports = router;

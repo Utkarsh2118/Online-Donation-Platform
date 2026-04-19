@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Campaign = require('../models/Campaign');
+const recordAuditLog = require('../utils/auditLogger');
 
 const getCampaigns = async (req, res, next) => {
   try {
@@ -79,6 +80,8 @@ const getAllCampaignsForAdmin = async (req, res, next) => {
     const skip = (page - 1) * limit;
     const search = (req.query.search || '').trim();
     const status = (req.query.status || '').trim();
+    const deleted = String(req.query.deleted || '').toLowerCase() === 'true';
+    const includeDeleted = String(req.query.includeDeleted || '').toLowerCase() === 'true';
 
     const query = {};
 
@@ -90,16 +93,28 @@ const getAllCampaignsForAdmin = async (req, res, next) => {
       query.status = status;
     }
 
-    const [campaigns, total] = await Promise.all([
-      Campaign.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('createdBy', 'name email role')
-        .select('-__v')
-        .lean(),
-      Campaign.countDocuments(query)
-    ]);
+    let campaignsQuery = Campaign.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('createdBy', 'name email role')
+      .select('-__v');
+
+    if (deleted) {
+      campaignsQuery = campaignsQuery.onlyDeleted();
+    } else if (includeDeleted) {
+      campaignsQuery = campaignsQuery.withDeleted();
+    }
+
+    let countQuery = Campaign.countDocuments(query);
+
+    if (deleted) {
+      countQuery = countQuery.onlyDeleted();
+    } else if (includeDeleted) {
+      countQuery = countQuery.withDeleted();
+    }
+
+    const [campaigns, total] = await Promise.all([campaignsQuery.lean(), countQuery]);
 
     return res.status(200).json({
       success: true,
@@ -137,6 +152,15 @@ const createCampaign = async (req, res, next) => {
       status: status || 'active',
       coverImage: coverImage || '',
       createdBy: req.user.id
+    });
+
+    await recordAuditLog({
+      req,
+      action: 'campaign.create',
+      entityType: 'campaign',
+      entityId: campaign._id,
+      entityName: campaign.title,
+      metadata: { goalAmount: campaign.goalAmount, status: campaign.status }
     });
 
     return res.status(201).json({
@@ -186,6 +210,19 @@ const updateCampaign = async (req, res, next) => {
 
     await campaign.save();
 
+    await recordAuditLog({
+      req,
+      action: 'campaign.update',
+      entityType: 'campaign',
+      entityId: campaign._id,
+      entityName: campaign.title,
+      metadata: {
+        goalAmount: campaign.goalAmount,
+        status: campaign.status,
+        raisedAmount: campaign.raisedAmount
+      }
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Campaign updated successfully',
@@ -207,7 +244,7 @@ const deleteCampaign = async (req, res, next) => {
       });
     }
 
-    const campaign = await Campaign.findByIdAndDelete(id);
+    const campaign = await Campaign.findOne({ _id: id }).withDeleted();
 
     if (!campaign) {
       return res.status(404).json({
@@ -216,9 +253,82 @@ const deleteCampaign = async (req, res, next) => {
       });
     }
 
+    if (campaign.isDeleted) {
+      return res.status(200).json({
+        success: true,
+        message: 'Campaign is already archived'
+      });
+    }
+
+    campaign.isDeleted = true;
+    campaign.deletedAt = new Date();
+    campaign.deletedBy = req.user.id;
+    campaign.deletionReason = String(req.body.reason || '').trim();
+    await campaign.save();
+
+    await recordAuditLog({
+      req,
+      action: 'campaign.delete',
+      entityType: 'campaign',
+      entityId: campaign._id,
+      entityName: campaign.title,
+      metadata: { reason: campaign.deletionReason, status: campaign.status }
+    });
+
     return res.status(200).json({
       success: true,
-      message: 'Campaign deleted successfully'
+      message: 'Campaign archived successfully'
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const restoreCampaign = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid campaign ID'
+      });
+    }
+
+    const campaign = await Campaign.findOne({ _id: id }).withDeleted();
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: 'Campaign not found'
+      });
+    }
+
+    if (!campaign.isDeleted) {
+      return res.status(200).json({
+        success: true,
+        message: 'Campaign is already active'
+      });
+    }
+
+    campaign.isDeleted = false;
+    campaign.deletedAt = null;
+    campaign.deletedBy = null;
+    campaign.deletionReason = '';
+    await campaign.save();
+
+    await recordAuditLog({
+      req,
+      action: 'campaign.restore',
+      entityType: 'campaign',
+      entityId: campaign._id,
+      entityName: campaign.title,
+      metadata: { status: campaign.status, goalAmount: campaign.goalAmount }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Campaign restored successfully'
     });
   } catch (error) {
     return next(error);
@@ -231,5 +341,6 @@ module.exports = {
   getAllCampaignsForAdmin,
   createCampaign,
   updateCampaign,
-  deleteCampaign
+  deleteCampaign,
+  restoreCampaign
 };
