@@ -297,51 +297,6 @@
       font-weight: 700;
     }
 
-    .otp-wrap {
-      display: grid;
-      gap: 0.7rem;
-    }
-
-    .otp-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      font-size: 0.82rem;
-      color: #64748b;
-    }
-
-    .otp-resend {
-      border: 1px solid #cbd5e1;
-      border-radius: 999px;
-      padding: 0.35rem 0.7rem;
-      background: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.42rem;
-      font-weight: 700;
-    }
-
-    .otp-ring {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid #cbd5e1;
-      border-top-color: var(--auth-primary);
-      animation: spinRing 1s linear infinite;
-      display: none;
-    }
-
-    .otp-resend.waiting .otp-ring {
-      display: inline-block;
-    }
-
-    .otp-resend[disabled] {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
 
     .field {
       position: relative;
@@ -440,10 +395,6 @@
       50% { transform: translateY(12px) scale(1.04); }
     }
 
-    @keyframes spinRing {
-      to { transform: rotate(360deg); }
-    }
-
     @keyframes rise {
       from { opacity: 0; transform: translateY(18px); }
       to { opacity: 1; transform: translateY(0); }
@@ -520,7 +471,6 @@
             <div class="stepper" aria-label="Signup progress">
               <span class="stepper-item active" data-step-index="1">1. Account</span>
               <span class="stepper-item" data-step-index="2">2. Profile</span>
-              <span class="stepper-item" data-step-index="3">3. Verify</span>
             </div>
 
             <section class="form-step active" data-step="1">
@@ -570,29 +520,7 @@
 
               <div class="step-actions">
                 <button id="backToAccountBtn" class="btn btn-outline" type="button">Back</button>
-                <button id="nextToVerifyBtn" class="btn btn-primary" type="button">Continue to Verify</button>
-              </div>
-            </section>
-
-            <section class="form-step" data-step="3">
-              <div class="otp-wrap">
-                <div class="field">
-                  <input id="otpCode" name="otpCode" type="text" inputmode="numeric" maxlength="6" placeholder=" " aria-describedby="otpHelp" required />
-                  <label for="otpCode">Enter 6-digit OTP</label>
-                </div>
-                <div id="otpHelp" class="auth-note">A verification code is sent to your email for secure account setup.</div>
-                <div class="otp-meta">
-                  <span id="otpTimerText">Resend available in 30s</span>
-                  <button id="resendOtpBtn" class="otp-resend waiting" type="button" disabled>
-                    <span class="otp-ring" aria-hidden="true"></span>
-                    Resend OTP
-                  </button>
-                </div>
-              </div>
-
-              <div class="step-actions">
-                <button id="backToProfileBtn" class="btn btn-outline" type="button">Back</button>
-                <button id="registerBtn" class="btn btn-primary" type="submit">Verify and Create Account</button>
+                <button id="registerBtn" class="btn btn-primary" type="submit">Create Account</button>
               </div>
             </section>
           </form>
@@ -621,15 +549,8 @@
     const strengthList = document.getElementById('strengthList');
     const nextToProfileBtn = document.getElementById('nextToProfileBtn');
     const backToAccountBtn = document.getElementById('backToAccountBtn');
-    const nextToVerifyBtn = document.getElementById('nextToVerifyBtn');
-    const backToProfileBtn = document.getElementById('backToProfileBtn');
-    const otpCode = document.getElementById('otpCode');
-    const resendOtpBtn = document.getElementById('resendOtpBtn');
-    const otpTimerText = document.getElementById('otpTimerText');
 
     let step = 1;
-    let otpCountdown = 30;
-    let otpTimer = null;
 
     function showAlert(message, type) {
       alertBox.className = `alert ${type}`;
@@ -708,30 +629,6 @@
       return null;
     }
 
-    function startOtpCountdown() {
-      otpCountdown = 30;
-      resendOtpBtn.disabled = true;
-      resendOtpBtn.classList.add('waiting');
-      otpTimerText.textContent = `Resend available in ${otpCountdown}s`;
-
-      if (otpTimer) {
-        clearInterval(otpTimer);
-      }
-
-      otpTimer = setInterval(() => {
-        otpCountdown -= 1;
-        if (otpCountdown <= 0) {
-          clearInterval(otpTimer);
-          otpTimer = null;
-          resendOtpBtn.disabled = false;
-          resendOtpBtn.classList.remove('waiting');
-          otpTimerText.textContent = 'You can resend OTP now';
-          return;
-        }
-        otpTimerText.textContent = `Resend available in ${otpCountdown}s`;
-      }, 1000);
-    }
-
     function validateInput(name, email, password) {
       if (name.trim().length < 2) {
         return 'Name must be at least 2 characters.';
@@ -757,20 +654,14 @@
       const email = String(formData.get('email') || '').trim().toLowerCase();
       const password = String(formData.get('password') || '');
       const validationError = validateInput(name, email, password);
-      const otp = String(otpCode.value || '').trim();
 
       if (validationError) {
         showAlert(validationError, 'error');
         return;
       }
 
-      if (!/^\d{6}$/.test(otp)) {
-        showAlert('Please enter a valid 6-digit OTP.', 'error');
-        return;
-      }
-
       registerBtn.disabled = true;
-      registerBtn.textContent = 'Verifying...';
+      registerBtn.textContent = 'Creating...';
 
       try {
         const response = await apiRequest('/auth/register', {
@@ -796,7 +687,7 @@
         showAlert(error.message || 'Unable to register right now.', 'error');
       } finally {
         registerBtn.disabled = false;
-        registerBtn.textContent = 'Verify and Create Account';
+        registerBtn.textContent = 'Create Account';
       }
     }
 
@@ -839,25 +730,6 @@
         clearAlert();
         step = 1;
         updateStepper();
-      });
-
-      nextToVerifyBtn.addEventListener('click', () => {
-        clearAlert();
-        step = 3;
-        updateStepper();
-        startOtpCountdown();
-        showToast('OTP sent to your email.', 'info');
-      });
-
-      backToProfileBtn.addEventListener('click', () => {
-        clearAlert();
-        step = 2;
-        updateStepper();
-      });
-
-      resendOtpBtn.addEventListener('click', () => {
-        startOtpCountdown();
-        showToast('A new OTP has been sent.', 'info');
       });
 
       form.addEventListener('submit', handleRegister);
