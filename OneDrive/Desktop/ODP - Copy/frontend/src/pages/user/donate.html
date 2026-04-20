@@ -112,6 +112,53 @@
 			color: var(--muted);
 		}
 
+		.fee-box {
+			margin-top: 0.8rem;
+			border: 1px solid #e2e8f0;
+			border-radius: 10px;
+			padding: 0.72rem;
+			background: #f8fafc;
+		}
+
+		.fee-row {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.6rem;
+			font-size: 0.88rem;
+			color: #475569;
+			margin: 0.35rem 0;
+		}
+
+		.fee-row.total {
+			font-weight: 800;
+			color: #0f172a;
+			border-top: 1px dashed #cbd5e1;
+			padding-top: 0.4rem;
+			margin-top: 0.5rem;
+		}
+
+		.policy-note {
+			margin-top: 0.7rem;
+			font-size: 0.8rem;
+			color: #64748b;
+			line-height: 1.5;
+		}
+
+		.receipt-card {
+			display: none;
+			margin-top: 0.9rem;
+			border: 1px solid #bbf7d0;
+			background: #f0fdf4;
+			border-radius: 12px;
+			padding: 0.8rem;
+			display: grid;
+			gap: 0.5rem;
+		}
+
+		.receipt-card.hidden {
+			display: none;
+		}
+
 		@media (max-width: 920px) {
 			.layout {
 				grid-template-columns: 1fr;
@@ -169,8 +216,26 @@
 						<input id="amount" name="amount" type="number" min="1" step="1" required />
 					</div>
 
+					<section class="fee-box" aria-label="Fee breakdown">
+						<div class="fee-row"><span>Donation amount</span><strong id="feeBase">INR 0</strong></div>
+						<div class="fee-row"><span>Estimated gateway fee</span><strong id="feeGateway">INR 0</strong></div>
+						<div class="fee-row"><span>Platform fee</span><strong>INR 0</strong></div>
+						<div class="fee-row total"><span>Total payable</span><strong id="feeTotal">INR 0</strong></div>
+					</section>
+
 					<button id="donateBtn" class="btn btn-primary" type="submit">Proceed to Secure Checkout</button>
 				</form>
+
+				<p class="policy-note">Refunds are handled by gateway reconciliation timelines. Donation status and receipts remain visible in your dashboard for full transparency.</p>
+
+				<section id="impactReceipt" class="receipt-card hidden" aria-live="polite">
+					<strong>Impact Receipt Ready</strong>
+					<div id="impactReceiptText" class="muted">Your donation receipt is ready to share.</div>
+					<div class="quick-actions">
+						<button id="copyReceiptBtn" class="btn btn-outline" type="button">Copy Summary</button>
+						<button id="downloadReceiptBtn" class="btn btn-secondary" type="button">Download Receipt</button>
+					</div>
+				</section>
 
 				<p class="note">
 					Step 10 will open Razorpay checkout and verify payments server-side.
@@ -196,6 +261,15 @@
 		const amountInput = document.getElementById('amount');
 		const donateBtn = document.getElementById('donateBtn');
 		const alertBox = document.getElementById('alertBox');
+		const feeBase = document.getElementById('feeBase');
+		const feeGateway = document.getElementById('feeGateway');
+		const feeTotal = document.getElementById('feeTotal');
+		const impactReceipt = document.getElementById('impactReceipt');
+		const impactReceiptText = document.getElementById('impactReceiptText');
+		const copyReceiptBtn = document.getElementById('copyReceiptBtn');
+		const downloadReceiptBtn = document.getElementById('downloadReceiptBtn');
+
+		let latestReceiptText = '';
 
 		function getCampaignId() {
 			const params = new URLSearchParams(window.location.search);
@@ -218,6 +292,30 @@
 		function clearAlert() {
 			alertBox.className = 'alert';
 			alertBox.textContent = '';
+		}
+
+		function updateFeeBreakdown() {
+			const amount = Math.max(0, Number(amountInput.value || 0));
+			const gatewayFee = Math.round(amount * 0.02);
+			const total = amount + gatewayFee;
+			feeBase.textContent = formatCurrency(amount);
+			feeGateway.textContent = formatCurrency(gatewayFee);
+			feeTotal.textContent = formatCurrency(total);
+		}
+
+		function renderImpactReceipt(receiptId, amount, campaign) {
+			const summary = [
+				'OpenDonate Impact Receipt',
+				`Receipt ID: ${receiptId}`,
+				`Campaign: ${campaign}`,
+				`Amount: ${formatCurrency(amount)}`,
+				`Generated At: ${new Date().toLocaleString('en-IN')}`,
+				'Thank you for supporting a verified cause.'
+			].join('\n');
+
+			latestReceiptText = summary;
+			impactReceipt.classList.remove('hidden');
+			impactReceiptText.textContent = `${formatCurrency(amount)} successfully donated to ${campaign}.`;
 		}
 
 		function showFeedback(message) {
@@ -329,6 +427,7 @@
 
 							showAlert('Payment successful. Thank you for your donation!', 'ok');
 							localStorage.removeItem('odp_pending_donation');
+							renderImpactReceipt(donation.id, amount, campaignTitle.textContent);
 
 							setTimeout(() => {
 								window.location.href = `./campaign-details.html?id=${campaignId}`;
@@ -379,10 +478,35 @@
 			}
 		}
 
+		copyReceiptBtn.addEventListener('click', async () => {
+			if (!latestReceiptText) return;
+			try {
+				await navigator.clipboard.writeText(latestReceiptText);
+				showAlert('Receipt summary copied to clipboard.', 'ok');
+			} catch (error) {
+				showAlert('Unable to copy receipt summary.', 'error');
+			}
+		});
+
+		downloadReceiptBtn.addEventListener('click', () => {
+			if (!latestReceiptText) return;
+			const blob = new Blob([latestReceiptText], { type: 'text/plain;charset=utf-8' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = `impact-receipt-${Date.now()}.txt`;
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			URL.revokeObjectURL(link.href);
+		});
+
 		async function init() {
 			if (!Auth.requireAuth('./login.html')) {
 				return;
 			}
+
+			amountInput.addEventListener('input', updateFeeBreakdown);
+			updateFeeBreakdown();
 
 			const user = Auth.getUser();
 			if (user?.role === 'admin') {

@@ -66,6 +66,43 @@
 			background: #f8fafc;
 		}
 
+		.alert-center {
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 0.8rem;
+			background: #ffffff;
+			margin-bottom: 1rem;
+		}
+
+		.alert-list {
+			display: grid;
+			gap: 0.55rem;
+		}
+
+		.alert-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.6rem;
+			border: 1px solid #e2e8f0;
+			border-radius: 10px;
+			background: #f8fafc;
+		}
+
+		.alert-pill {
+			display: inline-flex;
+			padding: 0.12rem 0.45rem;
+			border-radius: 999px;
+			font-size: 0.75rem;
+			font-weight: 800;
+			text-transform: uppercase;
+		}
+
+		.alert-pill.low { background: #ecfdf3; color: #047857; }
+		.alert-pill.medium { background: #fef3c7; color: #92400e; }
+		.alert-pill.high { background: #fee2e2; color: #b42318; }
+
 		.stat-card {
 			background: #ffffff;
 			border: 1px solid #e2e8f0;
@@ -261,7 +298,15 @@
 			<section class="workflow-lane" aria-label="Workflow lane">
 				<article class="workflow-item"><strong id="pendingApprovals">0</strong><p class="muted">Pending Approvals</p></article>
 				<article class="workflow-item"><strong id="failedPayments">0</strong><p class="muted">Failed Payments</p></article>
-				<article class="workflow-item"><strong id="blockedQueue">0</strong><p class="muted">Blocked Users</p></article>
+				<article class="workflow-item"><strong id="highRiskFlags">0</strong><p class="muted">High-Risk Flags</p></article>
+			</section>
+
+			<section class="alert-center" aria-label="Alert center">
+				<div class="card-header">
+					<h2 class="card-title">Alert Center</h2>
+					<span class="muted">Acknowledge and track risk signals</span>
+				</div>
+				<div id="alertCenterList" class="alert-list"></div>
 			</section>
 
 			<section class="stats-grid" aria-label="Platform stats">
@@ -333,7 +378,8 @@
 		const trendSuccess = document.getElementById('trendSuccess');
 		const pendingApprovals = document.getElementById('pendingApprovals');
 		const failedPayments = document.getElementById('failedPayments');
-		const blockedQueue = document.getElementById('blockedQueue');
+		const highRiskFlags = document.getElementById('highRiskFlags');
+		const alertCenterList = document.getElementById('alertCenterList');
 
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
@@ -448,8 +494,49 @@
 			activeCampaigns.textContent = String(stats.activeCampaigns || 0);
 			totalDonations.textContent = String(stats.totalDonations || 0);
 			totalRaisedAmount.textContent = formatCurrency(stats.totalRaisedAmount || 0);
-			blockedQueue.textContent = String(stats.blockedUsers || 0);
 			pendingApprovals.textContent = String(Math.max(0, (stats.totalCampaigns || 0) - (stats.activeCampaigns || 0)));
+		}
+
+		function renderAlertCenter(stats, donations) {
+			const acknowledged = JSON.parse(localStorage.getItem('odp.admin.ack.alerts') || '[]');
+			const failed = donations.filter((item) => item.paymentStatus === 'failed').length;
+			const blocked = Number(stats.blockedUsers || 0);
+			const pending = Math.max(0, Number(stats.totalCampaigns || 0) - Number(stats.activeCampaigns || 0));
+			const alerts = [
+				{ id: 'failed-payments', severity: failed >= 5 ? 'high' : failed >= 2 ? 'medium' : 'low', text: `${failed} failed payments in current window` },
+				{ id: 'blocked-users', severity: blocked >= 5 ? 'high' : blocked >= 2 ? 'medium' : 'low', text: `${blocked} blocked users need review` },
+				{ id: 'pending-approvals', severity: pending >= 8 ? 'high' : pending >= 4 ? 'medium' : 'low', text: `${pending} campaign approvals pending` }
+			];
+
+			const highCount = alerts.filter((item) => item.severity === 'high').length;
+			highRiskFlags.textContent = String(highCount);
+
+			alertCenterList.innerHTML = alerts.map((item) => {
+				const acked = acknowledged.includes(item.id);
+				return `
+					<article class="alert-item" data-alert-id="${item.id}">
+						<div>
+							<span class="alert-pill ${item.severity}">${item.severity}</span>
+							<strong>${item.text}</strong>
+						</div>
+						<button class="btn btn-outline btn-sm" type="button" data-ack-id="${item.id}">${acked ? 'Acknowledged' : 'Acknowledge'}</button>
+					</article>
+				`;
+			}).join('');
+
+			alertCenterList.querySelectorAll('[data-ack-id]').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					const id = btn.getAttribute('data-ack-id');
+					if (!id) return;
+					const next = new Set(JSON.parse(localStorage.getItem('odp.admin.ack.alerts') || '[]'));
+					next.add(id);
+					localStorage.setItem('odp.admin.ack.alerts', JSON.stringify(Array.from(next)));
+					btn.textContent = 'Acknowledged';
+					if (window.ODPLayout?.showToast) {
+						window.ODPLayout.showToast('Alert acknowledged.', 'success');
+					}
+				});
+			});
 		}
 
 		function renderTrends(users, donations) {
@@ -471,6 +558,7 @@
 			trendDonations.textContent = `${donationTrend >= 0 ? '+' : ''}${donationTrend}%`;
 			trendSuccess.textContent = `${success}%`;
 			failedPayments.textContent = String(failed);
+			renderAlertCenter({ blockedUsers: Number(blockedUsers.textContent || 0), totalCampaigns: Number(totalCampaigns.textContent || 0), activeCampaigns: Number(activeCampaigns.textContent || 0) }, donations);
 		}
 
 		async function loadAuditLogs() {
@@ -519,10 +607,18 @@
 					primaryAction: { label: 'Manage Campaigns', href: './manage-campaigns.html' }
 				}
 			});
+			ODPLayout.applyStagger('.stats-grid');
 
 			logoutBtn.addEventListener('click', () => {
-				Auth.clearSession();
-				window.location.href = './login.html';
+				ODPLayout.confirmAction({
+					title: 'Logout Admin Session',
+					message: 'You are about to end this admin session.',
+					confirmText: 'Logout'
+				}).then((confirmed) => {
+					if (!confirmed) return;
+					Auth.clearSession();
+					window.location.href = './login.html';
+				});
 			});
 
 			loadDashboard();

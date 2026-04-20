@@ -340,6 +340,9 @@
 		function setAlert(el, message, type) {
 			el.className = `alert ${type}`;
 			el.textContent = message;
+			if (window.ODPLayout?.showToast) {
+				window.ODPLayout.showToast(message, type === 'error' ? 'error' : type === 'ok' ? 'success' : 'info');
+			}
 		}
 
 		function clearAlert(el) {
@@ -566,7 +569,11 @@
 		}
 
 		async function handleArchiveUser(userId) {
-			const confirmed = window.confirm('Archive this user account?');
+			const confirmed = await window.ODPLayout.confirmAction({
+				title: 'Archive User Account',
+				message: 'This will move the user to archived records. You can restore later from archived view.',
+				confirmText: 'Archive User'
+			});
 			if (!confirmed) {
 				return;
 			}

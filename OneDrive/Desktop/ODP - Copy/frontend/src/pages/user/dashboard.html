@@ -15,6 +15,23 @@
 			margin-bottom: var(--space-4);
 		}
 
+		.welcome-strip {
+			margin-bottom: var(--space-3);
+			padding: var(--space-2) var(--space-3);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			background: linear-gradient(135deg, #eefbf7 0%, #f8fbff 100%);
+			display: flex;
+			justify-content: space-between;
+			gap: var(--space-2);
+			flex-wrap: wrap;
+		}
+
+		.welcome-strip strong {
+			font-size: var(--text-lg);
+			color: var(--neutral-900);
+		}
+
 		.dashboard-header h1 {
 			margin: 0;
 		}
@@ -134,6 +151,28 @@
 			display: flex;
 			gap: var(--space-1);
 			flex-wrap: wrap;
+		}
+
+		.history-view-toggle {
+			display: inline-flex;
+			border: 1px solid var(--neutral-300);
+			border-radius: 999px;
+			overflow: hidden;
+		}
+
+		.history-view-toggle button {
+			border: 0;
+			padding: 0.42rem 0.72rem;
+			font-size: var(--text-xs);
+			font-weight: 700;
+			background: #ffffff;
+			color: var(--neutral-600);
+			cursor: pointer;
+		}
+
+		.history-view-toggle button.active {
+			background: var(--primary);
+			color: #ffffff;
 		}
 
 		.filter-btn {
@@ -277,6 +316,61 @@
 		display: none;
 		}
 
+		.timeline-wrap {
+			display: none;
+			display: grid;
+			gap: var(--space-2);
+		}
+
+		.timeline-entry {
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			padding: var(--space-2);
+			background: var(--surface-primary);
+			display: grid;
+			gap: 6px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.timeline-entry::before {
+			content: "";
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			width: 4px;
+			background: #f59e0b;
+		}
+
+		.timeline-entry.paid::before { background: #10b981; }
+		.timeline-entry.failed::before { background: #ef4444; }
+
+		.live-feed {
+			margin-top: var(--space-3);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			background: #ffffff;
+			padding: var(--space-2);
+			display: grid;
+			gap: var(--space-2);
+		}
+
+		.live-feed-list {
+			display: grid;
+			gap: 8px;
+			max-height: 168px;
+			overflow: auto;
+		}
+
+		.live-feed-item {
+			padding: 8px 10px;
+			border-radius: 9px;
+			background: #f8fafc;
+			font-size: var(--text-sm);
+			color: var(--neutral-600);
+		}
+
 		.align-right {
 		text-align: right;
 		}
@@ -393,6 +487,14 @@
 				<p class="text-muted">Track contribution volume, payment status, and campaign coverage.</p>
 			</div>
 
+			<section id="welcomeStrip" class="welcome-strip animate-fade-in" aria-live="polite">
+				<div>
+					<strong id="welcomeText">Good day.</strong>
+					<p class="text-muted no-margin" id="impactWelcomeText">Your impact summary is loading...</p>
+				</div>
+				<div class="badge badge-info" id="impactBadge">Impact 0</div>
+			</section>
+
 			<div class="stats-grid" id="statsContainer">
 				<div class="stat-card animate-fade-in stat-delay-1">
 					<div class="stat-icon">DN</div>
@@ -463,6 +565,10 @@
 				<div class="donation-history-header">
 					<h3 class="card-title">Donation History</h3>
 					<div class="filter-group" id="historyFilters">
+						<div class="history-view-toggle" id="historyViewToggle">
+							<button class="active" type="button" data-view="table">Table</button>
+							<button type="button" data-view="timeline">Timeline</button>
+						</div>
 						<button class="filter-btn active" type="button" data-filter="all">All</button>
 						<button class="filter-btn" type="button" data-filter="paid">Paid</button>
 						<button class="filter-btn" type="button" data-filter="created">Pending</button>
@@ -488,7 +594,16 @@
 					</div>
 					<div id="historyTableBody"></div>
 				</div>
+				<div id="historyTimeline" class="timeline-wrap"></div>
 			</article>
+
+			<section class="live-feed animate-fade-in">
+				<div class="card-header">
+					<h3 class="card-title">Recent Donations Live Feed</h3>
+					<span class="badge badge-success">Live</span>
+				</div>
+				<div id="liveFeedList" class="live-feed-list" aria-live="polite"></div>
+			</section>
 		</main>
 	</div>
 
@@ -511,9 +626,15 @@
 		const chartSwitch = document.getElementById('chartSwitch');
 		const exportChartBtn = document.getElementById('exportChartBtn');
 		const historyFilters = document.getElementById('historyFilters');
+		const historyViewToggle = document.getElementById('historyViewToggle');
 		const historyTableBody = document.getElementById('historyTableBody');
+		const historyTimeline = document.getElementById('historyTimeline');
 		const historyEmpty = document.getElementById('historyEmpty');
 		const historyContent = document.getElementById('historyContent');
+		const liveFeedList = document.getElementById('liveFeedList');
+		const welcomeText = document.getElementById('welcomeText');
+		const impactWelcomeText = document.getElementById('impactWelcomeText');
+		const impactBadge = document.getElementById('impactBadge');
 		const logoutBtn = document.getElementById('logoutBtn');
 
 		const state = {
@@ -521,7 +642,34 @@
 			filter: 'all',
 			range: '30',
 			chartType: 'line'
+			,
+			historyView: 'table'
 		};
+
+		function getGreeting() {
+			const hour = new Date().getHours();
+			if (hour < 12) return 'Good morning';
+			if (hour < 18) return 'Good afternoon';
+			return 'Good evening';
+		}
+
+		function animateNumber(element, target, formatter) {
+			const safeTarget = Number(target || 0);
+			let startTime = null;
+			const duration = 720;
+
+			function frame(timestamp) {
+				if (!startTime) startTime = timestamp;
+				const progress = Math.min(1, (timestamp - startTime) / duration);
+				const value = Math.round(progress * safeTarget);
+				element.textContent = formatter ? formatter(value) : String(value);
+				if (progress < 1) {
+					requestAnimationFrame(frame);
+				}
+			}
+
+			requestAnimationFrame(frame);
+		}
 
 		function getProfileCompletion(user) {
 			let score = 55;
@@ -590,11 +738,13 @@
 			if (!donations.length) {
 				historyEmpty.style.display = 'block';
 				historyContent.style.display = 'none';
+				historyTimeline.style.display = 'none';
 				return;
 			}
 
 			historyEmpty.style.display = 'none';
-			historyContent.style.display = 'block';
+			historyContent.style.display = state.historyView === 'table' ? 'block' : 'none';
+			historyTimeline.style.display = state.historyView === 'timeline' ? 'grid' : 'none';
 
 				historyTableBody.innerHTML = donations.map((donation) => {
 				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
@@ -623,6 +773,20 @@
 							<button class="resend-btn" data-resend-id="${orderId}">Resend</button>
 						</div>
 					</div>
+				`;
+			}).join('');
+
+			historyTimeline.innerHTML = donations.map((donation) => {
+				const campaignTitle = donation?.campaignId?.title || 'Unknown Campaign';
+				const amount = formatCurrency(donation.amount);
+				const status = donation.paymentStatus || 'created';
+				const date = formatDate(donation.createdAt);
+				return `
+					<article class="timeline-entry ${status}">
+						<strong>${campaignTitle}</strong>
+						<div class="text-muted">${date}</div>
+						<div>${amount} • <span class="badge badge-${status === 'paid' ? 'success' : status === 'created' ? 'warning' : 'error'}">${getStatusLabel(status)}</span></div>
+					</article>
 				`;
 			}).join('');
 
@@ -677,14 +841,22 @@
 			const success = total ? Math.round((paid.length / total) * 100) : 0;
 			const momentum = Math.min(100, Math.round((paid.length + total * 0.2) * 10));
 
-			totalDonations.textContent = String(total);
-			totalPaidAmount.textContent = formatCurrency(paidAmount);
-			supportedCampaigns.textContent = String(supportedSet.size);
-			successRate.textContent = `${success}%`;
+			animateNumber(totalDonations, total);
+			animateNumber(totalPaidAmount, paidAmount, formatCurrency);
+			animateNumber(supportedCampaigns, supportedSet.size);
+			animateNumber(successRate, success, (value) => `${value}%`);
 			momentumPercent.textContent = `${momentum}%`;
-			contributionFill.style.width = `${momentum}%`;
+			contributionFill.style.width = '0%';
+			requestAnimationFrame(() => {
+				contributionFill.style.width = `${momentum}%`;
+			});
 			impactText.textContent = success >= 70 ? 'Excellent. Your contribution rate is strong.' : 'Your donation activity is building steadily.';
 			const user = Auth.getUser() || {};
+			const userName = user?.name || 'Donor';
+			const impactScore = paid.length * 3 + supportedSet.size * 2;
+			welcomeText.textContent = `${getGreeting()}, ${userName}.`;
+			impactWelcomeText.textContent = `You impacted ${Math.max(1, impactScore)} lives-equivalent this cycle through ${paid.length || 0} successful donations.`;
+			impactBadge.textContent = `Impact ${Math.max(1, impactScore)}`;
 			ODPLayout.renderUserProgressStrip({
 				title: 'Impact Snapshot',
 				subtitle: 'Your donations, profile completion, and campaign support are tracked live.',
@@ -696,6 +868,20 @@
 
 			renderMonthlyChart(donationsToUse);
 			renderDonationHistory(filterDonations(donationsToUse, state.filter));
+			renderLiveFeed(donationsToUse);
+		}
+
+		function renderLiveFeed(donations) {
+			const paid = donations.filter((item) => item.paymentStatus === 'paid').slice(0, 8);
+			if (!paid.length) {
+				liveFeedList.innerHTML = '<div class="live-feed-item">No paid donations yet. Your next donation will appear here live.</div>';
+				return;
+			}
+
+			liveFeedList.innerHTML = paid.map((item) => {
+				const campaign = item?.campaignId?.title || 'Campaign';
+				return `<div class="live-feed-item">${formatCurrency(item.amount)} donated to ${campaign} on ${formatDate(item.createdAt)}</div>`;
+			}).join('');
 		}
 
 		function renderMonthlyChart(donations) {
@@ -794,9 +980,18 @@
 					historyFilters.querySelectorAll('.filter-btn').forEach((el) => el.classList.remove('active'));
 					btn.classList.add('active');
 					state.filter = btn.getAttribute('data-filter') || 'all';
-					renderDonationHistory(filterDonations(state.allDonations, state.filter));
+					renderDonationHistory(filterDonations(filterByRange(state.allDonations), state.filter));
 				});
 			});
+
+				historyViewToggle.querySelectorAll('[data-view]').forEach((btn) => {
+					btn.addEventListener('click', () => {
+						historyViewToggle.querySelectorAll('[data-view]').forEach((item) => item.classList.remove('active'));
+						btn.classList.add('active');
+						state.historyView = btn.getAttribute('data-view') || 'table';
+						renderDonationHistory(filterDonations(filterByRange(state.allDonations), state.filter));
+					});
+				});
 
 			rangeSwitch.querySelectorAll('[data-range]').forEach((btn) => {
 				btn.addEventListener('click', () => {
@@ -847,6 +1042,7 @@
 					primaryAction: { label: 'Donate Now', href: './campaigns.html' }
 				}
 			});
+			ODPLayout.applyStagger('.stats-grid');
 			if (Auth.getUser()?.role === 'admin') {
 				window.location.href = '../admin/dashboard.html';
 				return;

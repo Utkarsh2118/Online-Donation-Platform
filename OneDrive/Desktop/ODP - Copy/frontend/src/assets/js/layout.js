@@ -3,6 +3,10 @@
   const THEME_STORAGE_KEY = 'odp.theme.mode';
   const NOTIFICATION_STORAGE_KEY = 'odp.notifications';
   const SYSTEM_THEME_QUERY = window.matchMedia('(prefers-color-scheme: dark)');
+  const REDUCED_MOTION_QUERY = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let toastStack = null;
+  let confirmBackdrop = null;
 
   function shouldUseDesktopSidebar() {
     return window.matchMedia('(min-width: 901px)').matches;
@@ -274,8 +278,161 @@
     setupSkipLink();
   }
 
+  function setupPageTransitions() {
+    if (REDUCED_MOTION_QUERY.matches) return;
+
+    document.body.classList.add('page-enter');
+    requestAnimationFrame(() => {
+      document.body.classList.add('page-ready');
+      document.body.classList.remove('page-enter');
+    });
+
+    document.addEventListener('click', (event) => {
+      const anchor = event.target.closest('a[href]');
+      if (!anchor) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+
+      const href = anchor.getAttribute('href') || '';
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
+        return;
+      }
+
+      const target = new URL(anchor.href, window.location.href);
+      const current = new URL(window.location.href);
+      if (target.origin !== current.origin) return;
+      if (!target.pathname.endsWith('.html')) return;
+
+      event.preventDefault();
+      document.body.classList.add('page-leave');
+      setTimeout(() => {
+        window.location.href = anchor.href;
+      }, 170);
+    });
+  }
+
+  function setupButtonRipples() {
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target.closest('.btn, .cta-donate, .filter-btn, .switch-btn');
+      if (!target || REDUCED_MOTION_QUERY.matches) return;
+
+      const rect = target.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'btn-ripple';
+      ripple.style.width = `${size}px`;
+      ripple.style.height = `${size}px`;
+      ripple.style.left = `${event.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${event.clientY - rect.top - size / 2}px`;
+      target.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+  }
+
+  function ensureToastStack() {
+    if (toastStack) return toastStack;
+    toastStack = document.createElement('section');
+    toastStack.className = 'toast-stack';
+    toastStack.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toastStack);
+    return toastStack;
+  }
+
+  function showToast(message, type, durationMs) {
+    const stack = ensureToastStack();
+    const toast = document.createElement('article');
+    const duration = Math.max(1200, Number(durationMs || 3200));
+    toast.className = `toast-item toast-${type || 'info'}`;
+    toast.setAttribute('data-duration', String(duration));
+    toast.innerHTML = `
+      <div class="toast-message">${message}</div>
+      <div class="toast-progress"><span style="animation-duration:${duration}ms"></span></div>
+    `;
+
+    stack.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(14px)';
+      setTimeout(() => toast.remove(), 180);
+    }, duration);
+  }
+
+  function ensureConfirmDrawer() {
+    if (confirmBackdrop) return confirmBackdrop;
+
+    confirmBackdrop = document.createElement('div');
+    confirmBackdrop.className = 'confirm-backdrop';
+    confirmBackdrop.innerHTML = `
+      <aside class="confirm-drawer" role="dialog" aria-modal="true" aria-label="Confirm action">
+        <h3 id="confirmDrawerTitle">Confirm Action</h3>
+        <p id="confirmDrawerText">Are you sure you want to continue?</p>
+        <div class="confirm-drawer-actions">
+          <button id="confirmDrawerCancel" class="btn btn-outline" type="button">Cancel</button>
+          <button id="confirmDrawerConfirm" class="btn btn-primary" type="button">Confirm</button>
+        </div>
+      </aside>
+    `;
+
+    document.body.appendChild(confirmBackdrop);
+    return confirmBackdrop;
+  }
+
+  function confirmAction(options) {
+    const backdrop = ensureConfirmDrawer();
+    const titleEl = backdrop.querySelector('#confirmDrawerTitle');
+    const textEl = backdrop.querySelector('#confirmDrawerText');
+    const cancelBtn = backdrop.querySelector('#confirmDrawerCancel');
+    const confirmBtn = backdrop.querySelector('#confirmDrawerConfirm');
+
+    titleEl.textContent = options?.title || 'Confirm Action';
+    textEl.textContent = options?.message || 'Are you sure you want to continue?';
+    confirmBtn.textContent = options?.confirmText || 'Confirm';
+
+    return new Promise((resolve) => {
+      function close(result) {
+        backdrop.classList.remove('open');
+        resolve(result);
+      }
+
+      function onCancel() {
+        cleanup();
+        close(false);
+      }
+
+      function onConfirm() {
+        cleanup();
+        close(true);
+      }
+
+      function onBackdropClick(event) {
+        if (event.target === backdrop) {
+          onCancel();
+        }
+      }
+
+      function cleanup() {
+        cancelBtn.removeEventListener('click', onCancel);
+        confirmBtn.removeEventListener('click', onConfirm);
+        backdrop.removeEventListener('click', onBackdropClick);
+      }
+
+      cancelBtn.addEventListener('click', onCancel);
+      confirmBtn.addEventListener('click', onConfirm);
+      backdrop.addEventListener('click', onBackdropClick);
+      backdrop.classList.add('open');
+      confirmBtn.focus();
+    });
+  }
+
+  function applyStagger(selector) {
+    const container = document.querySelector(selector);
+    if (!container) return;
+    container.classList.add('stagger-grid');
+  }
+
   function initGlobalUX(options) {
     setupAccessibility();
+    setupPageTransitions();
+    setupButtonRipples();
     setupSidebarCollapse();
     setupThemeControls();
     setupNotificationCenter();
@@ -329,6 +486,9 @@
     setupNotificationCenter,
     renderUnifiedPageHeader,
     renderUserProgressStrip,
-    markUpdated
+    markUpdated,
+    showToast,
+    confirmAction,
+    applyStagger
   };
 })(window);
