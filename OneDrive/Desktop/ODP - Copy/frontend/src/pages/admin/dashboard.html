@@ -368,6 +368,10 @@
 			dashboardBody.classList.remove('hidden');
 		}
 
+		function renderAuditLogsLoading() {
+			recentAuditLogs.innerHTML = '<article class="item">Loading recent audit events...</article>';
+		}
+
 		function renderRecentUsers(users) {
 			if (!users.length) {
 				recentUsers.innerHTML = '<article class="item">No recent users found.</article>';
@@ -469,26 +473,33 @@
 			failedPayments.textContent = String(failed);
 		}
 
+		async function loadAuditLogs() {
+			try {
+				const auditResponse = await apiRequest('/admin/audit-logs?limit=5');
+				const logs = auditResponse?.data?.logs || [];
+				renderRecentAuditLogs(logs);
+			} catch (error) {
+				recentAuditLogs.innerHTML = `<article class="item">${error.message || 'Unable to load recent audit events.'}</article>`;
+			}
+		}
+
 		async function loadDashboard() {
 			showFeedback('Loading dashboard analytics...');
+			renderAuditLogsLoading();
 
 			try {
-				const [dashboardResponse, auditResponse] = await Promise.all([
-					apiRequest('/admin/dashboard'),
-					apiRequest('/admin/audit-logs?limit=5')
-				]);
+				const dashboardResponse = await apiRequest('/admin/dashboard');
 				const response = dashboardResponse;
 				const stats = response?.data?.stats || {};
 				const users = response?.data?.recentUsers || [];
 				const donations = response?.data?.recentDonations || [];
-				const logs = auditResponse?.data?.logs || [];
 
 				renderStats(stats);
 				renderTrends(users, donations);
 				renderRecentUsers(users);
 				renderRecentDonations(donations);
-				renderRecentAuditLogs(logs);
 				showDashboard();
+				loadAuditLogs();
 			} catch (error) {
 				showFeedback(error.message || 'Unable to load admin dashboard.');
 			}

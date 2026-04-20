@@ -5,8 +5,22 @@ const Donation = require('../models/Donation');
 const AuditLog = require('../models/AuditLog');
 const recordAuditLog = require('../utils/auditLogger');
 
+const DASHBOARD_CACHE_TTL_MS = 30000;
+let dashboardCache = {
+  expiresAt: 0,
+  payload: null
+};
+
 const getDashboardStats = async (req, res, next) => {
   try {
+    if (dashboardCache.payload && Date.now() < dashboardCache.expiresAt) {
+      return res.status(200).json({
+        success: true,
+        message: 'Admin dashboard stats fetched successfully',
+        data: dashboardCache.payload
+      });
+    }
+
     const [
       totalUsers,
       blockedUsers,
@@ -21,7 +35,7 @@ const getDashboardStats = async (req, res, next) => {
       User.countDocuments({ role: 'user', isBlocked: true }),
       Campaign.countDocuments(),
       Campaign.countDocuments({ status: 'active' }),
-      Donation.countDocuments(),
+      Donation.estimatedDocumentCount(),
       Donation.aggregate([
         { $match: { paymentStatus: 'paid' } },
         { $group: { _id: null, totalAmount: { $sum: '$amount' } } }
@@ -41,22 +55,28 @@ const getDashboardStats = async (req, res, next) => {
     ]);
 
     const totalRaisedAmount = paidDonationStats[0]?.totalAmount || 0;
+    const payload = {
+      stats: {
+        totalUsers,
+        blockedUsers,
+        totalCampaigns,
+        activeCampaigns,
+        totalDonations,
+        totalRaisedAmount
+      },
+      recentDonations,
+      recentUsers
+    };
+
+    dashboardCache = {
+      payload,
+      expiresAt: Date.now() + DASHBOARD_CACHE_TTL_MS
+    };
 
     return res.status(200).json({
       success: true,
       message: 'Admin dashboard stats fetched successfully',
-      data: {
-        stats: {
-          totalUsers,
-          blockedUsers,
-          totalCampaigns,
-          activeCampaigns,
-          totalDonations,
-          totalRaisedAmount
-        },
-        recentDonations,
-        recentUsers
-      }
+      data: payload
     });
   } catch (error) {
     return next(error);

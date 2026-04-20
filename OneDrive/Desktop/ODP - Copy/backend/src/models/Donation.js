@@ -43,5 +43,6 @@ const donationSchema = new mongoose.Schema(
 donationSchema.index({ userId: 1, createdAt: -1 });
 donationSchema.index({ campaignId: 1, createdAt: -1 });
 donationSchema.index({ paymentStatus: 1 });
+donationSchema.index({ paymentStatus: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Donation', donationSchema);

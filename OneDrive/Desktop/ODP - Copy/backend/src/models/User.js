@@ -81,6 +81,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.index({ role: 1, isDeleted: 1, createdAt: -1 });
+userSchema.index({ role: 1, isBlocked: 1, isDeleted: 1 });
+
 userSchema.query.withDeleted = function withDeleted() {
   this.setOptions({ ...(this.getOptions ? this.getOptions() : {}), withDeleted: true });
   return this;
