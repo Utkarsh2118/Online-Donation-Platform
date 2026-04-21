@@ -598,7 +598,7 @@
 				return;
 			}
 
-			ODPLayout.initGlobalUX({
+			window.ODPLayout?.initGlobalUX?.({
 				pageHeader: {
 					pageKey: 'admin-dashboard',
 					containerSelector: '.page-shell',
@@ -607,14 +607,18 @@
 					primaryAction: { label: 'Manage Campaigns', href: './manage-campaigns.html' }
 				}
 			});
-			ODPLayout.applyStagger('.stats-grid');
+			window.ODPLayout?.applyStagger?.('.stats-grid');
 
 			logoutBtn.addEventListener('click', () => {
-				ODPLayout.confirmAction({
+				const confirmHandler = window.ODPLayout?.confirmAction
+					? () => window.ODPLayout.confirmAction({
 					title: 'Logout Admin Session',
 					message: 'You are about to end this admin session.',
 					confirmText: 'Logout'
-				}).then((confirmed) => {
+					})
+					: () => Promise.resolve(window.confirm('You are about to end this admin session.'));
+
+				confirmHandler().then((confirmed) => {
 					if (!confirmed) return;
 					Auth.clearSession();
 					window.location.href = './login.html';

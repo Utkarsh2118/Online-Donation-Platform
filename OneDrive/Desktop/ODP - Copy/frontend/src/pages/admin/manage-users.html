@@ -569,11 +569,13 @@
 		}
 
 		async function handleArchiveUser(userId) {
-			const confirmed = await window.ODPLayout.confirmAction({
-				title: 'Archive User Account',
-				message: 'This will move the user to archived records. You can restore later from archived view.',
-				confirmText: 'Archive User'
-			});
+			const confirmed = window.ODPLayout?.confirmAction
+				? await window.ODPLayout.confirmAction({
+					title: 'Archive User Account',
+					message: 'This will move the user to archived records. You can restore later from archived view.',
+					confirmText: 'Archive User'
+				})
+				: window.confirm('This will move the user to archived records. You can restore later from archived view.');
 			if (!confirmed) {
 				return;
 			}
@@ -676,7 +678,7 @@
 				return;
 			}
 
-			ODPLayout.initGlobalUX({
+			window.ODPLayout?.initGlobalUX?.({
 				pageHeader: {
 					pageKey: 'admin-users',
 					containerSelector: '.page-shell',
