@@ -12,9 +12,14 @@ const Auth = {
     try {
       return JSON.parse(raw);
     } catch (err) {
+      localStorage.removeItem(APP_CONFIG.tokenKey);
       localStorage.removeItem(APP_CONFIG.userKey);
       return null;
     }
+  },
+
+  redirectTo(path) {
+    window.location.replace(path);
   },
 
   setSession(token, user) {
@@ -28,7 +33,9 @@ const Auth = {
   },
 
   isLoggedIn() {
-    return Boolean(this.getToken());
+    const token = this.getToken();
+    const user = this.getUser();
+    return Boolean(token && user && typeof user === 'object');
   },
 
   hasRole(roles) {
@@ -43,7 +50,7 @@ const Auth = {
 
   requireRole(roles, redirectTo) {
     if (!this.isLoggedIn() || !this.hasRole(roles)) {
-      window.location.href = redirectTo || '../user/login.html';
+      this.redirectTo(redirectTo || '../user/login.html');
       return false;
     }
 
@@ -52,7 +59,7 @@ const Auth = {
 
   requireAuth(redirectTo) {
     if (!this.isLoggedIn()) {
-      window.location.href = redirectTo || './login.html';
+      this.redirectTo(redirectTo || './login.html');
       return false;
     }
 
