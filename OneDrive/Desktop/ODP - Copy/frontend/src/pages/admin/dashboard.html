@@ -381,6 +381,32 @@
 		const highRiskFlags = document.getElementById('highRiskFlags');
 		const alertCenterList = document.getElementById('alertCenterList');
 
+		function safeRequireAdmin(roles, redirectTo) {
+			const auth = window.Auth || {};
+			const allowedRoles = Array.isArray(roles) ? roles : [roles];
+			const redirectTarget = redirectTo || './login.html';
+
+			if (typeof auth.requireRole === 'function') {
+				return auth.requireRole(allowedRoles, redirectTarget);
+			}
+
+			if (typeof auth.requireAdmin === 'function' && allowedRoles.length === 1 && allowedRoles[0] === 'admin') {
+				return auth.requireAdmin(redirectTarget);
+			}
+
+			const token = typeof auth.getToken === 'function' ? auth.getToken() : null;
+			const user = typeof auth.getUser === 'function' ? auth.getUser() : null;
+			const role = String(user?.role || '').toLowerCase();
+			const isAllowed = allowedRoles.map((item) => String(item).toLowerCase()).includes(role);
+
+			if (!token || !isAllowed) {
+				window.location.href = redirectTarget;
+				return false;
+			}
+
+			return true;
+		}
+
 		function formatCurrency(value) {
 			return new Intl.NumberFormat('en-IN', {
 				style: 'currency',
@@ -594,7 +620,7 @@
 		}
 
 		function init() {
-			if (!Auth.requireAdmin('./login.html')) {
+			if (!safeRequireAdmin(['support', 'finance', 'admin', 'super_admin'], './login.html')) {
 				return;
 			}
 

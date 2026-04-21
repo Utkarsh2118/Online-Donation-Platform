@@ -320,6 +320,28 @@
 		const pageMeta = document.getElementById('pageMeta');
 		const logoutBtn = document.getElementById('logoutBtn');
 
+		function safeRequireAdmin(roles, redirectTo) {
+			const auth = window.Auth || {};
+			const allowedRoles = Array.isArray(roles) ? roles : [roles];
+			const redirectTarget = redirectTo || './login.html';
+
+			if (typeof auth.requireRole === 'function') {
+				return auth.requireRole(allowedRoles, redirectTarget);
+			}
+
+			const token = typeof auth.getToken === 'function' ? auth.getToken() : null;
+			const user = typeof auth.getUser === 'function' ? auth.getUser() : null;
+			const role = String(user?.role || '').toLowerCase();
+			const isAllowed = allowedRoles.map((item) => String(item).toLowerCase()).includes(role);
+
+			if (!token || !isAllowed) {
+				window.location.href = redirectTarget;
+				return false;
+			}
+
+			return true;
+		}
+
 		const state = {
 			page: 1,
 			limit: Number(localStorage.getItem('odp.admin.donations.limit') || 12),
@@ -587,7 +609,7 @@
 		}
 
 		function init() {
-			if (!Auth.requireRole(['finance', 'admin', 'super_admin'], './login.html')) {
+			if (!safeRequireAdmin(['finance', 'admin', 'super_admin'], './login.html')) {
 				return;
 			}
 
