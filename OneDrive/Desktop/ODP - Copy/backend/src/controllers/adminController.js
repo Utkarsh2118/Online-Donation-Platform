@@ -428,6 +428,29 @@ const getAuditLogs = async (req, res, next) => {
   }
 };
 
+const getRecentAuditLogs = async (req, res, next) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 5, 1), 20);
+
+    const logs = await AuditLog.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('action entityType entityId entityName actorRole status createdAt actorId')
+      .populate('actorId', 'name email role')
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recent audit logs fetched successfully',
+      data: {
+        logs
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getAllUsers,
@@ -435,5 +458,6 @@ module.exports = {
   unblockUser,
   deleteUser,
   restoreUser,
-  getAuditLogs
+  getAuditLogs,
+  getRecentAuditLogs
 };

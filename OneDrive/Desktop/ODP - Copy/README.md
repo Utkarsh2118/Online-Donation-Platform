@@ -1,67 +1,216 @@
 # Online Donation Platform
 
-Full-stack donation platform with user and admin portals, JWT authentication, MongoDB storage, Razorpay payments, and real-time donation updates.
+Production-ready full-stack donation platform with public discovery pages, secure user flows, admin operations, Razorpay payments, audit visibility, and live donation progress updates.
+
+## Overview
+
+This repository contains:
+
+- Frontend: multi-page interface for public users and admins
+- Backend API: authentication, campaigns, donations, admin controls
+- Payment integration: Razorpay order creation and signature verification
+- Real-time updates: Socket.IO event emission after successful donations
 
 ## Tech Stack
 
-- Frontend: HTML, CSS, JavaScript
-- Backend: Node.js, Express.js
-- Database: MongoDB (Mongoose)
-- Authentication: JWT
-- Payment: Razorpay
-- Real-time: Socket.io
-- Deployment: Vercel (frontend), Render (backend)
+### Frontend
 
-## Project Structure
-
-```text
-ODP - Copy/
-	backend/
-		src/
-			config/
-			controllers/
-			middleware/
-			models/
-			routes/
-			services/
-			utils/
-			validators/
-			app.js
-			server.js
-		.env.example
-		package.json
-		render.yaml
-
-	frontend/
-		src/
-			assets/
-				css/
-				js/
-			pages/
-				user/
-				admin/
-		vercel.json
-```
-
-## 1. Local Setup
+- HTML5 (multi-page architecture)
+- CSS3 (custom design system and responsive layout)
+- Vanilla JavaScript (modular page scripts)
 
 ### Backend
 
-1. Open terminal in `backend`.
-2. Install dependencies:
+- Node.js
+- Express 5
+- Mongoose (MongoDB ODM)
+- JSON Web Token for authentication
+- Razorpay SDK for payment workflows
+- Socket.IO for real-time update events
+
+### Security and Platform
+
+- Helmet (security headers)
+- CORS with allowed-origin controls
+- express-rate-limit for API throttling
+- cookie-parser
+- Morgan for request logging
+
+### Deployment
+
+- Frontend hosting: Vercel
+- Backend hosting: Render
+- Database: MongoDB Atlas (recommended)
+
+## Core Features
+
+### 1. Authentication and Profile
+
+- User registration and login
+- JWT-based access control
+- Protected profile fetch/update endpoints
+- Blocked-user login prevention
+
+### 2. Role-Based Admin Access
+
+- Staff and role-restricted route guards
+- Dedicated permissions for support, finance, admin, super admin
+- Admin-only operational endpoints for users, campaigns, audit logs, and finance views
+
+### 3. Campaign Management
+
+- Public campaign listing with pagination and search
+- Campaign detail endpoint
+- Admin create, update, archive, and restore actions
+- Campaign lifecycle states: active, paused, completed
+- Raised-vs-goal consistency protection
+
+### 4. Donation and Payment Flow
+
+- Donation order creation per campaign
+- Razorpay order generation
+- Signature verification on callback data
+- Payment status tracking: created, paid, failed
+- Automatic campaign raisedAmount increment after successful payment
+- Optional mark-failed flow for interrupted payments
+
+### 5. Real-Time Donation Updates
+
+- Backend emits donation updates through Socket.IO after successful payment verification
+- Event payload includes campaign totals and payment status context
+
+### 6. Admin Intelligence and Governance
+
+- Dashboard stats (cached window)
+- User management: list, block, unblock, archive, restore
+- Donation monitoring and filtered admin views
+- Audit log listing with pagination and filters
+- Audit entries for sensitive operations
+
+### 7. Frontend Experience
+
+- Separate user and admin page sets
+- Responsive UI layouts
+- Structured client-side modules in assets js and css
+- Enhanced onboarding, dashboard visibility, and admin operation UX
+
+## Current Repository File Structure
+
+```text
+ODP - Copy/
+├── index.html
+├── README.md
+├── vercel.json
+├── backend/
+│   ├── API_SMOKE_TEST.md
+│   ├── package.json
+│   ├── render.yaml
+│   ├── smoke-test.http
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       ├── config/
+│       │   ├── db.js
+│       │   └── razorpay.js
+│       ├── controllers/
+│       │   ├── adminController.js
+│       │   ├── authController.js
+│       │   ├── campaignController.js
+│       │   └── donationController.js
+│       ├── middleware/
+│       │   ├── adminMiddleware.js
+│       │   ├── asyncHandler.js
+│       │   ├── authMiddleware.js
+│       │   └── errorMiddleware.js
+│       ├── models/
+│       │   ├── AuditLog.js
+│       │   ├── Campaign.js
+│       │   ├── Donation.js
+│       │   └── User.js
+│       ├── routes/
+│       │   ├── adminRoutes.js
+│       │   ├── authRoutes.js
+│       │   ├── campaignRoutes.js
+│       │   ├── donationRoutes.js
+│       │   └── index.js
+│       ├── services/
+│       ├── utils/
+│       │   ├── AppError.js
+│       │   ├── auditLogger.js
+│       │   ├── corsOrigins.js
+│       │   ├── generateToken.js
+│       │   ├── seedAdmin.js
+│       │   └── verifyRazorpaySignature.js
+│       └── validators/
+└── frontend/
+	├── index.html
+	├── REDESIGN_SUMMARY.md
+	├── vercel.json
+	├── public/
+	└── src/
+		├── api/
+		├── assets/
+		│   ├── css/
+		│   │   ├── main.css
+		│   │   └── main-old.css
+		│   ├── images/
+		│   └── js/
+		│       ├── api.js
+		│       ├── auth.js
+		│       ├── config.js
+		│       └── layout.js
+		├── components/
+		├── pages/
+		│   ├── admin/
+		│   │   ├── audit-logs.html
+		│   │   ├── dashboard.html
+		│   │   ├── donations-overview.html
+		│   │   ├── login.html
+		│   │   ├── manage-campaigns.html
+		│   │   └── manage-users.html
+		│   └── user/
+		│       ├── campaign-details.html
+		│       ├── campaigns.html
+		│       ├── campaigns-old.html
+		│       ├── dashboard.html
+		│       ├── dashboard-old.html
+		│       ├── donate.html
+		│       ├── home.html
+		│       ├── home-old.html
+		│       ├── landing.html
+		│       ├── login.html
+		│       ├── profile.html
+		│       ├── profile-old.html
+		│       └── register.html
+		└── utils/
+```
+
+## Key API Groups
+
+- /api/auth
+- /api/campaigns
+- /api/donations
+- /api/admin
+
+## Local Setup
+
+### Backend
+
+1. Open terminal in backend
+2. Install packages
 
 ```bash
 npm install
 ```
 
-3. Create `.env` from `.env.example` and set real values.
-4. Start server:
+3. Create .env and set required values
+4. Start development server
 
 ```bash
 npm run dev
 ```
 
-5. Verify health endpoint:
+5. Health check
 
 ```text
 GET http://localhost:5000/health
@@ -69,104 +218,35 @@ GET http://localhost:5000/health
 
 ### Frontend
 
-Serve `frontend` using any static server, for example VS Code Live Server.
+Serve frontend as static files using Live Server or any HTTP static server.
 
-User landing page:
+Recommended entry page:
 
 ```text
 frontend/src/pages/user/landing.html
 ```
 
-## 2. Required Environment Variables (Backend)
+## Backend Environment Variables
 
-Use these values in Render and local `.env`.
+- NODE_ENV
+- PORT
+- MONGODB_URI
+- JWT_SECRET
+- JWT_EXPIRES_IN
+- FRONTEND_URL
+- RAZORPAY_KEY_ID
+- RAZORPAY_KEY_SECRET
+- DEFAULT_ADMIN_NAME
+- DEFAULT_ADMIN_EMAIL
+- DEFAULT_ADMIN_PASSWORD
 
-- `NODE_ENV` = `production` (or `development` locally)
-- `PORT` = `5000` locally, Render injects its own runtime port
-- `MONGODB_URI` = your MongoDB connection string
-- `JWT_SECRET` = strong random secret
-- `JWT_EXPIRES_IN` = `7d`
-- `FRONTEND_URL` = deployed Vercel URL (example: `https://your-app.vercel.app`)
-- `RAZORPAY_KEY_ID` = Razorpay public key id
-- `RAZORPAY_KEY_SECRET` = Razorpay secret key
-- `DEFAULT_ADMIN_NAME` = admin display name
-- `DEFAULT_ADMIN_EMAIL` = initial admin email
-- `DEFAULT_ADMIN_PASSWORD` = initial admin password
+## Deployment Notes
 
-## 3. Deploy Backend on Render
+- Backend blueprint config: [backend/render.yaml](backend/render.yaml)
+- Frontend routing config: [frontend/vercel.json](frontend/vercel.json)
+- Frontend API base config: [frontend/src/assets/js/config.js](frontend/src/assets/js/config.js)
 
-### Option A: Blueprint (Recommended)
+## Smoke Testing
 
-1. Push repository to GitHub.
-2. In Render, create a new Blueprint and select the repository.
-3. Render will detect [backend/render.yaml](backend/render.yaml).
-4. Fill all `sync: false` environment variables.
-5. Deploy.
-
-### Option B: Manual Web Service
-
-1. New Web Service in Render.
-2. Configure:
-	 - Root Directory: `backend`
-	 - Build Command: `npm install`
-	 - Start Command: `npm start`
-3. Set environment variables listed above.
-4. Deploy and verify:
-
-```text
-https://your-render-service.onrender.com/health
-```
-
-## 4. Deploy Frontend on Vercel
-
-1. Push repository to GitHub.
-2. Import project in Vercel.
-3. Set **Root Directory** to `frontend`.
-4. Framework preset: `Other`.
-5. Vercel will use [frontend/vercel.json](frontend/vercel.json) for routing.
-6. Deploy.
-
-Important:
-
-- Update backend `FRONTEND_URL` in Render to your Vercel domain.
-- In [frontend/src/assets/js/config.js](frontend/src/assets/js/config.js), replace `https://your-backend-name.onrender.com/api` with your real Render API base URL.
-
-## 5. Production Checklist
-
-1. Confirm CORS works from Vercel domain to Render backend.
-2. Confirm admin seed account is created once at first boot.
-3. Test auth flow:
-	 - register
-	 - login
-	 - role-based redirects
-4. Test campaign flow:
-	 - admin create/edit/delete
-	 - user list/view
-5. Test donation flow:
-	 - create order
-	 - Razorpay checkout
-	 - backend signature verify
-	 - campaign raised amount update
-6. Test admin overview pages:
-	 - users
-	 - campaigns
-	 - donations
-7. Verify Socket event updates donation totals after successful payment.
-
-## 6. Key API Groups
-
-- `/api/auth`
-- `/api/campaigns`
-- `/api/donations`
-- `/api/admin`
-
-## 7. Notes
-
-- Payments require valid Razorpay credentials.
-- MongoDB Atlas is recommended for cloud deployment.
-- If API returns 401/403 on deployed frontend, re-check token, role, and `FRONTEND_URL` CORS setting.
-
-## 8. API Smoke Testing
-
-- Quick runbook: [backend/API_SMOKE_TEST.md](backend/API_SMOKE_TEST.md)
-- Executable request file: [backend/smoke-test.http](backend/smoke-test.http)
+- Test guide: [backend/API_SMOKE_TEST.md](backend/API_SMOKE_TEST.md)
+- Request collection file: [backend/smoke-test.http](backend/smoke-test.http)
