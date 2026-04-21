@@ -8,6 +8,14 @@
   let toastStack = null;
   let confirmBackdrop = null;
 
+  function runSafely(label, fn) {
+    try {
+      fn();
+    } catch (error) {
+      console.error(`ODPLayout ${label} failed`, error);
+    }
+  }
+
   function shouldUseDesktopSidebar() {
     return window.matchMedia('(min-width: 901px)').matches;
   }
@@ -290,6 +298,7 @@
     document.addEventListener('click', (event) => {
       const anchor = event.target.closest('a[href]');
       if (!anchor) return;
+      if (anchor.classList.contains('side-nav-link') || anchor.closest('.side-nav')) return;
       if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
 
       const href = anchor.getAttribute('href') || '';
@@ -307,6 +316,24 @@
       setTimeout(() => {
         window.location.href = anchor.href;
       }, 170);
+    });
+  }
+
+  function setupLogoutFallback() {
+    document.addEventListener('click', (event) => {
+      const btn = event.target.closest('#logoutBtn');
+      if (!btn) return;
+
+      const auth = global.Auth;
+      if (!auth || typeof auth.clearSession !== 'function') {
+        return;
+      }
+
+      event.preventDefault();
+      auth.clearSession();
+
+      const isAdminScreen = window.location.pathname.includes('/admin/');
+      window.location.href = isAdminScreen ? './login.html' : '../user/login.html';
     });
   }
 
@@ -430,14 +457,15 @@
   }
 
   function initGlobalUX(options) {
-    setupAccessibility();
-    setupPageTransitions();
-    setupButtonRipples();
-    setupSidebarCollapse();
-    setupThemeControls();
-    setupNotificationCenter();
+    runSafely('setupAccessibility', setupAccessibility);
+    runSafely('setupPageTransitions', setupPageTransitions);
+    runSafely('setupButtonRipples', setupButtonRipples);
+    runSafely('setupSidebarCollapse', setupSidebarCollapse);
+    runSafely('setupThemeControls', setupThemeControls);
+    runSafely('setupNotificationCenter', setupNotificationCenter);
+    runSafely('setupLogoutFallback', setupLogoutFallback);
     if (options && options.pageHeader) {
-      renderUnifiedPageHeader(options.pageHeader);
+      runSafely('renderUnifiedPageHeader', () => renderUnifiedPageHeader(options.pageHeader));
     }
   }
 

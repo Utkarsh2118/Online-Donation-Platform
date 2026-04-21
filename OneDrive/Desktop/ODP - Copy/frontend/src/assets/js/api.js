@@ -27,10 +27,16 @@ function isLikelyWrongLocalService(response, payload) {
 }
 
 async function callApi(baseUrl, path, options, headers) {
+  const controller = new AbortController();
+  const timeoutMs = 15000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const response = await fetch(`${baseUrl}${path}`, {
     ...options,
-    headers
+    headers,
+    signal: controller.signal
   });
+  clearTimeout(timeoutId);
 
   const data = await response.json().catch(() => ({}));
   return { response, data };
@@ -70,6 +76,10 @@ async function apiRequest(path, options = {}) {
 
     return primary.data;
   } catch (error) {
+    if (error && error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again in a few seconds.');
+    }
+
     const isNetworkError = error instanceof TypeError;
     if (!isNetworkError || !isLocalHost() || fallbackBaseUrl === primaryBaseUrl) {
       throw error;
