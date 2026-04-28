@@ -309,7 +309,7 @@
       const target = new URL(anchor.href, window.location.href);
       const current = new URL(window.location.href);
       if (target.origin !== current.origin) return;
-      if (!target.pathname.endsWith('.html')) return;
+      // cleanUrls: routes don't end in .html
 
       event.preventDefault();
       document.body.classList.add('page-leave');
@@ -333,7 +333,7 @@
       auth.clearSession();
 
       const isAdminScreen = window.location.pathname.includes('/admin/');
-      window.location.href = isAdminScreen ? './login.html' : '../user/login.html';
+      window.location.href = isAdminScreen ? '/admin/login' : '/login';
     });
   }
 

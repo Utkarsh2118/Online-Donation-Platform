@@ -266,10 +266,10 @@
 			</div>
 			<nav class="side-nav-list" aria-label="Admin links">
 				<a class="side-nav-link active" href='/admin/dashboard' aria-current="page"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
-				<a class="side-nav-link" href="./manage-campaigns.html"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
-				<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
-				<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
-				<a class="side-nav-link" href="./audit-logs.html"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
+				<a class="side-nav-link" href="/admin/manage-campaigns"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link" href="/admin/manage-users"><span class="side-nav-icon">US</span><span>Users</span></a>
+				<a class="side-nav-link" href="/admin/donations-overview"><span class="side-nav-icon">DN</span><span>Donations</span></a>
+				<a class="side-nav-link" href="/admin/audit-logs"><span class="side-nav-icon">AL</span><span>Audit Logs</span></a>
 			</nav>
 			<button id="logoutBtn" class="btn btn-outline" type="button">Logout</button>
 		</aside>
@@ -282,11 +282,11 @@
 
 			<section id="dashboardBody" class="hidden">
 			<section class="quick-actions" aria-label="Quick admin actions">
-				<a class="btn btn-primary" href="./manage-campaigns.html">Create Campaign</a>
-				<a class="btn btn-secondary" href="./manage-users.html">Block/Unblock Users</a>
-				<a class="btn btn-secondary" href="./donations-overview.html">Review Failed Payments</a>
-				<a class="btn btn-outline" href="./donations-overview.html">Export Ready View</a>
-				<a class="btn btn-outline" href="./audit-logs.html">Open Audit Logs</a>
+				<a class="btn btn-primary" href="/admin/manage-campaigns">Create Campaign</a>
+				<a class="btn btn-secondary" href="/admin/manage-users">Block/Unblock Users</a>
+				<a class="btn btn-secondary" href="/admin/donations-overview">Review Failed Payments</a>
+				<a class="btn btn-outline" href="/admin/donations-overview">Export Ready View</a>
+				<a class="btn btn-outline" href="/admin/audit-logs">Open Audit Logs</a>
 			</section>
 
 			<section class="kpi-trends" aria-label="KPI trends">
@@ -630,7 +630,7 @@
 					containerSelector: '.page-shell',
 					title: 'Admin Control Center',
 					subtitle: 'Monitor platform health, user safety, and donation performance from one place.',
-					primaryAction: { label: 'Manage Campaigns', href: './manage-campaigns.html' }
+					primaryAction: { label: 'Manage Campaigns', href: '/admin/manage-campaigns' }
 				}
 			});
 			window.ODPLayout?.applyStagger?.('.stats-grid');
