@@ -265,7 +265,7 @@
 				<span>OpenDonate Admin</span>
 			</div>
 			<nav class="side-nav-list" aria-label="Admin links">
-				<a class="side-nav-link active" href="./dashboard.html" aria-current="page"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link active" href='/admin/dashboard' aria-current="page"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
 				<a class="side-nav-link" href="./manage-campaigns.html"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
 				<a class="side-nav-link" href="./manage-users.html"><span class="side-nav-icon">US</span><span>Users</span></a>
 				<a class="side-nav-link" href="./donations-overview.html"><span class="side-nav-icon">DN</span><span>Donations</span></a>
@@ -384,7 +384,7 @@
 		function safeRequireAdmin(roles, redirectTo) {
 			const auth = window.Auth || {};
 			const allowedRoles = Array.isArray(roles) ? roles : [roles];
-			const redirectTarget = redirectTo || './login.html';
+			const redirectTarget = redirectTo || '/admin/login';
 
 			if (typeof auth.requireRole === 'function') {
 				return auth.requireRole(allowedRoles, redirectTarget);
@@ -620,7 +620,7 @@
 		}
 
 		function init() {
-			if (!safeRequireAdmin(['support', 'finance', 'admin', 'super_admin'], './login.html')) {
+			if (!safeRequireAdmin(['support', 'finance', 'admin', 'super_admin'], '/admin/login')) {
 				return;
 			}
 
@@ -647,7 +647,7 @@
 				confirmHandler().then((confirmed) => {
 					if (!confirmed) return;
 					Auth.clearSession();
-					window.location.href = './login.html';
+					window.location.href = '/admin/login';
 				});
 			});
 

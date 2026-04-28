@@ -485,7 +485,7 @@
         showAlert('Admin login successful. Redirecting...', 'ok');
 
         setTimeout(() => {
-          window.location.replace('./dashboard.html');
+          window.location.replace('/admin/dashboard');
         }, 650);
       } catch (error) {
         const message = error.message || 'Unable to login right now.';
@@ -501,11 +501,11 @@
         const isAdminAccessRole = Auth.hasRole(['support', 'finance', 'admin', 'super_admin']);
 
         if (isAdminAccessRole) {
-          window.location.replace('./dashboard.html');
+          window.location.replace('/admin/dashboard');
           return;
         }
 
-        window.location.replace('../user/campaigns.html');
+        window.location.replace('/campaigns');
         return;
       }
 
