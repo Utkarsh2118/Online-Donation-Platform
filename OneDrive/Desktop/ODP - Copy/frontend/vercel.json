@@ -3,6 +3,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/", "destination": "/src/pages/user/landing.html" },
+    { "source": "/landing", "destination": "/src/pages/user/landing.html" },
+    { "source": "/home", "destination": "/src/pages/user/home.html" },
     { "source": "/register", "destination": "/src/pages/user/register.html" },
     { "source": "/login", "destination": "/src/pages/user/login.html" },
     { "source": "/campaigns", "destination": "/src/pages/user/campaigns.html" },
