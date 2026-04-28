@@ -1,5 +1,9 @@
 {
   "routes": [
+    { "src": "/assets/(.*)", "dest": "/src/assets/$1" },
+    { "src": "/components/(.*)", "dest": "/src/components/$1" },
+    { "src": "/src/assets/(.*)", "dest": "/src/assets/$1" },
+    { "src": "/src/components/(.*)", "dest": "/src/components/$1" },
     { "src": "/", "dest": "/src/pages/user/landing.html" },
     { "src": "/landing", "dest": "/src/pages/user/landing.html" },
     { "src": "/register", "dest": "/src/pages/user/register.html" },
@@ -13,8 +17,6 @@
     { "src": "/admin/manage-campaigns", "dest": "/src/pages/admin/manage-campaigns.html" },
     { "src": "/admin/manage-users", "dest": "/src/pages/admin/manage-users.html" },
     { "src": "/admin/donations-overview", "dest": "/src/pages/admin/donations-overview.html" },
-    { "src": "/admin/audit-logs", "dest": "/src/pages/admin/audit-logs.html" },
-    { "src": "/src/assets/(.*)", "dest": "/src/assets/$1" },
-    { "src": "/src/components/(.*)", "dest": "/src/components/$1" }
+    { "src": "/admin/audit-logs", "dest": "/src/pages/admin/audit-logs.html" }
   ]
 }
