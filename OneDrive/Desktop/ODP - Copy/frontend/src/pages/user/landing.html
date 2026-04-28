@@ -965,10 +965,10 @@
 	<!-- Navigation -->
 	<nav class="landing-nav" aria-label="Primary">
 		<div class="landing-nav-content">
-			<a class="landing-brand" href="./landing.html">OpenDonate</a>
+			<a class="landing-brand" href="/">OpenDonate</a>
 			<div class="hero-cta-group" id="guestActions">
-				<a class="btn btn-outline" href="./login.html">Login</a>
-				<a class="btn btn-primary" href="./register.html">Get Started</a>
+				<a class="btn btn-outline" href="/login">Login</a>
+				<a class="btn btn-primary" href="/register">Get Started</a>
 			</div>
 		</div>
 	</nav>
@@ -998,7 +998,7 @@
 
 			<div class="hero-cta-group">
 				<button class="btn btn-primary" id="exploreBtn">Explore Campaigns</button>
-				<a class="btn btn-secondary" href="./register.html">Create Free Account</a>
+				<a class="btn btn-secondary" href="/register">Create Free Account</a>
 			</div>
 			<p class="cta-safety-note">No hidden fees • Bank-grade security • Instant receipt</p>
 
@@ -1190,7 +1190,7 @@
 			<h2>Ready to make an impact?</h2>
 			<p>Join thousands of donors supporting important causes. Start giving securely today.</p>
 			<div>
-				<a class="cta-button" href="./register.html">Start Donating Now</a>
+				<a class="cta-button" href="/register">Start Donating Now</a>
 				<p class="cta-safety-note-light">No hidden fees • Bank-grade security • Instant receipt</p>
 			</div>
 		</div>
@@ -1234,8 +1234,8 @@
 
 	<div class="toast" id="toast"></div>
 	<div class="mobile-sticky-cta" aria-label="Quick mobile actions">
-		<a class="cta-button-mobile secondary" href="./login.html">Login</a>
-		<a class="cta-button-mobile primary" href="./register.html">Start Donating</a>
+		<a class="cta-button-mobile secondary" href="/login">Login</a>
+		<a class="cta-button-mobile primary" href="/register">Start Donating</a>
 	</div>
 
 	<script src="/src/assets/js/config.js"></script>
@@ -1303,7 +1303,7 @@
 					<div class="progress-track"><div class="progress-fill" style="width:${campaign.progress}%;"></div></div>
 					<div class="campaign-preview-actions">
 						<span class="badge-closing">${campaign.left}</span>
-						<a class="btn btn-secondary" href="./login.html">View</a>
+						<a class="btn btn-secondary" href="/login">View</a>
 					</div>
 				</article>
 			`).join('');
@@ -1331,9 +1331,9 @@
 			}
 
 			if (user.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
+				window.location.href = '/admin/dashboard';
 			} else {
-				window.location.href = './home.html';
+				window.location.href = '/home';
 			}
 		}
 
@@ -1366,7 +1366,7 @@
 				if (!Auth.isLoggedIn()) {
 					showToast('Showing campaigns. Login only when you want to donate.');
 					setTimeout(() => {
-						window.location.href = './campaigns.html';
+						window.location.href = '/campaigns';
 					}, 700);
 					return;
 				}

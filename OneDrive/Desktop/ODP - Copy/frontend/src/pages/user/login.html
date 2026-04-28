@@ -391,7 +391,7 @@
   <main class="auth-wrap">
     <section class="auth-shell" aria-labelledby="loginTitle">
       <aside class="auth-story" aria-hidden="true">
-        <a class="auth-brand" href="./landing.html">OpenDonate Platform</a>
+        <a class="auth-brand" href="/">OpenDonate Platform</a>
         <div class="story-main">
           <h1>Welcome back to your impact dashboard.</h1>
           <p>Track campaigns, monitor donation activity, and keep your giving journey transparent in real time.</p>
@@ -407,8 +407,8 @@
         <section class="auth-card">
           <header class="auth-head">
             <nav class="auth-switch" aria-label="Authentication pages">
-              <a class="active" href="./login.html" aria-current="page">Login</a>
-              <a href="./register.html">Sign Up</a>
+              <a class="active" href="/login" aria-current="page">Login</a>
+              <a href="/register">Sign Up</a>
             </nav>
             <h1 id="loginTitle">Sign in to continue</h1>
             <p class="auth-sub">Access your donor profile, saved campaigns, and recent activity.</p>
@@ -432,8 +432,8 @@
           </form>
 
           <p class="auth-footer">
-            <span>New here? <a href="./register.html">Create account</a></span>
-            <span>Admin? <a href="../admin/login.html">Use admin login</a></span>
+            <span>New here? <a href="/register">Create account</a></span>
+            <span>Admin? <a href="/admin/login">Use admin login</a></span>
           </p>
 
           <p class="auth-note">Tip: Use the same email/password you registered with on the platform.</p>
@@ -481,10 +481,10 @@
 
     function roleRedirect(user) {
       if (user.role === 'admin') {
-        window.location.href = '../admin/dashboard.html';
+        window.location.href = '/admin/dashboard';
         return;
       }
-      window.location.href = './home.html';
+      window.location.href = '/home';
     }
 
     async function handleLogin(event) {

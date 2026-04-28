@@ -133,10 +133,10 @@
 <body>
 	<div class="page-shell">
 		<nav class="nav" aria-label="Primary">
-			<a class="brand" href="./landing.html">OpenDonate Platform</a>
+			<a class="brand" href="/">OpenDonate Platform</a>
 			<div class="nav-actions">
-				<a class="btn btn-secondary" href="./campaigns.html">Back to Campaigns</a>
-				<a class="btn btn-outline" href="./dashboard.html">My Dashboard</a>
+				<a class="btn btn-secondary" href="/campaigns">Back to Campaigns</a>
+				<a class="btn btn-outline" href="/dashboard">My Dashboard</a>
 			</div>
 		</nav>
 
@@ -305,7 +305,7 @@
 				}
 
 				donateBtn.addEventListener('click', () => {
-					window.location.href = `./donate.html?campaignId=${campaign._id}`;
+					window.location.href = `/donate?campaignId=${campaign._id}`;
 				});
 
 				renderCampaign(campaign, donations);
@@ -315,13 +315,13 @@
 		}
 
 		function init() {
-			if (!Auth.requireAuth('./login.html')) {
+			if (!Auth.requireAuth('/login')) {
 				return;
 			}
 
 			const user = Auth.getUser();
 			if (user?.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
+				window.location.href = '/admin/dashboard';
 				return;
 			}
 

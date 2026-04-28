@@ -169,10 +169,10 @@
 <body>
 	<div class="page-shell">
 		<nav class="nav" aria-label="Primary">
-			<a class="brand" href="./landing.html">OpenDonate Platform</a>
+			<a class="brand" href="/">OpenDonate Platform</a>
 			<div class="nav-actions">
 				<a class="btn btn-secondary" id="backToDetails" href="#">Back to Details</a>
-				<a class="btn btn-outline" href="./dashboard.html">My Dashboard</a>
+				<a class="btn btn-outline" href="/dashboard">My Dashboard</a>
 			</div>
 		</nav>
 
@@ -361,7 +361,7 @@
 				}
 
 				renderCampaign(campaign);
-				backToDetails.href = `./campaign-details.html?id=${campaignId}`;
+				backToDetails.href = `/campaign-details?id=${campaignId}`;
 				return campaignId;
 			} catch (error) {
 				showFeedback(error.message || 'Unable to load campaign.');
@@ -430,7 +430,7 @@
 							renderImpactReceipt(donation.id, amount, campaignTitle.textContent);
 
 							setTimeout(() => {
-								window.location.href = `./campaign-details.html?id=${campaignId}`;
+								window.location.href = `/campaign-details?id=${campaignId}`;
 							}, 800);
 						} catch (verifyError) {
 							showAlert(verifyError.message || 'Payment verification failed.', 'error');
@@ -501,7 +501,7 @@
 		});
 
 		async function init() {
-			if (!Auth.requireAuth('./login.html')) {
+			if (!Auth.requireAuth('/login')) {
 				return;
 			}
 
@@ -510,7 +510,7 @@
 
 			const user = Auth.getUser();
 			if (user?.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
+				window.location.href = '/admin/dashboard';
 				return;
 			}
 

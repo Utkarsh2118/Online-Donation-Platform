@@ -461,19 +461,19 @@
 				<span>OpenDonate</span>
 			</div>
 			<nav class="side-nav-list" aria-label="Sidebar links">
-				<a class="side-nav-link" href="./home.html">
+				<a class="side-nav-link" href="/home">
 					<span class="side-nav-icon">HM</span>
 					<span>Home</span>
 				</a>
-				<a class="side-nav-link active" href="./dashboard.html" aria-current="page">
+				<a class="side-nav-link active" href="/dashboard" aria-current="page">
 					<span class="side-nav-icon">DB</span>
 					<span>Dashboard</span>
 				</a>
-				<a class="side-nav-link" href="./campaigns.html">
+				<a class="side-nav-link" href="/campaigns">
 					<span class="side-nav-icon">CP</span>
 					<span>Campaigns</span>
 				</a>
-				<a class="side-nav-link" href="./profile.html">
+				<a class="side-nav-link" href="/profile">
 					<span class="side-nav-icon">PR</span>
 					<span>Profile</span>
 				</a>
@@ -580,7 +580,7 @@
 					<div class="empty-icon">0</div>
 					<p>No donations yet. Start by supporting a campaign!</p>
 					<div class="empty-cta">
-						<a class="btn btn-primary btn-sm" href="./campaigns.html">Explore Campaigns</a>
+						<a class="btn btn-primary btn-sm" href="/campaigns">Explore Campaigns</a>
 					</div>
 				</div>
 
@@ -794,7 +794,7 @@
 				btn.addEventListener('click', () => {
 					const campaignId = btn.getAttribute('data-campaign-id');
 					if (campaignId) {
-						window.location.href = `./campaign-details.html?id=${campaignId}`;
+						window.location.href = `/campaign-details?id=${campaignId}`;
 					}
 				});
 			});
@@ -1032,25 +1032,25 @@
 		}
 
 		function init() {
-			if (!Auth.requireAuth('./login.html')) return;
+			if (!Auth.requireAuth('/login')) return;
 			ODPLayout.initGlobalUX({
 				pageHeader: {
 					pageKey: 'user-dashboard',
 					containerSelector: '.content-panel',
 					title: 'Impact Dashboard',
 					subtitle: 'Review trends, donation outcomes, and your account progress over time.',
-					primaryAction: { label: 'Donate Now', href: './campaigns.html' }
+					primaryAction: { label: 'Donate Now', href: '/campaigns' }
 				}
 			});
 			ODPLayout.applyStagger('.stats-grid');
 			if (Auth.getUser()?.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
+				window.location.href = '/admin/dashboard';
 				return;
 			}
 
 			logoutBtn.addEventListener('click', () => {
 				Auth.clearSession();
-				window.location.href = './login.html';
+				window.location.href = '/login';
 			});
 
 			bindHistoryFilters();

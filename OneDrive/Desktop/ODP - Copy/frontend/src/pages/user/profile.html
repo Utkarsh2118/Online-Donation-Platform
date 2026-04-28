@@ -433,19 +433,19 @@
 				<span>OpenDonate</span>
 			</div>
 			<nav class="side-nav-list" aria-label="Sidebar links">
-				<a class="side-nav-link" href="./home.html">
+				<a class="side-nav-link" href="/home">
 					<span class="side-nav-icon">HM</span>
 					<span>Home</span>
 				</a>
-				<a class="side-nav-link" href="./dashboard.html">
+				<a class="side-nav-link" href="/dashboard">
 					<span class="side-nav-icon">DB</span>
 					<span>Dashboard</span>
 				</a>
-				<a class="side-nav-link" href="./campaigns.html">
+				<a class="side-nav-link" href="/campaigns">
 					<span class="side-nav-icon">CP</span>
 					<span>Campaigns</span>
 				</a>
-				<a class="side-nav-link active" href="./profile.html" aria-current="page">
+				<a class="side-nav-link active" href="/profile" aria-current="page">
 					<span class="side-nav-icon">PR</span>
 					<span>Profile</span>
 				</a>
@@ -486,8 +486,8 @@
 						</div>
 
 						<div class="profile-actions">
-							<a class="btn btn-primary btn-sm" href="./dashboard.html">View Dashboard</a>
-							<a class="btn btn-secondary btn-sm" href="./campaigns.html">Browse Campaigns</a>
+							<a class="btn btn-primary btn-sm" href="/dashboard">View Dashboard</a>
+							<a class="btn btn-secondary btn-sm" href="/campaigns">Browse Campaigns</a>
 						</div>
 					</article>
 				</aside>
@@ -556,15 +556,15 @@
 					<article class="info-section animate-slide-in section-delay-2">
 						<h3 class="section-title">Quick Actions</h3>
 						<div class="quick-links">
-							<div class="quick-link-item" onclick="window.location.href='./dashboard.html'">
+							<div class="quick-link-item" onclick="window.location.href='/dashboard'">
 								<span>View Your Impact Dashboard</span>
 								<span>&rarr;</span>
 							</div>
-							<div class="quick-link-item" onclick="window.location.href='./campaigns.html'">
+							<div class="quick-link-item" onclick="window.location.href='/campaigns'">
 								<span>Explore & Support Campaigns</span>
 								<span>&rarr;</span>
 							</div>
-							<div class="quick-link-item" onclick="window.location.href='./home.html'">
+							<div class="quick-link-item" onclick="window.location.href='/home'">
 								<span>Back to Home</span>
 								<span>&rarr;</span>
 							</div>
@@ -808,18 +808,18 @@
 		}
 
 		function init() {
-			if (!Auth.requireAuth('./login.html')) return;
+			if (!Auth.requireAuth('/login')) return;
 			ODPLayout.initGlobalUX({
 				pageHeader: {
 					pageKey: 'user-profile',
 					containerSelector: '.content-panel',
 					title: 'Profile & Settings',
 					subtitle: 'Manage account information, trust signals, and profile completeness.',
-					primaryAction: { label: 'View Dashboard', href: './dashboard.html' }
+					primaryAction: { label: 'View Dashboard', href: '/dashboard' }
 				}
 			});
 			if (Auth.getUser()?.role === 'admin') {
-				window.location.href = '../admin/dashboard.html';
+				window.location.href = '/admin/dashboard';
 				return;
 			}
 
@@ -850,7 +850,7 @@
 
 			function logout() {
 				Auth.clearSession();
-				window.location.href = './login.html';
+				window.location.href = '/login';
 			}
 
 			loadProfile();
