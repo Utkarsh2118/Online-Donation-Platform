@@ -1,22 +1,84 @@
 {
   "routes": [
-    { "src": "/assets/(.*)", "dest": "/src/assets/$1" },
-    { "src": "/components/(.*)", "dest": "/src/components/$1" },
-    { "src": "/src/assets/(.*)", "dest": "/src/assets/$1" },
-    { "src": "/src/components/(.*)", "dest": "/src/components/$1" },
-    { "src": "/", "dest": "/src/pages/user/landing.html" },
-    { "src": "/landing", "dest": "/src/pages/user/landing.html" },
-    { "src": "/register", "dest": "/src/pages/user/register.html" },
-    { "src": "/login", "dest": "/src/pages/user/login.html" },
-    { "src": "/campaigns", "dest": "/src/pages/user/campaigns.html" },
-    { "src": "/campaign-details", "dest": "/src/pages/user/campaign-details.html" },
-    { "src": "/donate", "dest": "/src/pages/user/donate.html" },
-    { "src": "/dashboard", "dest": "/src/pages/user/dashboard.html" },
-    { "src": "/admin/login", "dest": "/src/pages/admin/login.html" },
-    { "src": "/admin/dashboard", "dest": "/src/pages/admin/dashboard.html" },
-    { "src": "/admin/manage-campaigns", "dest": "/src/pages/admin/manage-campaigns.html" },
-    { "src": "/admin/manage-users", "dest": "/src/pages/admin/manage-users.html" },
-    { "src": "/admin/donations-overview", "dest": "/src/pages/admin/donations-overview.html" },
-    { "src": "/admin/audit-logs", "dest": "/src/pages/admin/audit-logs.html" }
+    {
+      "src": "/assets/(.*)",
+      "dest": "/src/assets/$1"
+    },
+    {
+      "src": "/components/(.*)",
+      "dest": "/src/components/$1"
+    },
+    {
+      "src": "/src/assets/(.*)",
+      "dest": "/src/assets/$1"
+    },
+    {
+      "src": "/src/components/(.*)",
+      "dest": "/src/components/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/src/pages/user/landing.html"
+    },
+    {
+      "src": "/landing",
+      "dest": "/src/pages/user/landing.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/src/pages/user/login.html"
+    },
+    {
+      "src": "/register",
+      "dest": "/src/pages/user/register.html"
+    },
+    {
+      "src": "/home",
+      "dest": "/src/pages/user/home.html"
+    },
+    {
+      "src": "/campaigns",
+      "dest": "/src/pages/user/campaigns.html"
+    },
+    {
+      "src": "/campaign-details",
+      "dest": "/src/pages/user/campaign-details.html"
+    },
+    {
+      "src": "/donate",
+      "dest": "/src/pages/user/donate.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/src/pages/user/dashboard.html"
+    },
+    {
+      "src": "/profile",
+      "dest": "/src/pages/user/profile.html"
+    },
+    {
+      "src": "/admin/login",
+      "dest": "/src/pages/admin/login.html"
+    },
+    {
+      "src": "/admin/dashboard",
+      "dest": "/src/pages/admin/dashboard.html"
+    },
+    {
+      "src": "/admin/manage-campaigns",
+      "dest": "/src/pages/admin/manage-campaigns.html"
+    },
+    {
+      "src": "/admin/manage-users",
+      "dest": "/src/pages/admin/manage-users.html"
+    },
+    {
+      "src": "/admin/donations-overview",
+      "dest": "/src/pages/admin/donations-overview.html"
+    },
+    {
+      "src": "/admin/audit-logs",
+      "dest": "/src/pages/admin/audit-logs.html"
+    }
   ]
 }
