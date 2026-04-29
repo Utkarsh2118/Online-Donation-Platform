@@ -712,7 +712,7 @@
 			if (!value) return '-';
 			const date = new Date(value);
 			return date.toLocaleString('en-IN', {
-				day: 'short',
+				day: 'numeric',
 				month: 'short',
 				year: 'numeric'
 			});
