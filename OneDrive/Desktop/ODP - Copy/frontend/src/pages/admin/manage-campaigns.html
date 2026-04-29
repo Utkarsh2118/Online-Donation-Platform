@@ -499,7 +499,7 @@
 		}
 
 		function setAlert(el, message, type) {
-			el.className = `alert ${type}`;
+			el.className = 'alert ' + type;
 			el.textContent = message;
 		}
 
@@ -601,7 +601,7 @@
 				</article>
 					`;
 				})()}
-			}).join('');
+			`).join('');
 
 			campaignList.querySelectorAll('[data-edit-id]').forEach((btn) => {
 				btn.addEventListener('click', () => {
@@ -681,12 +681,12 @@
 			}
 
 			try {
-				const response = await apiRequest(`/admin/campaigns?${params.toString()}`);
+				const response = await apiRequest('/admin/campaigns?' + params.toString() + '');
 				const campaigns = response?.data?.campaigns || [];
 				const pagination = response?.data?.pagination || {};
 
 				state.totalPages = Number(pagination.totalPages || 1);
-				pageMeta.textContent = `Page ${state.page} of ${state.totalPages}`;
+				pageMeta.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
 				prevBtn.disabled = state.page <= 1;
 				nextBtn.disabled = state.page >= state.totalPages;
 
@@ -795,7 +795,7 @@
 			}
 
 			try {
-				await apiRequest(`/admin/campaigns/${id}`, {
+				await apiRequest('/admin/campaigns/' + id + '', {
 					method: 'PUT',
 					body: JSON.stringify(payload)
 				});
@@ -814,7 +814,7 @@
 			}
 
 			try {
-				await apiRequest(`/admin/campaigns/${id}`, {
+				await apiRequest('/admin/campaigns/' + id + '', {
 					method: 'DELETE'
 				});
 
@@ -827,7 +827,7 @@
 
 		async function handleRestoreCampaign(id) {
 			try {
-				await apiRequest(`/admin/campaigns/${id}/restore`, {
+				await apiRequest('/admin/campaigns/' + id + '/restore', {
 					method: 'PATCH'
 				});
 
@@ -844,11 +844,11 @@
 				return;
 			}
 			try {
-				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}`, {
+				await Promise.all(state.selectedIds.map((id) => apiRequest('/admin/campaigns/' + id + '', {
 					method: 'PUT',
 					body: JSON.stringify({ status })
 				})));
-				setAlert(listAlert, `Updated ${state.selectedIds.length} campaigns to ${status}.`, 'ok');
+				setAlert(listAlert, 'Updated ' + state.selectedIds.length + ' campaigns to ' + status + '.', 'ok');
 				state.selectedIds = [];
 				await fetchCampaigns();
 			} catch (error) {
@@ -862,7 +862,7 @@
 				return;
 			}
 			try {
-				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}/restore`, { method: 'PATCH' })));
+				await Promise.all(state.selectedIds.map((id) => apiRequest('/admin/campaigns/' + id + '/restore', { method: 'PATCH' })));
 				setAlert(listAlert, 'Selected campaigns restored.', 'ok');
 				state.selectedIds = [];
 				await fetchCampaigns();
@@ -876,10 +876,10 @@
 				setAlert(listAlert, 'Select campaigns first.', 'error');
 				return;
 			}
-			const confirmed = window.confirm(`Delete ${state.selectedIds.length} selected campaigns?`);
+			const confirmed = window.confirm('Delete ' + state.selectedIds.length + ' selected campaigns?');
 			if (!confirmed) return;
 			try {
-				await Promise.all(state.selectedIds.map((id) => apiRequest(`/admin/campaigns/${id}`, { method: 'DELETE' })));
+				await Promise.all(state.selectedIds.map((id) => apiRequest('/admin/campaigns/' + id, { method: 'DELETE' })));
 				setAlert(listAlert, 'Selected campaigns deleted.', 'ok');
 				state.selectedIds = [];
 				await fetchCampaigns();
@@ -896,7 +896,7 @@
 			const rows = [...campaignList.querySelectorAll('.campaign-item')]
 				.filter((item) => state.selectedIds.includes(item.getAttribute('data-item-id')))
 				.map((item) => item.textContent.replace(/\s+/g, ' ').trim());
-			const csv = ['Campaign Summary', ...rows.map((row) => `"${row.replace(/"/g, '""')}"`)].join('\n');
+			const csv = ['Campaign Summary', ...rows.map((row) => '"' + row.replace(/"/g, '""') + '"')].join('\n');
 			const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 			const link = document.createElement('a');
 			link.href = URL.createObjectURL(blob);
