@@ -1,6 +1,14 @@
 {
   "routes": [
     {
+      "src": "/forgot-password",
+      "dest": "/src/pages/user/forgot-password.html"
+    },
+    {
+      "src": "/reset-password",
+      "dest": "/src/pages/user/reset-password.html"
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/src/assets/$1"
     },
