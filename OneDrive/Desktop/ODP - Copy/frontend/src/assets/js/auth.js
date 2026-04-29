@@ -70,3 +70,5 @@ const Auth = {
     return this.requireRole(['support', 'finance', 'admin', 'super_admin'], redirectTo);
   }
 };
+
+window.Auth = Auth;
