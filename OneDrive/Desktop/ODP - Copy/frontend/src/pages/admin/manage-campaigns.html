@@ -596,7 +596,7 @@
 					<span class="muted">${shortDescription}</span>
 					<div class="actions">
 						<button class="btn btn-outline" type="button" data-edit-id="${campaign._id}">Edit</button>
-						${campaign.isDeleted ? `<button class="btn btn-secondary" type="button" data-restore-id="${campaign._id}">Restore</button>` : `<button class="btn btn-secondary" type="button" data-delete-id="${campaign._id}">Archive</button>`}
+						${campaign.isDeleted ? '<button class="btn btn-secondary" type="button" data-restore-id="' + campaign._id + '">Restore</button>' : '<button class="btn btn-secondary" type="button" data-delete-id="' + campaign._id + '">Archive</button>'}
 					</div>
 				</article>
 					`;
@@ -606,7 +606,7 @@
 			campaignList.querySelectorAll('[data-edit-id]').forEach((btn) => {
 				btn.addEventListener('click', () => {
 					const id = btn.getAttribute('data-edit-id');
-					const item = campaignList.querySelector(`[data-item-id="${id}"]`);
+					const item = campaignList.querySelector('[data-item-id="' + id + '"]');
 					const campaign = sortedCampaigns.find((c) => c._id === id);
 
 					if (!item || !campaign || item.querySelector('[data-edit-box]')) {
@@ -615,14 +615,14 @@
 
 					item.insertAdjacentHTML('beforeend', createEditTemplate(campaign));
 
-					item.querySelector(`[data-cancel-id="${id}"]`).addEventListener('click', () => {
-						const box = item.querySelector(`[data-edit-box="${id}"]`);
+					item.querySelector('[data-cancel-id="' + id + '"]').addEventListener('click', () => {
+						const box = item.querySelector('[data-edit-box="' + id + '"]');
 						if (box) {
 							box.remove();
 						}
 					});
 
-					item.querySelector(`[data-save-id="${id}"]`).addEventListener('click', () => {
+					item.querySelector('[data-save-id="' + id + '"]').addEventListener('click', () => {
 						handleUpdateCampaign(item, id);
 					});
 				});
@@ -776,7 +776,7 @@
 		}
 
 		async function handleUpdateCampaign(item, id) {
-			const box = item.querySelector(`[data-edit-box="${id}"]`);
+			const box = item.querySelector('[data-edit-box="' + id + '"]');
 			if (!box) {
 				return;
 			}
