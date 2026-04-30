@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Help & Support</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.page-header { margin-bottom: var(--space-4); }
+		.page-header h1 { margin: 0 0 var(--space-1); }
+
+		.help-grid {
+			display: grid;
+			gap: var(--space-4);
+			max-width: 760px;
+		}
+
+		.help-card {
+			background: var(--surface-primary);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-xl);
+			box-shadow: var(--shadow-md);
+			padding: var(--space-4);
+		}
+
+		.help-card h2 {
+			font-size: var(--text-lg);
+			font-weight: 700;
+			margin: 0 0 var(--space-1);
+			display: flex;
+			align-items: center;
+			gap: var(--space-2);
+		}
+
+		.help-card .card-desc {
+			color: var(--neutral-500);
+			font-size: var(--text-sm);
+			margin-bottom: var(--space-3);
+		}
+
+		.icon-badge {
+			width: 36px; height: 36px;
+			border-radius: 10px;
+			display: flex; align-items: center; justify-content: center;
+			font-size: 1.1rem; flex-shrink: 0;
+		}
+		.icon-badge.green { background: #ecfdf5; }
+		.icon-badge.blue { background: #eff6ff; }
+		.icon-badge.purple { background: #f5f3ff; }
+		.icon-badge.orange { background: #fff7ed; }
+
+		/* FAQ */
+		.faq-item {
+			border-bottom: 1px solid var(--neutral-100);
+		}
+		.faq-item:last-child { border-bottom: none; }
+
+		.faq-question {
+			width: 100%;
+			background: none;
+			border: none;
+			text-align: left;
+			padding: var(--space-2) 0;
+			font-family: inherit;
+			font-size: 0.93rem;
+			font-weight: 700;
+			color: var(--neutral-800);
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: var(--space-2);
+		}
+
+		.faq-question:hover { color: var(--primary); }
+
+		.faq-arrow {
+			font-size: 0.75rem;
+			transition: transform 0.2s;
+			flex-shrink: 0;
+			color: var(--neutral-400);
+		}
+
+		.faq-answer {
+			max-height: 0;
+			overflow: hidden;
+			transition: max-height 0.3s ease, padding 0.2s;
+			font-size: 0.88rem;
+			color: var(--neutral-600);
+			line-height: 1.65;
+		}
+
+		.faq-item.open .faq-arrow { transform: rotate(180deg); }
+		.faq-item.open .faq-answer { max-height: 200px; padding-bottom: var(--space-2); }
+
+		/* Contact Form */
+		.field-row {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-1);
+			margin-bottom: var(--space-2);
+		}
+
+		.field-row label {
+			font-size: 0.82rem;
+			font-weight: 700;
+			color: var(--neutral-700);
+		}
+
+		.field-row input,
+		.field-row select,
+		.field-row textarea {
+			padding: 0.7rem 1rem;
+			border: 1.5px solid var(--neutral-200);
+			border-radius: var(--radius-md);
+			font-family: inherit;
+			font-size: 0.93rem;
+			color: var(--neutral-800);
+			background: var(--neutral-50);
+			outline: none;
+			transition: border-color 0.18s, box-shadow 0.18s;
+			resize: vertical;
+		}
+
+		.field-row input:focus,
+		.field-row select:focus,
+		.field-row textarea:focus {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(8,111,106,0.15);
+			background: #fff;
+		}
+
+		.alert {
+			border-radius: var(--radius-md);
+			padding: 0.7rem 1rem;
+			font-size: 0.87rem;
+			font-weight: 600;
+			margin-bottom: var(--space-2);
+			display: none;
+		}
+		.alert.ok { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+		.alert.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+		/* Quick links */
+		.quick-help-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: var(--space-2);
+		}
+
+		.quick-help-item {
+			display: flex;
+			align-items: center;
+			gap: var(--space-2);
+			padding: var(--space-2) var(--space-3);
+			border: 1.5px solid var(--neutral-200);
+			border-radius: var(--radius-lg);
+			cursor: pointer;
+			transition: border-color 0.18s, background 0.18s;
+			text-decoration: none;
+			color: var(--neutral-800);
+		}
+
+		.quick-help-item:hover {
+			border-color: var(--primary);
+			background: #f0fdf9;
+		}
+
+		.quick-help-item .qh-icon {
+			font-size: 1.3rem;
+		}
+
+		.quick-help-item .qh-text h4 {
+			margin: 0 0 2px;
+			font-size: 0.88rem;
+			font-weight: 700;
+		}
+
+		.quick-help-item .qh-text p {
+			margin: 0;
+			font-size: 0.76rem;
+			color: var(--neutral-500);
+		}
+
+		.back-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+			color: var(--primary);
+			font-size: 0.87rem;
+			font-weight: 700;
+			text-decoration: none;
+			margin-bottom: var(--space-2);
+		}
+
+		@media (max-width: 600px) {
+			.quick-help-grid { grid-template-columns: 1fr; }
+		}
+	</style>
+</head>
+<body class="user-shell">
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="User navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate</span>
+			</div>
+			<nav class="side-nav-list" aria-label="Sidebar links">
+				<a class="side-nav-link" href="/home"><span class="side-nav-icon">HM</span><span>Home</span></a>
+				<a class="side-nav-link" href="/dashboard"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link" href="/campaigns"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link active" href="/profile" aria-current="page"><span class="side-nav-icon">PR</span><span>Profile</span></a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline">Logout</button>
+		</aside>
+
+		<main class="content-panel">
+			<div class="page-header animate-fade-in">
+				<a class="back-link" href="/profile">← Back to Profile</a>
+				<h1>Help & Support</h1>
+				<p class="text-muted">Find answers, get help, or reach out to our team</p>
+			</div>
+
+			<div class="help-grid">
+
+				<!-- Quick Help -->
+				<div class="help-card animate-fade-in">
+					<h2><span class="icon-badge blue">⚡</span> Quick Help</h2>
+					<p class="card-desc">Common actions you might be looking for.</p>
+					<div class="quick-help-grid">
+						<a class="quick-help-item" href="/campaigns">
+							<span class="qh-icon">🎯</span>
+							<div class="qh-text"><h4>Browse Campaigns</h4><p>Find causes to support</p></div>
+						</a>
+						<a class="quick-help-item" href="/dashboard">
+							<span class="qh-icon">📊</span>
+							<div class="qh-text"><h4>My Dashboard</h4><p>View your donations</p></div>
+						</a>
+						<a class="quick-help-item" href="/profile">
+							<span class="qh-icon">👤</span>
+							<div class="qh-text"><h4>Edit Profile</h4><p>Update your details</p></div>
+						</a>
+						<a class="quick-help-item" href="/security">
+							<span class="qh-icon">🔑</span>
+							<div class="qh-text"><h4>Change Password</h4><p>Update security settings</p></div>
+						</a>
+					</div>
+				</div>
+
+				<!-- FAQ -->
+				<div class="help-card animate-fade-in">
+					<h2><span class="icon-badge green">❓</span> Frequently Asked Questions</h2>
+					<p class="card-desc">Answers to the most common questions.</p>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							How do I make a donation? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">Browse the Campaigns page, select a campaign you'd like to support, and click "Donate Now". You can choose your amount and complete payment securely via Razorpay.</div>
+					</div>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							Is my payment information secure? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">Yes, absolutely. We use Razorpay — a PCI-DSS compliant payment gateway. We never store your card details on our servers. All transactions are encrypted.</div>
+					</div>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							How can I track my donations? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">Visit your Dashboard to see a full history of all your donations, including the campaign name, amount, date, and payment status.</div>
+					</div>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							Can I get a refund on my donation? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">Donations are generally non-refundable as funds are allocated to campaigns immediately. However, in case of a payment error or duplicate charge, contact our support team within 7 days.</div>
+					</div>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							How do I reset my password? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">Go to the Login page and click "Forgot Password". Enter your registered email and we'll send you a secure reset link valid for 30 minutes.</div>
+					</div>
+
+					<div class="faq-item">
+						<button class="faq-question" onclick="toggleFaq(this)">
+							How do I delete my account? <span class="faq-arrow">▼</span>
+						</button>
+						<div class="faq-answer">You can delete your account from the Security & Privacy page. Note that this action is permanent and all your data including donation history will be removed.</div>
+					</div>
+				</div>
+
+				<!-- Contact Form -->
+				<div class="help-card animate-fade-in">
+					<h2><span class="icon-badge purple">✉️</span> Contact Support</h2>
+					<p class="card-desc">Can't find your answer? Send us a message and we'll get back to you within 24 hours.</p>
+
+					<div id="contactAlert" class="alert"></div>
+
+					<div class="field-row">
+						<label>Issue Category</label>
+						<select id="category">
+							<option value="">Select a category...</option>
+							<option value="payment">Payment / Donation Issue</option>
+							<option value="account">Account / Login Problem</option>
+							<option value="campaign">Campaign Question</option>
+							<option value="refund">Refund Request</option>
+							<option value="technical">Technical Bug</option>
+							<option value="other">Other</option>
+						</select>
+					</div>
+
+					<div class="field-row">
+						<label>Subject</label>
+						<input type="text" id="subject" placeholder="Brief description of your issue" />
+					</div>
+
+					<div class="field-row">
+						<label>Message</label>
+						<textarea id="message" rows="4" placeholder="Describe your issue in detail..."></textarea>
+					</div>
+
+					<button class="btn btn-primary" id="sendBtn" onclick="sendContact()">Send Message</button>
+				</div>
+
+				<!-- App Info -->
+				<div class="help-card animate-fade-in">
+					<h2><span class="icon-badge orange">ℹ️</span> About OpenDonate</h2>
+					<p class="card-desc">Platform information and policies.</p>
+					<div style="display:grid;gap:var(--space-2)">
+						<div style="display:flex;justify-content:space-between;padding:var(--space-1) 0;border-bottom:1px solid var(--neutral-100)">
+							<span style="font-size:0.88rem;color:var(--neutral-600)">Platform Version</span>
+							<span style="font-size:0.88rem;font-weight:700">v1.0.0</span>
+						</div>
+						<div style="display:flex;justify-content:space-between;padding:var(--space-1) 0;border-bottom:1px solid var(--neutral-100)">
+							<span style="font-size:0.88rem;color:var(--neutral-600)">Payment Gateway</span>
+							<span style="font-size:0.88rem;font-weight:700">Razorpay (Secure)</span>
+						</div>
+						<div style="display:flex;justify-content:space-between;padding:var(--space-1) 0;border-bottom:1px solid var(--neutral-100)">
+							<span style="font-size:0.88rem;color:var(--neutral-600)">Support Response Time</span>
+							<span style="font-size:0.88rem;font-weight:700">Within 24 hours</span>
+						</div>
+						<div style="display:flex;justify-content:space-between;padding:var(--space-1) 0">
+							<span style="font-size:0.88rem;color:var(--neutral-600)">Data Protection</span>
+							<span style="font-size:0.88rem;font-weight:700">GDPR Compliant</span>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</main>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
+	<script>
+		function init() {
+			if (!Auth.requireAuth('/login')) return;
+			ODPLayout.initGlobalUX();
+		}
+
+		function toggleFaq(btn) {
+			const item = btn.closest('.faq-item');
+			const isOpen = item.classList.contains('open');
+			document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+			if (!isOpen) item.classList.add('open');
+		}
+
+		function showContactAlert(msg, type) {
+			const el = document.getElementById('contactAlert');
+			el.textContent = msg;
+			el.className = 'alert ' + type;
+		}
+
+		function sendContact() {
+			const category = document.getElementById('category').value;
+			const subject = document.getElementById('subject').value.trim();
+			const message = document.getElementById('message').value.trim();
+
+			if (!category) { showContactAlert('Please select an issue category.', 'error'); return; }
+			if (!subject) { showContactAlert('Please enter a subject.', 'error'); return; }
+			if (!message || message.length < 20) { showContactAlert('Please describe your issue in at least 20 characters.', 'error'); return; }
+
+			const btn = document.getElementById('sendBtn');
+			btn.disabled = true;
+			btn.textContent = 'Sending...';
+
+			// Simulate sending (replace with real API call when backend endpoint exists)
+			setTimeout(() => {
+				showContactAlert('Message sent! Our team will respond within 24 hours.', 'ok');
+				document.getElementById('category').value = '';
+				document.getElementById('subject').value = '';
+				document.getElementById('message').value = '';
+				btn.disabled = false;
+				btn.textContent = 'Send Message';
+			}, 1200);
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', init);
+		} else {
+			init();
+		}
+	</script>
+</body>
+</html>

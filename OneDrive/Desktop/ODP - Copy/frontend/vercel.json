@@ -9,6 +9,14 @@
       "dest": "/src/pages/user/reset-password.html"
     },
     {
+      "src": "/security",
+      "dest": "/src/pages/user/security.html"
+    },
+    {
+      "src": "/help",
+      "dest": "/src/pages/user/help.html"
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/src/assets/$1"
     },

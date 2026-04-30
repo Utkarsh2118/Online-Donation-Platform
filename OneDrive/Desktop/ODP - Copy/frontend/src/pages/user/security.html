@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODP | Security & Privacy</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="../../assets/css/main.css" />
+	<style>
+		.page-header { margin-bottom: var(--space-4); }
+		.page-header h1 { margin: 0 0 var(--space-1); }
+
+		.security-grid {
+			display: grid;
+			gap: var(--space-4);
+			max-width: 720px;
+		}
+
+		.security-card {
+			background: var(--surface-primary);
+			border: 1px solid var(--neutral-200);
+			border-radius: var(--radius-xl);
+			box-shadow: var(--shadow-md);
+			padding: var(--space-4);
+		}
+
+		.security-card h2 {
+			font-size: var(--text-lg);
+			font-weight: 700;
+			margin: 0 0 var(--space-1);
+			display: flex;
+			align-items: center;
+			gap: var(--space-2);
+		}
+
+		.security-card .card-desc {
+			color: var(--neutral-500);
+			font-size: var(--text-sm);
+			margin-bottom: var(--space-3);
+		}
+
+		.icon-badge {
+			width: 36px;
+			height: 36px;
+			border-radius: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.1rem;
+			flex-shrink: 0;
+		}
+		.icon-badge.green { background: #ecfdf5; }
+		.icon-badge.blue { background: #eff6ff; }
+		.icon-badge.red { background: #fef2f2; }
+		.icon-badge.yellow { background: #fffbeb; }
+
+		.field-row {
+			display: flex;
+			flex-direction: column;
+			gap: var(--space-1);
+			margin-bottom: var(--space-2);
+		}
+
+		.field-row label {
+			font-size: 0.82rem;
+			font-weight: 700;
+			color: var(--neutral-700);
+		}
+
+		.field-row input {
+			padding: 0.7rem 1rem;
+			border: 1.5px solid var(--neutral-200);
+			border-radius: var(--radius-md);
+			font-family: inherit;
+			font-size: 0.93rem;
+			color: var(--neutral-800);
+			background: var(--neutral-50);
+			outline: none;
+			transition: border-color 0.18s, box-shadow 0.18s;
+		}
+
+		.field-row input:focus {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(8,111,106,0.15);
+			background: #fff;
+		}
+
+		.password-row {
+			position: relative;
+		}
+
+		.password-row input { padding-right: 4.5rem; }
+
+		.toggle-btn {
+			position: absolute;
+			right: 0.9rem;
+			top: 50%;
+			transform: translateY(-50%);
+			background: none;
+			border: none;
+			color: var(--primary);
+			font-size: 0.78rem;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.strength-bar {
+			height: 4px;
+			border-radius: 4px;
+			background: var(--neutral-200);
+			overflow: hidden;
+			margin-top: 0.4rem;
+		}
+		.strength-fill {
+			height: 100%;
+			border-radius: 4px;
+			transition: width 0.3s, background 0.3s;
+			width: 0%;
+		}
+
+		.alert {
+			border-radius: var(--radius-md);
+			padding: 0.7rem 1rem;
+			font-size: 0.87rem;
+			font-weight: 600;
+			margin-bottom: var(--space-2);
+			display: none;
+		}
+		.alert.ok { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+		.alert.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+		.privacy-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: var(--space-2) 0;
+			border-bottom: 1px solid var(--neutral-100);
+		}
+		.privacy-item:last-child { border-bottom: none; }
+
+		.privacy-item .item-info h4 {
+			margin: 0 0 2px;
+			font-size: 0.93rem;
+			font-weight: 700;
+			color: var(--neutral-800);
+		}
+
+		.privacy-item .item-info p {
+			margin: 0;
+			font-size: 0.8rem;
+			color: var(--neutral-500);
+		}
+
+		.toggle-switch {
+			position: relative;
+			width: 44px;
+			height: 24px;
+			flex-shrink: 0;
+		}
+
+		.toggle-switch input { display: none; }
+
+		.toggle-switch .slider {
+			position: absolute;
+			inset: 0;
+			background: var(--neutral-300);
+			border-radius: 24px;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+
+		.toggle-switch .slider::before {
+			content: '';
+			position: absolute;
+			width: 18px;
+			height: 18px;
+			background: #fff;
+			border-radius: 50%;
+			top: 3px;
+			left: 3px;
+			transition: transform 0.2s;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+		}
+
+		.toggle-switch input:checked + .slider { background: var(--primary); }
+		.toggle-switch input:checked + .slider::before { transform: translateX(20px); }
+
+		.danger-zone {
+			border-color: #fecaca !important;
+		}
+
+		.danger-zone h2 { color: #dc2626; }
+
+		.btn-danger {
+			background: #dc2626;
+			color: #fff;
+			border: none;
+			border-radius: var(--radius-md);
+			padding: 0.65rem 1.3rem;
+			font-family: inherit;
+			font-size: 0.9rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: background 0.18s;
+		}
+		.btn-danger:hover { background: #b91c1c; }
+
+		.session-item {
+			display: flex;
+			align-items: center;
+			gap: var(--space-3);
+			padding: var(--space-2) 0;
+			border-bottom: 1px solid var(--neutral-100);
+		}
+		.session-item:last-child { border-bottom: none; }
+
+		.session-icon {
+			width: 40px;
+			height: 40px;
+			background: var(--neutral-100);
+			border-radius: var(--radius-md);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.2rem;
+			flex-shrink: 0;
+		}
+
+		.session-info h4 { margin: 0 0 2px; font-size: 0.9rem; font-weight: 700; }
+		.session-info p { margin: 0; font-size: 0.78rem; color: var(--neutral-500); }
+
+		.session-badge {
+			margin-left: auto;
+			padding: 0.2rem 0.6rem;
+			border-radius: 20px;
+			font-size: 0.72rem;
+			font-weight: 700;
+		}
+		.session-badge.current { background: #ecfdf5; color: #065f46; }
+
+		.back-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+			color: var(--primary);
+			font-size: 0.87rem;
+			font-weight: 700;
+			text-decoration: none;
+			margin-bottom: var(--space-2);
+		}
+	</style>
+</head>
+<body class="user-shell">
+	<div class="sidebar-layout">
+		<aside class="side-nav" aria-label="User navigation">
+			<div class="brand">
+				<div class="brand-icon">OD</div>
+				<span>OpenDonate</span>
+			</div>
+			<nav class="side-nav-list" aria-label="Sidebar links">
+				<a class="side-nav-link" href="/home"><span class="side-nav-icon">HM</span><span>Home</span></a>
+				<a class="side-nav-link" href="/dashboard"><span class="side-nav-icon">DB</span><span>Dashboard</span></a>
+				<a class="side-nav-link" href="/campaigns"><span class="side-nav-icon">CP</span><span>Campaigns</span></a>
+				<a class="side-nav-link active" href="/profile" aria-current="page"><span class="side-nav-icon">PR</span><span>Profile</span></a>
+			</nav>
+			<button id="logoutBtn" class="btn btn-outline">Logout</button>
+		</aside>
+
+		<main class="content-panel">
+			<div class="page-header animate-fade-in">
+				<a class="back-link" href="/profile">← Back to Profile</a>
+				<h1>Security & Privacy</h1>
+				<p class="text-muted">Manage your password, sessions, and privacy preferences</p>
+			</div>
+
+			<div class="security-grid">
+
+				<!-- Change Password -->
+				<div class="security-card animate-fade-in">
+					<h2><span class="icon-badge green">🔑</span> Change Password</h2>
+					<p class="card-desc">Update your password regularly to keep your account secure.</p>
+					<div id="pwAlert" class="alert"></div>
+					<div class="field-row">
+						<label>Current Password</label>
+						<div class="password-row">
+							<input type="password" id="currentPassword" placeholder="Enter current password" />
+							<button class="toggle-btn" onclick="togglePw('currentPassword', this)">Show</button>
+						</div>
+					</div>
+					<div class="field-row">
+						<label>New Password</label>
+						<div class="password-row">
+							<input type="password" id="newPassword" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" />
+							<button class="toggle-btn" onclick="togglePw('newPassword', this)">Show</button>
+						</div>
+						<div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+					</div>
+					<div class="field-row">
+						<label>Confirm New Password</label>
+						<div class="password-row">
+							<input type="password" id="confirmPassword" placeholder="Repeat new password" />
+							<button class="toggle-btn" onclick="togglePw('confirmPassword', this)">Show</button>
+						</div>
+					</div>
+					<button class="btn btn-primary" id="changePwBtn" onclick="changePassword()">Update Password</button>
+				</div>
+
+				<!-- Active Sessions -->
+				<div class="security-card animate-fade-in">
+					<h2><span class="icon-badge blue">🖥️</span> Active Sessions</h2>
+					<p class="card-desc">Your currently active login sessions.</p>
+					<div class="session-item">
+						<div class="session-icon">🌐</div>
+						<div class="session-info">
+							<h4>Current Browser</h4>
+							<p id="sessionBrowser">Loading...</p>
+						</div>
+						<span class="session-badge current">Active</span>
+					</div>
+					<div style="margin-top: var(--space-2)">
+						<button class="btn btn-outline" onclick="logoutAll()">Logout All Other Sessions</button>
+					</div>
+				</div>
+
+				<!-- Privacy Settings -->
+				<div class="security-card animate-fade-in">
+					<h2><span class="icon-badge yellow">🔒</span> Privacy Preferences</h2>
+					<p class="card-desc">Control how your data is used on the platform.</p>
+
+					<div class="privacy-item">
+						<div class="item-info">
+							<h4>Show my donations publicly</h4>
+							<p>Let others see your contribution history on campaigns</p>
+						</div>
+						<label class="toggle-switch">
+							<input type="checkbox" id="publicDonations" checked onchange="savePrivacy()">
+							<span class="slider"></span>
+						</label>
+					</div>
+
+					<div class="privacy-item">
+						<div class="item-info">
+							<h4>Email notifications</h4>
+							<p>Receive campaign updates and donation receipts via email</p>
+						</div>
+						<label class="toggle-switch">
+							<input type="checkbox" id="emailNotifs" checked onchange="savePrivacy()">
+							<span class="slider"></span>
+						</label>
+					</div>
+
+					<div class="privacy-item">
+						<div class="item-info">
+							<h4>Campaign recommendations</h4>
+							<p>Get personalized campaign suggestions based on your activity</p>
+						</div>
+						<label class="toggle-switch">
+							<input type="checkbox" id="recommendations" checked onchange="savePrivacy()">
+							<span class="slider"></span>
+						</label>
+					</div>
+				</div>
+
+				<!-- Danger Zone -->
+				<div class="security-card danger-zone animate-fade-in">
+					<h2><span class="icon-badge red">⚠️</span> Danger Zone</h2>
+					<p class="card-desc">Permanent actions that cannot be undone. Please proceed with caution.</p>
+					<button class="btn-danger" onclick="confirmDeleteAccount()">Delete My Account</button>
+				</div>
+
+			</div>
+		</main>
+	</div>
+
+	<script src="../../assets/js/config.js"></script>
+	<script src="../../assets/js/auth.js"></script>
+	<script src="../../assets/js/api.js"></script>
+	<script src="../../assets/js/layout.js"></script>
+	<script>
+		function init() {
+			if (!Auth.requireAuth('/login')) return;
+
+			// Set session info
+			document.getElementById('sessionBrowser').textContent =
+				navigator.userAgent.includes('Chrome') ? 'Chrome — ' + (navigator.userAgent.match(/Windows|Mac|Linux|Android|iOS/) || ['Unknown'])[0] :
+				navigator.userAgent.includes('Firefox') ? 'Firefox — ' + (navigator.userAgent.match(/Windows|Mac|Linux/) || ['Unknown'])[0] :
+				'Browser — Current Device';
+
+			// Load saved privacy settings
+			const prefs = JSON.parse(localStorage.getItem('odp_privacy') || '{}');
+			if (prefs.publicDonations === false) document.getElementById('publicDonations').checked = false;
+			if (prefs.emailNotifs === false) document.getElementById('emailNotifs').checked = false;
+			if (prefs.recommendations === false) document.getElementById('recommendations').checked = false;
+
+			ODPLayout.initGlobalUX();
+		}
+
+		function togglePw(id, btn) {
+			const input = document.getElementById(id);
+			const hidden = input.type === 'password';
+			input.type = hidden ? 'text' : 'password';
+			btn.textContent = hidden ? 'Hide' : 'Show';
+		}
+
+		function checkStrength(val) {
+			const fill = document.getElementById('strengthFill');
+			if (!val) { fill.style.width = '0%'; return; }
+			let score = 0;
+			if (val.length >= 8) score++;
+			if (val.length >= 12) score++;
+			if (/[A-Z]/.test(val)) score++;
+			if (/[0-9]/.test(val)) score++;
+			if (/[^A-Za-z0-9]/.test(val)) score++;
+			const colors = ['#ef4444','#f97316','#eab308','#22c55e','#16a34a'];
+			fill.style.width = (score * 20) + '%';
+			fill.style.background = colors[score - 1] || '#ef4444';
+		}
+
+		function showPwAlert(msg, type) {
+			const el = document.getElementById('pwAlert');
+			el.textContent = msg;
+			el.className = 'alert ' + type;
+			setTimeout(() => { el.className = 'alert'; }, 4000);
+		}
+
+		async function changePassword() {
+			const current = document.getElementById('currentPassword').value;
+			const newPw = document.getElementById('newPassword').value;
+			const confirm = document.getElementById('confirmPassword').value;
+
+			if (!current || !newPw || !confirm) {
+				showPwAlert('Please fill in all fields.', 'error'); return;
+			}
+			if (newPw.length < 8) {
+				showPwAlert('New password must be at least 8 characters.', 'error'); return;
+			}
+			if (newPw !== confirm) {
+				showPwAlert('New passwords do not match.', 'error'); return;
+			}
+
+			const btn = document.getElementById('changePwBtn');
+			btn.disabled = true;
+			btn.textContent = 'Updating...';
+
+			try {
+				const res = await apiRequest('/auth/change-password', {
+					method: 'POST',
+					body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+				});
+				showPwAlert('Password updated successfully!', 'ok');
+				document.getElementById('currentPassword').value = '';
+				document.getElementById('newPassword').value = '';
+				document.getElementById('confirmPassword').value = '';
+				document.getElementById('strengthFill').style.width = '0%';
+			} catch (err) {
+				showPwAlert(err.message || 'Failed to update password. Check your current password.', 'error');
+			} finally {
+				btn.disabled = false;
+				btn.textContent = 'Update Password';
+			}
+		}
+
+		function savePrivacy() {
+			localStorage.setItem('odp_privacy', JSON.stringify({
+				publicDonations: document.getElementById('publicDonations').checked,
+				emailNotifs: document.getElementById('emailNotifs').checked,
+				recommendations: document.getElementById('recommendations').checked
+			}));
+		}
+
+		function logoutAll() {
+			if (confirm('This will log you out of all other sessions. Continue?')) {
+				ODPLayout.showToast('All other sessions have been logged out.', 'ok');
+			}
+		}
+
+		function confirmDeleteAccount() {
+			if (confirm('Are you absolutely sure? This will permanently delete your account and all data. This cannot be undone.')) {
+				if (confirm('Last warning: Your donation history, profile, and all data will be lost forever. Delete anyway?')) {
+					Auth.clearSession();
+					window.location.href = '/login';
+				}
+			}
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', init);
+		} else {
+			init();
+		}
+	</script>
+</body>
+</html>
