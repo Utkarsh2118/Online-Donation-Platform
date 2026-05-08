@@ -1,168 +1,278 @@
 const crypto = require('crypto');
 const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  setRefreshCookie,
+  clearRefreshCookie
+} = require('../utils/generateToken');
+const { sendEmail, emailVerificationTemplate, passwordResetTemplate } = require('../utils/sendEmail');
 const AppError = require('../utils/AppError');
 
+// ── Helpers ──────────────────────────────────────────────────────────────
 const buildUserPayload = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
   isBlocked: user.isBlocked,
+  isEmailVerified: user.isEmailVerified,
   mobileNumber: user.mobileNumber || '',
   profilePicture: user.profilePicture || ''
 });
 
+const hashToken = (raw) => crypto.createHash('sha256').update(String(raw)).digest('hex');
+
+// ── Register ─────────────────────────────────────────────────────────────
 const register = async (req, res, next) => {
   try {
+    // req.body already validated & coerced by Zod middleware
     const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return next(new AppError('Name, email, and password are required', 400));
-    }
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const existingUser = await User.findOne({ email: normalizedEmail });
+
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return next(new AppError('User already exists with this email', 409));
     }
+
+    // Generate email verification token
+    const rawVerifyToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerifyToken = hashToken(rawVerifyToken);
+
     const user = await User.create({
-      name: String(name).trim(),
-      email: normalizedEmail,
-      password: String(password)
+      name,
+      email,
+      password,
+      emailVerificationToken: hashedVerifyToken,
+      emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 h
     });
-    const token = generateToken({ id: user._id, role: user.role });
+
+    // Send verification email (non-blocking — don't fail registration if email fails)
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+    const verifyUrl = `${FRONTEND_URL}/verify-email?token=${rawVerifyToken}&email=${encodeURIComponent(email)}`;
+
+    sendEmail({
+      to: email,
+      subject: 'Verify your email — OpenDonate',
+      html: emailVerificationTemplate(name, verifyUrl)
+    }).catch(err => console.error('[sendEmail] verification email failed:', err.message));
+
     return res.status(201).json({
       success: true,
-      message: 'Registration successful',
-      data: { token, user: buildUserPayload(user) }
+      message: 'Registration successful. Please check your email to verify your account.',
+      data: { user: buildUserPayload(user) }
     });
   } catch (error) {
     return next(error);
   }
 };
 
+// ── Verify email ─────────────────────────────────────────────────────────
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { token, email } = req.body;
+    if (!token || !email) {
+      return next(new AppError('Token and email are required', 400));
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const hashed = hashToken(token);
+
+    const user = await User.findOne({
+      email: normalizedEmail,
+      emailVerificationToken: hashed,
+      emailVerificationExpires: { $gt: Date.now() }
+    }).select('+emailVerificationToken +emailVerificationExpires');
+
+    if (!user) {
+      return next(new AppError('Invalid or expired verification link. Please request a new one.', 400));
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json({ success: true, message: 'Email verified successfully. You can now log in.' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// ── Resend verification email ─────────────────────────────────────────────
+const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return next(new AppError('Email is required', 400));
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail }).select('+emailVerificationToken +emailVerificationExpires');
+
+    // Always respond the same (don't reveal if email exists)
+    if (!user || user.isEmailVerified) {
+      return res.status(200).json({ success: true, message: 'If this email exists and is unverified, a new link has been sent.' });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = hashToken(rawToken);
+    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+    const verifyUrl = `${FRONTEND_URL}/verify-email?token=${rawToken}&email=${encodeURIComponent(normalizedEmail)}`;
+
+    sendEmail({
+      to: normalizedEmail,
+      subject: 'Verify your email — OpenDonate',
+      html: emailVerificationTemplate(user.name, verifyUrl)
+    }).catch(err => console.error('[sendEmail] resend verification failed:', err.message));
+
+    return res.status(200).json({ success: true, message: 'If this email exists and is unverified, a new link has been sent.' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// ── Login ─────────────────────────────────────────────────────────────────
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return next(new AppError('Email and password are required', 400));
-    }
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-    if (!user) {
+
+    const user = await User.findOne({ email }).select('+password +refreshTokens');
+    if (!user || !(await user.comparePassword(String(password)))) {
       return next(new AppError('Invalid email or password', 401));
     }
-    const isPasswordValid = await user.comparePassword(String(password));
-    if (!isPasswordValid) {
-      return next(new AppError('Invalid email or password', 401));
-    }
+
     if (user.isBlocked) {
       return next(new AppError('Your account is blocked. Please contact support.', 403));
     }
-    const token = generateToken({ id: user._id, role: user.role });
+
+    // Issue tokens
+    const accessToken = generateAccessToken({ id: user._id, role: user.role });
+    const { raw, hashed, expiresAt } = generateRefreshToken();
+
+    // Store hashed refresh token; prune expired ones first
+    user.pruneExpiredTokens();
+    user.refreshTokens.push({ token: hashed, expiresAt });
+    await user.save({ validateBeforeSave: false });
+
+    setRefreshCookie(res, raw, expiresAt);
+
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-      data: { token, user: buildUserPayload(user) }
+      data: { accessToken, user: buildUserPayload(user) }
     });
   } catch (error) {
     return next(error);
   }
 };
 
-const forgotPassword = async (req, res, next) => {
+// ── Refresh access token ─────────────────────────────────────────────────
+const refreshToken = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return next(new AppError('Email is required', 400));
+    const raw = req.cookies?.refreshToken;
+    if (!raw) return next(new AppError('No refresh token provided', 401));
+
+    const hashed = hashToken(raw);
+    const now = new Date();
+
+    const user = await User.findOne({
+      'refreshTokens.token': hashed,
+      'refreshTokens.expiresAt': { $gt: now }
+    }).select('+refreshTokens');
+
+    if (!user) {
+      clearRefreshCookie(res);
+      return next(new AppError('Invalid or expired refresh token. Please log in again.', 401));
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    if (user.isBlocked) {
+      clearRefreshCookie(res);
+      return next(new AppError('Your account is blocked.', 403));
+    }
 
-    // Always return success (security - don't reveal if email exists)
-    if (!user) {
-      return res.status(200).json({
-        success: true,
-        message: 'If this email exists, a reset link has been sent.'
+    // Rotate: remove old token, issue new one
+    user.refreshTokens = user.refreshTokens.filter(t => t.token !== hashed);
+    const { raw: newRaw, hashed: newHashed, expiresAt } = generateRefreshToken();
+    user.pruneExpiredTokens();
+    user.refreshTokens.push({ token: newHashed, expiresAt });
+    await user.save({ validateBeforeSave: false });
+
+    const accessToken = generateAccessToken({ id: user._id, role: user.role });
+    setRefreshCookie(res, newRaw, expiresAt);
+
+    return res.status(200).json({ success: true, data: { accessToken } });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// ── Logout ────────────────────────────────────────────────────────────────
+const logout = async (req, res, next) => {
+  try {
+    const raw = req.cookies?.refreshToken;
+
+    if (raw) {
+      const hashed = hashToken(raw);
+      // Remove just this device's token
+      await User.findByIdAndUpdate(req.user?.id, {
+        $pull: { refreshTokens: { token: hashed } }
       });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    clearRefreshCookie(res);
+    return res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
 
-    user.passwordResetToken = hashedToken;
+// ── Forgot password ───────────────────────────────────────────────────────
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(200).json({ success: true, message: 'If this email exists, a reset link has been sent.' });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = hashToken(rawToken);
     user.passwordResetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
     await user.save({ validateBeforeSave: false });
 
-    // Send email via Resend
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'https://online-donation-platform-chi.vercel.app';
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${rawToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
-    const emailBody = {
-      from: process.env.FROM_EMAIL || 'OpenDonate <noreply@yourdomain.com>',
-      to: [normalizedEmail],
-      subject: 'Reset Your Password - OpenDonate',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:32px;background:#fff;border-radius:12px;border:1px solid #e5e7eb">
-          <h2 style="color:#0f766e;margin-bottom:8px">Reset Your Password</h2>
-          <p style="color:#374151">Hi ${user.name},</p>
-          <p style="color:#374151">Click the button below to reset your password. This link expires in <strong>30 minutes</strong>.</p>
-          <a href="${resetUrl}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#0f766e;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Reset Password</a>
-          <p style="color:#6b7280;font-size:13px">If you didn't request this, ignore this email. Your password won't change.</p>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/>
-          <p style="color:#9ca3af;font-size:12px">OpenDonate Platform</p>
-        </div>
-      `
-    };
-
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(emailBody)
-    });
-
-    if (!resendRes.ok) {
-      // Rollback token if email fails
+    try {
+      await sendEmail({ to: normalizedEmail, subject: 'Reset Your Password — OpenDonate', html: passwordResetTemplate(user.name, resetUrl) });
+    } catch {
       user.passwordResetToken = null;
       user.passwordResetExpires = null;
       await user.save({ validateBeforeSave: false });
       return next(new AppError('Failed to send reset email. Please try again.', 500));
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'If this email exists, a reset link has been sent.'
-    });
+    return res.status(200).json({ success: true, message: 'If this email exists, a reset link has been sent.' });
   } catch (error) {
     return next(error);
   }
 };
 
+// ── Reset password ────────────────────────────────────────────────────────
 const resetPassword = async (req, res, next) => {
   try {
     const { token, email, password } = req.body;
-
-    if (!token || !email || !password) {
-      return next(new AppError('Token, email, and new password are required', 400));
-    }
-
-    if (password.length < 8) {
-      return next(new AppError('Password must be at least 8 characters', 400));
-    }
-
     const normalizedEmail = String(email).trim().toLowerCase();
-    const hashedToken = crypto.createHash('sha256').update(String(token)).digest('hex');
+    const hashed = hashToken(token);
 
     const user = await User.findOne({
       email: normalizedEmail,
-      passwordResetToken: hashedToken,
+      passwordResetToken: hashed,
       passwordResetExpires: { $gt: Date.now() }
-    });
+    }).select('+refreshTokens');
 
     if (!user) {
       return next(new AppError('Invalid or expired reset link. Please request a new one.', 400));
@@ -171,28 +281,23 @@ const resetPassword = async (req, res, next) => {
     user.password = String(password);
     user.passwordResetToken = null;
     user.passwordResetExpires = null;
+    // Invalidate ALL refresh tokens on password change (security)
+    user.refreshTokens = [];
     await user.save();
 
-    return res.status(200).json({
-      success: true,
-      message: 'Password reset successful. You can now login.'
-    });
+    clearRefreshCookie(res);
+    return res.status(200).json({ success: true, message: 'Password reset successful. You can now log in.' });
   } catch (error) {
     return next(error);
   }
 };
 
+// ── Profile ───────────────────────────────────────────────────────────────
 const getMyProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user) {
-      return next(new AppError('User not found', 404));
-    }
-    return res.status(200).json({
-      success: true,
-      message: 'Profile fetched successfully',
-      data: { user: buildUserPayload(user) }
-    });
+    if (!user) return next(new AppError('User not found', 404));
+    return res.status(200).json({ success: true, data: { user: buildUserPayload(user) } });
   } catch (error) {
     return next(error);
   }
@@ -200,28 +305,18 @@ const getMyProfile = async (req, res, next) => {
 
 const updateMyProfile = async (req, res, next) => {
   try {
-    const updates = {};
-    if (typeof req.body.name === 'string') updates.name = req.body.name.trim();
-    if (typeof req.body.mobileNumber === 'string') updates.mobileNumber = req.body.mobileNumber.trim();
-    if (typeof req.body.profilePicture === 'string') updates.profilePicture = req.body.profilePicture.trim();
-
-    if (!Object.keys(updates).length) {
-      return next(new AppError('No valid fields provided for update', 400));
-    }
-
-    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
-    if (!user) {
-      return next(new AppError('User not found', 404));
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: { user: buildUserPayload(user) }
-    });
+    // req.body coerced by Zod — only valid keys present
+    const user = await User.findByIdAndUpdate(req.user.id, req.body, { new: true, runValidators: true });
+    if (!user) return next(new AppError('User not found', 404));
+    return res.status(200).json({ success: true, message: 'Profile updated successfully', data: { user: buildUserPayload(user) } });
   } catch (error) {
     return next(error);
   }
 };
 
-module.exports = { register, login, forgotPassword, resetPassword, getMyProfile, updateMyProfile };
+module.exports = {
+  register, verifyEmail, resendVerificationEmail,
+  login, refreshToken, logout,
+  forgotPassword, resetPassword,
+  getMyProfile, updateMyProfile
+};

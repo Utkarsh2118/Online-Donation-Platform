@@ -1,25 +1,17 @@
 const express = require('express');
-const {
-  getCampaigns,
-  getCampaignById,
-  getAllCampaignsForAdmin,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-  restoreCampaign
-} = require('../controllers/campaignController');
+const { getCampaigns, getCampaignById, getAllCampaignsForAdmin, createCampaign, updateCampaign, deleteCampaign, restoreCampaign } = require('../controllers/campaignController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireRoles } = require('../middleware/adminMiddleware');
+const { isAdmin } = require('../middleware/adminMiddleware');
+const { validate, createCampaignSchema, updateCampaignSchema } = require('../utils/validators');
 
 const router = express.Router();
 
-router.get('/', getCampaigns);
-router.get('/admin/all', protect, requireRoles('admin', 'super_admin'), getAllCampaignsForAdmin);
-router.get('/:id', getCampaignById);
-
-router.post('/', protect, requireRoles('admin', 'super_admin'), createCampaign);
-router.put('/:id', protect, requireRoles('admin', 'super_admin'), updateCampaign);
-router.delete('/:id', protect, requireRoles('admin', 'super_admin'), deleteCampaign);
-router.patch('/:id/restore', protect, requireRoles('admin', 'super_admin'), restoreCampaign);
+router.get('/',           getCampaigns);
+router.get('/:id',        getCampaignById);
+router.get('/admin/all',  protect, isAdmin, getAllCampaignsForAdmin);
+router.post('/',          protect, isAdmin, validate(createCampaignSchema), createCampaign);
+router.put('/:id',        protect, isAdmin, validate(updateCampaignSchema), updateCampaign);
+router.delete('/:id',     protect, isAdmin, deleteCampaign);
+router.post('/:id/restore', protect, isAdmin, restoreCampaign);
 
 module.exports = router;

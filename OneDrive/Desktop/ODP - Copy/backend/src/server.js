@@ -34,6 +34,7 @@ const startServer = async () => {
 
 		// Make io available throughout controllers via req.app.get('io').
 		app.set('io', io);
+		module.exports.io = io;
 
 		io.on('connection', (socket) => {
 			console.log(`Socket connected: ${socket.id}`);
@@ -69,3 +70,11 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Export io so the webhook controller can access it without going through req.app
+// (webhook handler doesn't have a req.app reference when called from inside donationController)
+let _io = null;
+module.exports = {
+  get io() { return _io; },
+  set io(instance) { _io = instance; }
+};

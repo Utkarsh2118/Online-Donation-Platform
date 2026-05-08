@@ -19,30 +19,34 @@ const donationSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['created', 'paid', 'failed'],
+      enum: ['created', 'paid', 'failed', 'refunded'],
       default: 'created'
     },
-    razorpayOrderId: {
-      type: String,
-      default: ''
-    },
-    razorpayPaymentId: {
-      type: String,
-      default: ''
-    },
-    razorpaySignature: {
-      type: String,
-      default: ''
-    }
+
+    // ── Razorpay identifiers ───────────────────────────────────────
+    razorpayOrderId:   { type: String, default: '' },
+    razorpayPaymentId: { type: String, default: '' },
+    razorpaySignature: { type: String, default: '' },
+
+    // ── Refund tracking ───────────────────────────────────────────
+    refundId:     { type: String, default: null },   // Razorpay refund ID
+    refundAmount: { type: Number, default: null },
+    refundedAt:   { type: Date,   default: null },
+    refundReason: { type: String, default: '' },
+
+    // ── Donor preferences ─────────────────────────────────────────
+    isAnonymous: { type: Boolean, default: false },
+
+    // ── Receipt ───────────────────────────────────────────────────
+    receiptSentAt: { type: Date, default: null }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 donationSchema.index({ userId: 1, createdAt: -1 });
 donationSchema.index({ campaignId: 1, createdAt: -1 });
 donationSchema.index({ paymentStatus: 1 });
 donationSchema.index({ paymentStatus: 1, createdAt: -1 });
+donationSchema.index({ razorpayOrderId: 1 }, { sparse: true });   // for fast webhook lookup
 
 module.exports = mongoose.model('Donation', donationSchema);
