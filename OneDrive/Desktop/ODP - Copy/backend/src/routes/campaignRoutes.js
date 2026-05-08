@@ -1,5 +1,14 @@
 const express = require('express');
-const { getCampaigns, getCampaignById, getAllCampaignsForAdmin, createCampaign, updateCampaign, deleteCampaign, restoreCampaign } = require('../controllers/campaignController');
+// const { getCampaigns, getCampaignById, getAllCampaignsForAdmin, createCampaign, updateCampaign, deleteCampaign, restoreCampaign } = require('../controllers/campaignController');
+const {
+  getCampaigns,
+  getCampaignById,
+  getAllCampaignsForAdmin,
+  createCampaign,
+  updateCampaign,
+  deleteCampaign,
+  restoreCampaign
+} = require('../controllers/campaignController');
 const { protect } = require('../middleware/authMiddleware');
 const { isAdmin } = require('../middleware/adminMiddleware');
 const { validate, createCampaignSchema, updateCampaignSchema } = require('../utils/validators');
